@@ -9,6 +9,22 @@ function App() {
 
   return (
     <>
+      <header className="app-header">
+        <img
+          src="/norsys_afrique_logo.jpeg"
+          alt="Norsys Afrique"
+          className="brand-logo"
+          width="154"
+          height="44"
+        />
+        <nav className="app-nav">
+          <a href="/login">Sign in</a>
+          <a href="/signup" className="nav-cta">
+            Sign up
+          </a>
+        </nav>
+      </header>
+
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
