@@ -1,9 +1,12 @@
 services:
+  # ============================================================
+  # Infrastructure partagée
+  # ============================================================
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"   # port AMQP (utilisé par les services pour publier/consommer)
+      - "5672:5672"   # port AMQP (publish/consume)
       - "15672:15672" # interface web d'administration (http://localhost:15672)
     environment:
       RABBITMQ_DEFAULT_USER: admin
@@ -47,6 +50,9 @@ services:
       postgres:
         condition: service_healthy
 
+  # ============================================================
+  # Microservices métier
+  # ============================================================
   auth-service:
     build: ./auth-service
     container_name: auth-service
@@ -57,7 +63,7 @@ services:
       DATABASE_PORT: 5432
       DATABASE_USER: admin
       DATABASE_PASSWORD: admin
-      DATABASE_NAME: appdb
+      DATABASE_NAME: auth_db
       JWT_SECRET: change_this_secret
     depends_on:
       postgres:
@@ -73,7 +79,7 @@ services:
       DATABASE_PORT: 5432
       DATABASE_USER: admin
       DATABASE_PASSWORD: admin
-      DATABASE_NAME: appdb
+      DATABASE_NAME: project_db
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,7 +94,7 @@ services:
       DATABASE_PORT: 5432
       DATABASE_USER: admin
       DATABASE_PASSWORD: admin
-      DATABASE_NAME: appdb
+      DATABASE_NAME: timesheet_db
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
       postgres:
@@ -115,13 +121,17 @@ services:
       DATABASE_PORT: 5432
       DATABASE_USER: admin
       DATABASE_PASSWORD: admin
-      DATABASE_NAME: appdb
+      DATABASE_NAME: reporting_db
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+
+  # ============================================================
+  # Passerelle et interface utilisateur
+  # ============================================================
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
@@ -140,10 +150,17 @@ services:
       - reporting-service
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     container_name: frontend
     ports:
       - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - api-gateway
 
