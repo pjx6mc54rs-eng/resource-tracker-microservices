@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,8 +7,8 @@ import { User } from '../entities/user.entity';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+      @InjectRepository(User)
+      private readonly usersRepository: Repository<User>,
   ) {}
 
   findByEmail(email: string): Promise<User | null> {
@@ -27,7 +28,6 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  // Retire systématiquement passwordHash avant de renvoyer un utilisateur au client.
   sanitize(user: User): Omit<User, 'passwordHash'> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...safe } = user;
