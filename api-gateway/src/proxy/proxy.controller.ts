@@ -1,6 +1,6 @@
 import { Controller, All, Req, Res, UseGuards, Next } from '@nestjs/common';
 import * as express from 'express';
-import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
+import { createProxyMiddleware, RequestHandler, fixRequestBody } from 'http-proxy-middleware';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('api')
@@ -15,8 +15,11 @@ export class ProxyController {
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
       onProxyReq: (proxyReq: any, req: any) => {
+        // CORRECTION : Permet de renvoyer le body JSON consommé par NestJS aux microservices
+        fixRequestBody(proxyReq, req);
+
         if (req.user) {
-          // Downstream header injection: pass authenticated user's info to microservices
+          // Injection uniforme des en-têtes sécurisés
           proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '');
           proxyReq.setHeader('x-user-role', req.user.role || '');
         }
@@ -64,15 +67,12 @@ export class ProxyController {
   }
 
   // 2. PROTECTED ROUTES
-
-  // Auth routes (excluding login/register)
   @All('auth/*')
   @UseGuards(JwtAuthGuard)
   handleAuthProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
     this.authProxy(req, res, next);
   }
 
-  // Project service routes (projects & tasks)
   @All('projects')
   @UseGuards(JwtAuthGuard)
   handleProjectsRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
@@ -97,7 +97,6 @@ export class ProxyController {
     this.projectProxy(req, res, next);
   }
 
-  // Timesheet service routes
   @All('timesheets')
   @UseGuards(JwtAuthGuard)
   handleTimesheetsRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
@@ -110,7 +109,6 @@ export class ProxyController {
     this.timesheetProxy(req, res, next);
   }
 
-  // Reporting service routes
   @All('reporting')
   @UseGuards(JwtAuthGuard)
   handleReportingRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
