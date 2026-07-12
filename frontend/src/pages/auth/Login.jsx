@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from './authApi'
 import styles from './Auth.module.css'
+import EyeOpen from "../../components/EyeOpen.jsx";
+import EyeClosed from "../../components/EyeClosed.jsx";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -50,16 +52,17 @@ function Login() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <img
-          src="/norsys_afrique_logo.jpeg"
-          alt="Norsys Afrique"
-          className={styles.logo}
-          width="360"
-          height="120"
-        />
-
-        <h1 className={styles.title}>Welcome back</h1>
-        <p className={styles.subtitle}>Sign in to your account to continue.</p>
+        <div className={styles.header}>
+          <img
+            src="/norsys_afrique_logo.png"
+            alt="Norsys Afrique"
+            className={styles.logo}
+          />
+          <div className={styles.headerText}>
+            <h1 className={styles.title}>Welcome back</h1>
+            <p className={styles.subtitle}>Sign in to your account to continue.</p>
+          </div>
+        </div>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {formError && (
@@ -78,7 +81,6 @@ function Login() {
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@company.com"
                 className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
                 value={values.email}
                 onChange={handleChange}
@@ -99,21 +101,17 @@ function Login() {
                 name="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="Enter your password"
                 className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
                 value={values.password}
                 onChange={handleChange}
                 disabled={submitting}
                 aria-invalid={!!errors.password}
               />
-              <button
-                type="button"
-                className={styles.reveal}
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
+              <div className={styles.reveal}>
+                {!showPassword ? <EyeOpen size="25px" handleClick={() => setShowPassword(true)}/> :
+                    <EyeClosed size="25px" handleClick={() => setShowPassword(false)}/> }
+              </div>
+
             </div>
             <span className={styles.fieldError}>{errors.password}</span>
           </div>
@@ -134,7 +132,7 @@ function Login() {
         </form>
 
         <p className={styles.footer}>
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account ?{' '}
           <Link className={styles.link} to="/signup">
             Sign up
           </Link>

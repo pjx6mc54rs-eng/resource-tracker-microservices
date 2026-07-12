@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from './authApi'
 import styles from './Auth.module.css'
+import EyeOpen from '../../components/EyeOpen.jsx'
+import EyeClosed from '../../components/EyeClosed.jsx'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -19,6 +21,7 @@ function SignUp() {
   const [values, setValues] = useState({ email: '', password: '', confirm: '' })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -66,16 +69,17 @@ function SignUp() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <img
-          src="/norsys_afrique_logo.jpeg"
-          alt="Norsys Afrique"
-          className={styles.logo}
-          width="360"
-          height="120"
-        />
-
-        <h1 className={styles.title}>Create your account</h1>
-        <p className={styles.subtitle}>Start tracking your team&apos;s resources.</p>
+        <div className={styles.header}>
+          <img
+            src="/norsys_afrique_logo.png"
+            alt="Norsys Afrique"
+            className={styles.logo}
+          />
+          <div className={styles.headerText}>
+            <h1 className={styles.title}>Create your account</h1>
+            <p className={styles.subtitle}>Start tracking your team&apos;s resources.</p>
+          </div>
+        </div>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {formError && (
@@ -94,7 +98,6 @@ function SignUp() {
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@company.com"
                 className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
                 value={values.email}
                 onChange={handleChange}
@@ -115,21 +118,17 @@ function SignUp() {
                 name="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
-                placeholder="At least 8 characters"
                 className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
                 value={values.password}
                 onChange={handleChange}
                 disabled={submitting}
                 aria-invalid={!!errors.password}
               />
-              <button
-                type="button"
-                className={styles.reveal}
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
+              <div className={styles.reveal}>
+                {!showPassword
+                  ? <EyeOpen size="25px" handleClick={() => setShowPassword(true)} />
+                  : <EyeClosed size="25px" handleClick={() => setShowPassword(false)} />}
+              </div>
             </div>
             {values.password && (
               <div className={styles.strength} aria-hidden="true">
@@ -152,15 +151,19 @@ function SignUp() {
               <input
                 id="confirm"
                 name="confirm"
-                type={showPassword ? 'text' : 'password'}
+                type={showConfirm ? 'text' : 'password'}
                 autoComplete="new-password"
-                placeholder="Re-enter your password"
                 className={`${styles.input} ${errors.confirm ? styles.inputError : ''}`}
                 value={values.confirm}
                 onChange={handleChange}
                 disabled={submitting}
                 aria-invalid={!!errors.confirm}
               />
+              <div className={styles.reveal}>
+                {!showConfirm
+                  ? <EyeOpen size="25px" handleClick={() => setShowConfirm(true)} />
+                  : <EyeClosed size="25px" handleClick={() => setShowConfirm(false)} />}
+              </div>
             </div>
             <span className={styles.fieldError}>{errors.confirm}</span>
           </div>
