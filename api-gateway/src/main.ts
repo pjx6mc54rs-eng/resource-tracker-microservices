@@ -10,7 +10,7 @@ async function bootstrap() {
   // Enable CORS since the React frontend will make calls to this entrypoint
   app.enableCors();
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3004;
   await app.listen(port);
   console.log(`API Gateway is running on port ${port}`);
 }

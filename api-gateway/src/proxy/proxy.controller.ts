@@ -1,6 +1,10 @@
 import { Controller, All, Req, Res, UseGuards, Next } from '@nestjs/common';
 import * as express from 'express';
+<<<<<<< Updated upstream
 import { createProxyMiddleware, RequestHandler, fixRequestBody } from 'http-proxy-middleware';
+=======
+import { createProxyMiddleware, fixRequestBody, RequestHandler } from 'http-proxy-middleware';
+>>>>>>> Stashed changes
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('api')
@@ -14,6 +18,7 @@ export class ProxyController {
     const commonOptions = {
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
+<<<<<<< Updated upstream
       onProxyReq: (proxyReq: any, req: any) => {
         // CORRECTION : Permet de renvoyer le body JSON consommé par NestJS aux microservices
         fixRequestBody(proxyReq, req);
@@ -31,27 +36,55 @@ export class ProxyController {
           error: 'Service Unavailable',
           details: err.message,
         });
+=======
+      // Nest parses JSON before this controller runs. Restore that parsed body
+      // onto the outgoing stream; otherwise the auth service waits forever for
+      // the Content-Length bytes advertised by the original request.
+      proxyTimeout: 15_000,
+      on: {
+        proxyReq: (proxyReq: any, req: any) => {
+          fixRequestBody(proxyReq, req);
+
+          if (req.user) {
+            // Downstream header injection: pass authenticated user's info to microservices
+            proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '');
+            proxyReq.setHeader('x-user-role', req.user.role || '');
+          }
+        },
+        error: (err: any, req: any, res: any) => {
+          if (!res.headersSent && !res.writableEnded) {
+            res.status(503).json({
+              statusCode: 503,
+              message: 'Service Temporarily Unavailable',
+              error: 'Service Unavailable',
+              details: err.message,
+            });
+          }
+        },
+>>>>>>> Stashed changes
       },
     };
 
     this.authProxy = createProxyMiddleware({
       ...commonOptions,
-      target: process.env.AUTH_SERVICE_URL || 'http://auth-service:3000',
+      // Compose supplies AUTH_SERVICE_URL=http://auth-service:3000 inside
+      // its network; this fallback is for running the services locally.
+      target: process.env.AUTH_SERVICE_URL || 'http://localhost:3000',
     });
 
     this.projectProxy = createProxyMiddleware({
       ...commonOptions,
-      target: process.env.PROJECT_SERVICE_URL || 'http://project-service:3000',
+      target: process.env.PROJECT_SERVICE_URL || 'http://localhost:3001',
     });
 
     this.timesheetProxy = createProxyMiddleware({
       ...commonOptions,
-      target: process.env.TIMESHEET_SERVICE_URL || 'http://timesheet-service:3000',
+      target: process.env.TIMESHEET_SERVICE_URL || 'http://localhost:3002',
     });
 
     this.reportingProxy = createProxyMiddleware({
       ...commonOptions,
-      target: process.env.REPORTING_SERVICE_URL || 'http://reporting-service:3000',
+      target: process.env.REPORTING_SERVICE_URL || 'http://localhost:3003',
     });
   }
 
