@@ -56,9 +56,10 @@ services:
   auth-service:
     build: ./auth-service
     container_name: auth-service
-    ports:
-      - "3001:3000"
+    expose:
+      - "3000"
     environment:
+      PORT: 3000
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: admin
@@ -72,9 +73,10 @@ services:
   project-service:
     build: ./project-service
     container_name: project-service
-    ports:
-      - "3002:3000"
+    expose:
+      - "3000"
     environment:
+      PORT: 3000
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: admin
@@ -87,9 +89,10 @@ services:
   timesheet-service:
     build: ./timesheet-service
     container_name: timesheet-service
-    ports:
-      - "3003:3000"
+    expose:
+      - "3000"
     environment:
+      PORT: 3000
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: admin
@@ -114,9 +117,10 @@ services:
   reporting-service:
     build: ./reporting-service
     container_name: reporting-service
-    ports:
-      - "3004:3000"
+    expose:
+      - "3000"
     environment:
+      PORT: 3000
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: admin
@@ -136,8 +140,9 @@ services:
     build: ./api-gateway
     container_name: api-gateway
     ports:
-      - "3005:3000"
+      - "3004:3000"
     environment:
+      PORT: 3000
       JWT_SECRET: change_this_secret
       AUTH_SERVICE_URL: http://auth-service:3000
       PROJECT_SERVICE_URL: http://project-service:3000
@@ -161,6 +166,9 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+      # Exposed to the browser, so use the host-mapped gateway address rather
+      # than Docker's internal service hostname.
+      - VITE_API_URL=http://localhost:3004
     depends_on:
       - api-gateway
 

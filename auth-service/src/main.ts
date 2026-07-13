@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 
 async function bootstrap() {
+<<<<<<< Updated upstream
     const app =
         await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
             transport: Transport.TCP,
@@ -13,6 +14,23 @@ async function bootstrap() {
                 port: Number(process.env.PORT) || 3001,
             },
         });
+=======
+  const app = await NestFactory.create(AppModule);
+  
+  // Enable CORS
+  app.enableCors();
+  
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+  await app.listen(process.env.PORT ?? 3000);
+}
+bootstrap();
+>>>>>>> Stashed changes
 
     app.useGlobalPipes(
         new ValidationPipe({
