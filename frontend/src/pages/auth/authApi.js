@@ -1,9 +1,10 @@
 // Base URL of the API gateway. Override with VITE_API_URL at build time.
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3004'
 
 async function request(path, { method = 'POST', body, token } = {}) {
   let res
   try {
+    console.log('[authApi] Making request to:', `${API_URL}${path}`)
     res = await fetch(`${API_URL}${path}`, {
       method,
       headers: {
@@ -12,7 +13,9 @@ async function request(path, { method = 'POST', body, token } = {}) {
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     })
-  } catch {
+    console.log('[authApi] Response status:', res.status)
+  } catch (err) {
+    console.error('[authApi] fetch error:', err)
     throw new Error('Unable to reach the server. Please try again.')
   }
 
@@ -34,19 +37,19 @@ async function request(path, { method = 'POST', body, token } = {}) {
 }
 
 export function login({ email, password }) {
-  return request('/auth/login', { body: { email, password } })
+  return request('/api/auth/login', { body: { email, password } })
 }
 
 export function register({ email, password, role }) {
-  return request('/auth/register', { body: { email, password, role } })
+  return request('/api/auth/register', { body: { email, password, role } })
 }
 
 // Récupère le profil de l'utilisateur connecté (route protégée par JWT).
 export function getMe(token) {
-  return request('/auth/me', { method: 'GET', token })
+  return request('/api/auth/me', { method: 'GET', token })
 }
 
 // Liste tous les utilisateurs — réservé aux admins (le backend vérifie le rôle).
 export function listUsers(token) {
-  return request('/auth/users', { method: 'GET', token })
+  return request('/api/auth/users', { method: 'GET', token })
 }
