@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { login } from './authApi'
+import { useAuth } from '../../context/AuthContext'
 import styles from './Auth.module.css'
 import EyeOpen from "../../components/EyeOpen.jsx";
 import EyeClosed from "../../components/EyeClosed.jsx";
@@ -8,6 +8,7 @@ import EyeClosed from "../../components/EyeClosed.jsx";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function Login() {
+  const { login } = useAuth()
   const navigate = useNavigate()
   const [values, setValues] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
@@ -37,12 +38,8 @@ function Login() {
     setSubmitting(true)
     setFormError('')
     try {
-      const data = await login(values)
-      if (data?.access_token) {
-        localStorage.setItem('access_token', data.access_token)
-        alert('Good credentials')
-      }
-      navigate('/')
+      await login(values.email, values.password)
+      navigate('/dashboard')
     } catch (err) {
       setFormError(err.message)
       setSubmitting(false)

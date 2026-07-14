@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from './authApi'
+import { useAuth } from '../../context/AuthContext'
 import styles from './Auth.module.css'
 import EyeOpen from '../../components/EyeOpen.jsx'
 import EyeClosed from '../../components/EyeClosed.jsx'
@@ -17,6 +17,7 @@ function passwordScore(pw) {
 }
 
 function SignUp() {
+  const { register } = useAuth()
   const navigate = useNavigate()
   const [values, setValues] = useState({ email: '', password: '', confirm: '' })
   const [errors, setErrors] = useState({})
@@ -55,11 +56,10 @@ function SignUp() {
     setSubmitting(true)
     setFormError('')
     try {
-      await register({ email: values.email, password: values.password })
-      navigate('/login')
+      await register(values.email, values.password)
+      navigate('/dashboard')
     } catch (err) {
       setFormError(err.message)
-    } finally {
       setSubmitting(false)
     }
   }
