@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { Project } from './project.entity';
+import { TaskAssignment } from './task-assignment.entity';
 
 export enum TaskStatus {
   TODO = 'todo',
@@ -28,4 +36,10 @@ export class Task {
   @ManyToOne(() => Project, (project) => project.tasks, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'projectId' })
   project: Project;
+
+  @OneToMany(() => TaskAssignment, (assignment) => assignment.task, {
+    cascade: true,
+    eager: true,
+  })
+  assignees: TaskAssignment[];
 }

@@ -26,7 +26,11 @@ export default function ProjectDetail() {
 
   // Task form state
   const [showTaskForm, setShowTaskForm] = useState(false)
-  const [taskFormData, setTaskFormData] = useState({ title: '', status: 'todo' })
+  const [taskFormData, setTaskFormData] = useState({
+    title: '',
+    status: 'todo',
+    assignedUserIds: [],
+  })
   const [taskFormError, setTaskFormError] = useState(null)
   const [submittingTask, setSubmittingTask] = useState(false)
 
@@ -101,11 +105,15 @@ export default function ProjectDetail() {
       setTaskFormError('Task title is required')
       return
     }
+    if (!taskFormData.assignedUserIds.length) {
+      setTaskFormError('Select at least one collaborator for this task')
+      return
+    }
 
     setSubmittingTask(true)
     try {
       await addTaskToProject(id, taskFormData, getHeaders())
-      setTaskFormData({ title: '', status: 'todo' })
+      setTaskFormData({ title: '', status: 'todo', assignedUserIds: [] })
       setShowTaskForm(false)
       await fetchProjectData()
     } catch (err) {
@@ -113,6 +121,18 @@ export default function ProjectDetail() {
     } finally {
       setSubmittingTask(false)
     }
+  }
+
+  const toggleTaskCollaborator = (userId) => {
+    setTaskFormData((prev) => {
+      const already = prev.assignedUserIds.includes(userId)
+      return {
+        ...prev,
+        assignedUserIds: already
+          ? prev.assignedUserIds.filter((id) => id !== userId)
+          : [...prev.assignedUserIds, userId],
+      }
+    })
   }
 
   const handleAssignUser = async (e) => {
@@ -175,6 +195,7 @@ export default function ProjectDetail() {
 
   const tasksList = isAdmin ? (project.tasks ?? []) : myTasks
   const teamList = isAdmin ? (project.assignments ?? []) : team
+  const assignedCollaborators = teamList.filter((a) => a.userId)
 
   return (
     <div className="project-detail">
@@ -221,7 +242,39 @@ export default function ProjectDetail() {
                   }
                   disabled={submittingTask}
                   placeholder="Task title"
+                  required
                 />
+              </div>
+              <div className="form-group">
+                <label>Collaborators * (at least one)</label>
+                {assignedCollaborators.length === 0 ? (
+                  <p className="empty-state" style={{ marginTop: '0.5rem' }}>
+                    Assign a collaborator to the project first.
+                  </p>
+                ) : (
+                  <div className="collaborator-checkboxes">
+                    {assignedCollaborators.map((assignment) => (
+                      <label
+                        key={assignment.userId}
+                        className="collaborator-checkbox"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={taskFormData.assignedUserIds.includes(
+                            assignment.userId,
+                          )}
+                          onChange={() =>
+                            toggleTaskCollaborator(assignment.userId)
+                          }
+                          disabled={submittingTask}
+                        />
+                        <span>
+                          {usersMap[assignment.userId] ?? assignment.userId}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="status">Status</label>
@@ -243,7 +296,11 @@ export default function ProjectDetail() {
               <button
                 type="submit"
                 className="btn btn-primary btn-small"
-                disabled={submittingTask}
+                disabled={
+                  submittingTask ||
+                  assignedCollaborators.length === 0 ||
+                  taskFormData.assignedUserIds.length === 0
+                }
               >
                 {submittingTask ? 'Adding...' : 'Add Task'}
               </button>
@@ -252,14 +309,26 @@ export default function ProjectDetail() {
 
           {tasksList.length > 0 ? (
             <ul className="tasks-list">
-              {tasksList.map((task) => (
-                <li key={task.id} className="task-item">
-                  <span className="task-title">{task.title}</span>
-                  <span className={`task-badge badge-${task.status || 'todo'}`}>
-                    {(task.status || 'todo').replace('_', ' ')}
-                  </span>
-                </li>
-              ))}
+              {tasksList.map((task) => {
+                const assigneeIds =
+                  task.assignees?.map((a) => a.userId) ??
+                  (task.assignedUserId ? [task.assignedUserId] : [])
+                return (
+                  <li key={task.id} className="task-item">
+                    <span className="task-title">{task.title}</span>
+                    {assigneeIds.length > 0 && (
+                      <span className="task-assignee">
+                        {assigneeIds
+                          .map((uid) => usersMap[uid] ?? 'Collaborator')
+                          .join(', ')}
+                      </span>
+                    )}
+                    <span className={`task-badge badge-${task.status || 'todo'}`}>
+                      {(task.status || 'todo').replace('_', ' ')}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           ) : (
             <p className="empty-state">No tasks created yet.</p>

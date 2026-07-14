@@ -35,9 +35,22 @@ for SERVICE in "${SERVICES[@]}"; do
     (cd "$SERVICE" && npm install)
   fi
 
+  echo "→ Migrations détectées :"
+  if ls "$SERVICE"/src/migrations/*.ts >/dev/null 2>&1; then
+    for MIGRATION_FILE in "$SERVICE"/src/migrations/*.ts; do
+      echo "   - $(basename "$MIGRATION_FILE")"
+    done
+  else
+    echo "   (aucune)"
+  fi
+
   cd "$SERVICE"
   echo "→ Exécution des migrations en attente uniquement (pas de génération)..."
   # Utiliser le binaire local (avec ts-node) — évite le téléchargement npx hors projet
+  # Inclut notamment pour project-service :
+  #   - 1783872815132-InitSchema.ts
+  #   - 1783872815133-AddTaskAssignedUserId.ts
+  #   - 1783872815134-TaskAssignmentsMultiUsers.ts
   ./node_modules/.bin/typeorm-ts-node-commonjs migration:run -d src/data-source.ts
   echo "✅ $SERVICE : migrations à jour"
   echo ""
@@ -49,3 +62,8 @@ docker exec postgres psql -U admin -d auth_db -c "\dt"
 docker exec postgres psql -U admin -d project_db -c "\dt"
 docker exec postgres psql -U admin -d timesheet_db -c "\dt"
 docker exec postgres psql -U admin -d reporting_db -c "\dt"
+
+echo ""
+echo "=== Vérification project_db (tâches ↔ collaborateurs) ==="
+docker exec postgres psql -U admin -d project_db -c "\d task_assignments"
+docker exec postgres psql -U admin -d project_db -c "SELECT id, timestamp, name FROM migrations ORDER BY id;"
