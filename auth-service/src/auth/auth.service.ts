@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 const SALT_ROUNDS = 10;
 
@@ -23,7 +24,13 @@ export class AuthService {
     const user = await this.usersService.create({
       passwordHash: password_hash,
       email: dto.email,
-      role: dto.role
+      role: dto.role,
+      firstName: dto.firstName ?? null,
+      lastName: dto.lastName ?? null,
+      phone: dto.phone ?? null,
+      jobTitle: dto.jobTitle ?? null,
+      bio: dto.bio ?? null,
+      avatarUrl: dto.avatarUrl ?? null,
     });
     return this.usersService.sanitize(user);
   }
@@ -47,5 +54,23 @@ export class AuthService {
       throw new UnauthorizedException();
     }
     return this.usersService.sanitize(user);
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const updated = await this.usersService.update(userId, {
+      ...(dto.firstName !== undefined && { firstName: dto.firstName }),
+      ...(dto.lastName !== undefined && { lastName: dto.lastName }),
+      ...(dto.phone !== undefined && { phone: dto.phone }),
+      ...(dto.jobTitle !== undefined && { jobTitle: dto.jobTitle }),
+      ...(dto.bio !== undefined && { bio: dto.bio }),
+      ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
+    });
+
+    return this.usersService.sanitize(updated);
   }
 }
