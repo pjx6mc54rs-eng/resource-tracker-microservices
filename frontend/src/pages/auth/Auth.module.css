@@ -542,3 +542,96 @@ body {
 :global([data-theme='dark']) .logoDark {
   display: block;
 }
+
+/*==================================================
+  FORM GRID & FILE INPUT LAYOUT
+==================================================*/
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 40px !important;
+  cursor: pointer;
+}
+
+[data-theme='dark'] .select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.fileInputLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 50px;
+  background: #ffffff;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  box-sizing: border-box;
+}
+
+.fileInputLabel:hover {
+  border-color: var(--primary);
+  background: var(--primary-glow);
+  color: var(--primary-hover);
+}
+
+[data-theme='dark'] .fileInputLabel {
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='dark'] .fileInputLabel:hover {
+  background: rgba(92, 144, 50, 0.15);
+  border-color: var(--primary);
+  color: #f8fafc;
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.avatarPreview {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--primary);
+}
+
+@media (max-width: 600px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .fullWidth {
+    grid-column: span 1;
+  }
+}

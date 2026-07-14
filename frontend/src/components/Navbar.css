@@ -511,3 +511,30 @@
   opacity: 0;
   visibility: hidden;
 }
+
+/* Rounded profile picture styles */
+.navbar-profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  transition: var(--transition);
+}
+
+.profile-btn:hover .navbar-profile-avatar {
+  border-color: var(--primary-hover);
+}
+
+.profile-btn {
+  padding: 0px;
+}
+
+.dropdown-logout-btn {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}

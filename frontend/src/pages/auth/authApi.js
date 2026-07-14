@@ -40,8 +40,25 @@ export function login({ email, password }) {
   return request('/api/auth/login', { body: { email, password } })
 }
 
-export function register({ email, password, role }) {
-  return request('/api/auth/register', { body: { email, password, role } })
+export function register(formData) {
+  return fetch(`${API_URL}/api/auth/register`, {
+    method: 'POST',
+    body: formData,
+  }).then(async (res) => {
+    let data = null
+    try {
+      data = await res.json()
+    } catch {
+      // ignore
+    }
+    if (!res.ok) {
+      const message = Array.isArray(data?.message)
+        ? data.message.join(', ')
+        : (data?.message ?? `Request failed (${res.status})`)
+      throw new Error(message)
+    }
+    return data
+  })
 }
 
 // Récupère le profil de l'utilisateur connecté (route protégée par JWT).

@@ -111,27 +111,45 @@
 
   .sidebar-user {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-user-header {
+    display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1.5rem;
-    border-top: 1px solid var(--border);
-    margin-top: auto; /* Push user block to the bottom of the sidebar */
+    gap: 0.75rem;
+    width: 100%;
   }
 
-  .sidebar-user-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    flex: 1;
-  }
-
-  .sidebar-user-email {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 500;
+  .sidebar-user-name {
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 600;
     word-break: break-all;
+  }
+
+  .sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+  }
+
+  .sidebar-user-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
   }
 
   .sidebar-user-role {
@@ -236,7 +254,8 @@
   display: none;
 }
 
-.sidebar-theme-toggle-btn-link {
+.sidebar-theme-toggle-btn-link,
+.sidebar-logout-btn-link {
   background: none;
   border: none;
   width: 100%;

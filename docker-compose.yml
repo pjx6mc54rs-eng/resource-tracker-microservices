@@ -69,6 +69,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ./auth-service/uploads:/app/uploads
 
   project-service:
     build: ./project-service
