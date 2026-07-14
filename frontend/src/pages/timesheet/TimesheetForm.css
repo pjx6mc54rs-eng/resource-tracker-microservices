@@ -54,8 +54,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: #5c9032;
+  box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.15);
 }
 
 .form-group input:disabled {
@@ -90,16 +90,16 @@
 }
 
 .btn-primary {
-  background-color: #3498db;
+  background-color: #5c9032;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #2980b9;
+  background-color: #4a7527;
 }
 
 .btn-primary:disabled {
-  background-color: #95a5a6;
+  background-color: #94a3b8;
   cursor: not-allowed;
 }
 
@@ -131,4 +131,53 @@
 
 .timesheets-table tbody tr:hover {
   background-color: #f8f9fa;
+}
+
+/* Dark theme overrides for TimesheetForm */
+:root[data-theme='dark'] .timesheet-form-section,
+:root[data-theme='dark'] .timesheet-history-section {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme='dark'] .timesheet-form-section h1,
+:root[data-theme='dark'] .timesheet-history-section h2,
+:root[data-theme='dark'] .form-group label,
+:root[data-theme='dark'] .timesheets-table th {
+  color: #f8fafc;
+}
+
+:root[data-theme='dark'] .form-group input {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+:root[data-theme='dark'] .form-group input:focus {
+  border-color: #5c9032;
+  box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.25);
+}
+
+:root[data-theme='dark'] .form-group input:disabled {
+  background-color: #1e293b;
+  color: #64748b;
+}
+
+:root[data-theme='dark'] .timesheets-table thead {
+  background-color: #0f172a;
+}
+
+:root[data-theme='dark'] .timesheets-table th,
+:root[data-theme='dark'] .timesheets-table td {
+  border-bottom-color: #334155;
+  color: #cbd5e1;
+}
+
+:root[data-theme='dark'] .timesheets-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+:root[data-theme='dark'] .timesheet-history-section p {
+  color: #94a3b8;
 }
