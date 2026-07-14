@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
@@ -33,6 +34,12 @@ export class AuthController {
   @Get('me')
   me(@Req() req: AuthenticatedRequest) {
     return this.authService.getProfile(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  updateMe(@Req() req: AuthenticatedRequest, @Body() dto: UpdateProfileDto) {
+    return this.authService.updateProfile(req.user.userId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
