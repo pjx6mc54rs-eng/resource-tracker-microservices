@@ -44,7 +44,14 @@ export class AuthService {
     if (!passwordMatches) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = {
+      sub: user.id,
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
     return { access_token: this.jwtService.sign(payload) };
   }
 
