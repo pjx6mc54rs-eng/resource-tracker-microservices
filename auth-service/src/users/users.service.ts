@@ -31,6 +31,8 @@ export class UsersService implements OnModuleInit {
         email: adminEmail,
         passwordHash,
         role: UserRole.ADMIN,
+        firstName: 'Admin',
+        lastName: 'System',
       });
       console.log(`✅ Default admin user created: ${adminEmail}`);
     }
@@ -51,6 +53,15 @@ export class UsersService implements OnModuleInit {
   create(data: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(data);
     return this.usersRepository.save(user);
+  }
+
+  async update(id: string, data: Partial<User>): Promise<User> {
+    await this.usersRepository.update(id, data);
+    const user = await this.findById(id);
+    if (!user) {
+      throw new Error(`User ${id} not found after update`);
+    }
+    return user;
   }
 
   sanitize(user: User): Omit<User, 'passwordHash'> {

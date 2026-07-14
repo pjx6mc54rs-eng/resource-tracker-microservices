@@ -1,25 +1,11 @@
 import {
-  IsEmail,
-  IsEnum,
   IsOptional,
   IsString,
   IsUrl,
   MaxLength,
-  MinLength,
 } from 'class-validator';
-import { UserRole } from '../../entities/user.entity';
 
-export class RegisterDto {
-  @IsEmail()
-  email: string;
-
-  @MinLength(8)
-  password: string;
-
-  @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
-
+export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
