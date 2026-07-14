@@ -3,12 +3,14 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from '../entities/project.entity';
 import { Task } from '../entities/task.entity';
 import { Assignment } from '../entities/assignment.entity';
+import { TaskAssignment } from '../entities/task-assignment.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 
@@ -19,6 +21,8 @@ export class ProjectsService {
     @InjectRepository(Task) private readonly taskRepo: Repository<Task>,
     @InjectRepository(Assignment)
     private readonly assignmentRepo: Repository<Assignment>,
+    @InjectRepository(TaskAssignment)
+    private readonly taskAssignmentRepo: Repository<TaskAssignment>,
   ) {}
 
   // ── Admin ──────────────────────────────────────────────────────────────
@@ -30,7 +34,32 @@ export class ProjectsService {
 
   async createTask(projectId: string, data: CreateTaskDto): Promise<Task> {
     await this.assertProjectExists(projectId);
-    const task = this.taskRepo.create({ ...data, projectId });
+
+    if (!data.assignedUserIds?.length) {
+      throw new BadRequestException(
+        'Au moins un collaborateur doit être associé à la tâche',
+      );
+    }
+
+    const uniqueIds = [...new Set(data.assignedUserIds)];
+    for (const userId of uniqueIds) {
+      const onProject = await this.isUserAssigned(projectId, userId);
+      if (!onProject) {
+        throw new ForbiddenException(
+          `Le collaborateur ${userId} doit d'abord être assigné au projet.`,
+        );
+      }
+    }
+
+    const task = this.taskRepo.create({
+      title: data.title,
+      status: data.status,
+      projectId,
+      assignees: uniqueIds.map((userId) =>
+        this.taskAssignmentRepo.create({ userId }),
+      ),
+    });
+
     return this.taskRepo.save(task);
   }
 
@@ -50,7 +79,7 @@ export class ProjectsService {
 
   async findAllProjects(): Promise<Project[]> {
     return this.projectRepo.find({
-      relations: ['tasks', 'assignments'],
+      relations: ['tasks', 'tasks.assignees', 'assignments'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -58,7 +87,7 @@ export class ProjectsService {
   async findProjectById(projectId: string): Promise<Project> {
     const project = await this.projectRepo.findOne({
       where: { id: projectId },
-      relations: ['tasks', 'assignments'],
+      relations: ['tasks', 'tasks.assignees', 'assignments'],
     });
     if (!project) {
       throw new NotFoundException('Projet introuvable');
@@ -69,7 +98,7 @@ export class ProjectsService {
   // ── Collaborateur ──────────────────────────────────────────────────────
 
   async findProjectsByWorker(userId: string): Promise<Project[]> {
-    return this.projectRepo
+    const projects = await this.projectRepo
       .createQueryBuilder('project')
       .innerJoin(
         'project.assignments',
@@ -77,10 +106,14 @@ export class ProjectsService {
         'assignment.userId = :userId',
         { userId },
       )
-      .leftJoinAndSelect('project.tasks', 'task')
       .leftJoinAndSelect('project.assignments', 'all_assignments')
       .orderBy('project.createdAt', 'DESC')
       .getMany();
+
+    for (const project of projects) {
+      project.tasks = await this.findTasksByProject(project.id, userId);
+    }
+    return projects;
   }
 
   async findProjectDetailsForWorker(
@@ -95,7 +128,6 @@ export class ProjectsService {
         'assignment.userId = :userId',
         { userId },
       )
-      .leftJoinAndSelect('project.tasks', 'task')
       .leftJoinAndSelect('project.assignments', 'all_assignments')
       .where('project.id = :projectId', { projectId })
       .getOne();
@@ -106,14 +138,30 @@ export class ProjectsService {
       );
     }
 
+    project.tasks = await this.findTasksByProject(projectId, userId);
     return project;
   }
 
   async findTasksByProject(
     projectId: string,
-    _userId?: string,
+    userId?: string,
   ): Promise<Task[]> {
-    return this.taskRepo.find({ where: { projectId } });
+    const qb = this.taskRepo
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignees', 'assignees')
+      .where('task.projectId = :projectId', { projectId })
+      .orderBy('task.title', 'ASC');
+
+    if (userId) {
+      qb.innerJoin(
+        'task.assignees',
+        'filter_assignee',
+        'filter_assignee.userId = :userId',
+        { userId },
+      );
+    }
+
+    return qb.getMany();
   }
 
   async findTeamMembers(projectId: string): Promise<Assignment[]> {
