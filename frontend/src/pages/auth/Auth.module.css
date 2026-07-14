@@ -63,6 +63,7 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   box-sizing: border-box;
+  transition: background-image 0.5s ease;
 }
 
 /*==================================================
@@ -292,7 +293,7 @@ body {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: var(--primary);
+  color: #000000;
   background: none;
   border: none;
   padding: 0;
@@ -302,7 +303,7 @@ body {
 }
 
 .reveal:hover {
-  color: var(--primary-hover);
+  opacity: 0.7;
 }
 
 /*==================================================
@@ -472,4 +473,72 @@ body {
   .form {
     gap: 16px;
   }
+}
+
+/*==================================================
+  DARK MODE OVERRIDES
+==================================================*/
+[data-theme='dark'] .page {
+  background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url('/norsys-bg.jpg');
+}
+
+[data-theme='dark'] .card {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .title {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .subtitle {
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .label {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .input {
+  background-color: rgba(15, 23, 42, 0.6);
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .input:focus {
+  border-color: #5c9032;
+  box-shadow: 0 0 0 4px rgba(92, 144, 50, 0.35);
+}
+
+[data-theme='dark'] .checkbox {
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .footer {
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .logo {
+  filter: drop-shadow(0px 0px 10px rgba(255, 255, 255, 0.15));
+}
+
+[data-theme='dark'] .reveal {
+  color: #ffffff;
+}
+
+.logoLight {
+  display: block;
+}
+
+.logoDark {
+  display: none;
+}
+
+:global([data-theme='dark']) .logoLight {
+  display: none;
+}
+
+:global([data-theme='dark']) .logoDark {
+  display: block;
 }
