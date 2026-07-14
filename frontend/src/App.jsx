@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { PrivateRoute } from './components/PrivateRoute'
 import { AdminRoute } from './components/AdminRoute'
@@ -14,6 +14,7 @@ import './App.css'
 
 function App() {
   const { token, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return (
@@ -23,14 +24,22 @@ function App() {
     )
   }
 
+  const showNavbar = token && location.pathname !== '/login' && location.pathname !== '/signup'
+
   return (
     <>
-      {token && <Navbar />}
+      {showNavbar && <Navbar />}
       <div className="app-content">
         <Routes>
           {/* Auth routes (public) */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route
+            path="/login"
+            element={token ? <Navigate to="/dashboard" replace /> : <Login />}
+          />
+          <Route
+            path="/signup"
+            element={token ? <Navigate to="/dashboard" replace /> : <SignUp />}
+          />
 
           {/* Protected routes */}
           <Route
