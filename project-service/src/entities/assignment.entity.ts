@@ -1,7 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  Unique,
+} from 'typeorm';
 import { Project } from './project.entity';
 
 @Entity('assignments')
+@Unique('IDX_assignments_project_user', ['projectId', 'userId'])
 export class Assignment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
