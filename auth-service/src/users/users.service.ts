@@ -1,15 +1,40 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
+import { User, UserRole } from '../entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
   constructor(
       @InjectRepository(User)
       private readonly usersRepository: Repository<User>,
   ) {}
+
+  async onModuleInit() {
+    await this.seedAdminUser();
+  }
+
+  async seedAdminUser() {
+    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.com';
+    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin';
+
+    // Check if any admin exists in the database
+    const adminCount = await this.usersRepository.count({
+      where: { role: UserRole.ADMIN },
+    });
+
+    if (adminCount === 0) {
+      const passwordHash = await bcrypt.hash(adminPassword, 10);
+      await this.create({
+        email: adminEmail,
+        passwordHash,
+        role: UserRole.ADMIN,
+      });
+      console.log(`✅ Default admin user created: ${adminEmail}`);
+    }
+  }
 
   findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 // @ts-ignore
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
@@ -26,26 +25,6 @@ import { AuthModule } from './auth/auth.module';
       synchronize: false,    // Source de vérité via les migrations/init SQL
     }),
 
-<<<<<<< Updated upstream
-    ClientsModule.register([
-      {
-        name: 'RABBITMQ_SERVICE',
-        transport: Transport.RMQ,
-        options: {
-          urls: [
-            process.env.RABBITMQ_URL ||
-            'amqp://guest:guest@rabbitmq:5672',
-          ],
-          queue: 'notifications',
-          queueOptions: {
-            durable: true,
-          },
-        },
-      },
-    ]),
-
-=======
->>>>>>> Stashed changes
     UsersModule,
     AuthModule,
   ],
