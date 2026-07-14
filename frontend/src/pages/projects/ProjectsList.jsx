@@ -16,11 +16,17 @@ export default function ProjectsList() {
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
+  const getHeaders = () => ({
+    'Authorization': `Bearer ${token}`,
+    'user-role': user?.role,
+    'user-id': user?.id,
+  })
+
   const fetchProjects = async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await getProjects(token)
+      const data = await getProjects(getHeaders())
       setProjects(Array.isArray(data) ? data : [])
     } catch (err) {
       setError(err.message)
@@ -30,7 +36,9 @@ export default function ProjectsList() {
   }
 
   useEffect(() => {
-    fetchProjects()
+    if (token) {
+      fetchProjects()
+    }
   }, [token])
 
   const handleInputChange = (e) => {
@@ -49,7 +57,7 @@ export default function ProjectsList() {
 
     setSubmitting(true)
     try {
-      await createProject(formData, token)
+      await createProject(formData, getHeaders())
       setFormData({ name: '', description: '' })
       setShowForm(false)
       await fetchProjects()

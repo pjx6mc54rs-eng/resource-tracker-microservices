@@ -1,13 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3004'
 
-async function request(path, { method = 'GET', body, token } = {}) {
+async function request(path, { method = 'GET', body, headers = {} } = {}) {
   let res
   try {
     res = await fetch(`${API_URL}${path}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     })
@@ -33,22 +33,31 @@ async function request(path, { method = 'GET', body, token } = {}) {
   return data
 }
 
-export function getProjects(token) {
-  return request('/api/projects', { token })
+export function getProjects(headers) {
+  return request('/api/projects', { headers })
 }
 
-export function createProject(data, token) {
-  return request('/api/projects', { method: 'POST', body: data, token })
+export function createProject(body, headers) {
+  return request('/api/projects', { method: 'POST', body, headers })
 }
 
-export function getProjectDetail(id, token) {
-  return request(`/api/projects/${id}`, { token })
+export function addTaskToProject(projectId, body, headers) {
+  return request(`/api/projects/${projectId}/tasks`, { method: 'POST', body, headers })
 }
 
-export function addTaskToProject(projectId, data, token) {
-  return request(`/api/projects/${projectId}/tasks`, { method: 'POST', body: data, token })
+export function assignUserToProject(projectId, body, headers) {
+  return request(`/api/projects/${projectId}/assign`, { method: 'POST', body, headers })
 }
 
-export function assignUserToProject(projectId, data, token) {
-  return request(`/api/projects/${projectId}/assignments`, { method: 'POST', body: data, token })
+export function getProjectDetail(projectId, headers) {
+  return request(`/api/projects/${projectId}`, { headers })
 }
+
+export function getMyTasks(projectId, headers) {
+  return request(`/api/projects/${projectId}/my-tasks`, { headers })
+}
+
+export function getProjectTeam(projectId, headers) {
+  return request(`/api/projects/${projectId}/team`, { headers })
+}
+
