@@ -53,7 +53,12 @@ function Login() {
           <img
             src="/norsys_afrique_logo.png"
             alt="Norsys Afrique"
-            className={styles.logo}
+            className={`${styles.logo} ${styles.logoLight}`}
+          />
+          <img
+            src="/norsys_afrique_logo_dark.png"
+            alt="Norsys Afrique"
+            className={`${styles.logo} ${styles.logoDark}`}
           />
           <div className={styles.headerText}>
             <h1 className={styles.title}>Welcome back</h1>

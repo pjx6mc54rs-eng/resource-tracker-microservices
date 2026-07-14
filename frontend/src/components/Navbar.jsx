@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import LogoutIcon from './LogoutIcon'
+import ProfileIcon from './ProfileIcon'
+import NotificationIcon from './NotificationIcon'
+import SunIcon from './SunIcon'
+import MoonIcon from './MoonIcon'
 import './Navbar.css'
 
-export default function Navbar() {
+export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
   const { user, logout } = useAuth()
 
   const handleLogout = () => {
@@ -13,24 +18,98 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/dashboard" className="navbar-brand">
+        <Link to="/dashboard" className="navbar-logo-link">
+          <img 
+            src="/norsys_afrique_logo.png" 
+            alt="Norsys Afrique Logo" 
+            className="navbar-logo logo-light"
+          />
+          <img 
+            src="/norsys_afrique_logo_dark.png" 
+            alt="Norsys Afrique Logo" 
+            className="navbar-logo logo-dark"
+          />
+        </Link>
+
+        <Link to="/dashboard" className="navbar-brand-text">
           Resource Tracker
         </Link>
         
-        <div className="navbar-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/projects">Projects</Link>
-          <Link to="/timesheet">Timesheet</Link>
-          {user?.role === 'admin' && <Link to="/users">Users</Link>}
-        </div>
-
         <div className="navbar-user">
-          <span className="user-email">{user?.email}</span>
-          <span className="user-role">{user?.role}</span>
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
+          <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme" data-tooltip={theme === 'light' ? 'Dark Mode' : 'Light Mode'}>
+            {theme === 'light' ? <MoonIcon size="20px" /> : <SunIcon size="20px" />}
+          </button>
+
+          <div className="notification-dropdown-container">
+            <button className="notification-btn" aria-label="Notifications" data-tooltip="Notifications">
+              <NotificationIcon size="22px" />
+              <span className="notification-badge-dot"></span>
+            </button>
+            <div className="notification-dropdown">
+              <div className="notification-header">
+                <h3>Notifications</h3>
+                <span className="notification-count">3 new</span>
+              </div>
+              <div className="dropdown-divider"></div>
+              <div className="notification-list">
+                <div className="notification-item">
+                  <div className="notification-item-dot"></div>
+                  <div className="notification-item-content">
+                    <p className="notification-text">New project assigned: <strong>Website Redesign</strong></p>
+                    <span className="notification-time">2 hours ago</span>
+                  </div>
+                </div>
+                <div className="notification-item">
+                  <div className="notification-item-dot"></div>
+                  <div className="notification-item-content">
+                    <p className="notification-text">Timesheet approved by admin</p>
+                    <span className="notification-time">5 hours ago</span>
+                  </div>
+                </div>
+                <div className="notification-item">
+                  <div className="notification-item-dot"></div>
+                  <div className="notification-item-content">
+                    <p className="notification-text">Welcome to <strong>Resource Tracker</strong>!</p>
+                    <span className="notification-time">1 day ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="profile-dropdown-container">
+            <button className="profile-btn" aria-label="Profile menu" data-tooltip="Profile Menu">
+              <ProfileIcon size="22px" />
+            </button>
+            <div className="profile-dropdown">
+              <div className="dropdown-user-info">
+                <span className="dropdown-email">{user?.email}</span>
+                <span className="dropdown-role">{user?.role}</span>
+              </div>
+              <div className="dropdown-divider"></div>
+              <nav className="dropdown-nav">
+                <Link to="/profile" className="dropdown-link">
+                  <span className="dropdown-link-icon">👤</span>
+                  Profile
+                </Link>
+                <Link to="/change-password" className="dropdown-link">
+                  <span className="dropdown-link-icon">🔑</span>
+                  Change Password
+                </Link>
+              </nav>
+            </div>
+          </div>
+          
+          <button onClick={handleLogout} className="logout-btn-icon" data-tooltip="Logout" aria-label="Logout">
+            <LogoutIcon size="20px" />
           </button>
         </div>
+
+        <button className="navbar-toggle" onClick={toggleSidebar} aria-label="Toggle navigation">
+          <span className="hamburger-bar"></span>
+          <span className="hamburger-bar"></span>
+          <span className="hamburger-bar"></span>
+        </button>
       </div>
     </nav>
   )

@@ -1,0 +1,257 @@
+:root {
+  /* Premium Light Glassmorphism Card styling */
+  --surface: rgba(255, 255, 255, 0.88);
+  --backdrop-blur: blur(16px);
+
+  /* Norsys branding colors (Green theme) */
+  --primary: #5c9032; /* Rich corporate green */
+  --primary-hover: #4a7527; /* Darker green for hover */
+  --primary-gradient: linear-gradient(135deg, #7cb342, #5c9032); /* Vibrant green gradient */
+
+  /* Clean Slate Typography (High Contrast) */
+  --text: #0f172a;
+  --text-secondary: #475569;
+
+  /* Borders & Shadows */
+  --border: rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --font: "Inter", system-ui, sans-serif;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  background: var(--surface);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-right: 1px solid var(--border);
+  min-height: calc(100vh - 65px);
+  padding: 1.5rem 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  font-family: var(--font);
+  transition: var(--transition);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.25rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  transition: var(--transition);
+  margin: 0.25rem 1rem;
+  box-sizing: border-box;
+}
+
+.sidebar-link:hover {
+  color: var(--primary);
+  background-color: rgba(92, 144, 50, 0.04);
+}
+
+.sidebar-link.active {
+  color: var(--primary);
+  background-color: rgba(92, 144, 50, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(92, 144, 50, 0.1);
+}
+
+.sidebar-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.sidebar-link:hover .sidebar-icon,
+.sidebar-link.active .sidebar-icon {
+  transform: scale(1.1);
+}
+
+.sidebar-label {
+  transition: color var(--transition);
+}
+
+.sidebar-header {
+  display: none;
+}
+
+/* User section inside sidebar - hidden on desktop */
+.sidebar-user {
+  display: none;
+}
+
+/* Mobile responsive styling */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 65px;
+    left: -260px;
+    height: calc(100vh - 65px);
+    min-height: calc(100vh - 65px);
+    z-index: 999;
+    box-shadow: 10px 0 30px rgba(15, 23, 42, 0.05);
+    background: #ffffff; /* solid background on mobile overlay for better contrast */
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-user {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    margin-top: auto; /* Push user block to the bottom of the sidebar */
+  }
+
+  .sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .sidebar-user-email {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    word-break: break-all;
+  }
+
+  .sidebar-user-role {
+    align-self: flex-start;
+    background-color: rgba(92, 144, 50, 0.08);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(92, 144, 50, 0.15);
+  }
+
+  .logout-btn-icon {
+    background: none;
+    border: none;
+    color: #0f172a;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .logout-btn-icon:hover {
+    background-color: rgba(15, 23, 42, 0.06);
+    color: #000000;
+    transform: scale(1.08);
+  }
+
+  .logout-btn-icon:active {
+    transform: scale(0.95);
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-brand-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Dark theme overrides */
+:root[data-theme='dark'] {
+  --surface: rgba(15, 23, 42, 0.88);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f8fafc;
+  --text-secondary: #94a3b8;
+}
+
+[data-theme='dark'] .sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme='dark'] .sidebar-link.active {
+  background-color: rgba(92, 144, 50, 0.15);
+}
+
+[data-theme='dark'] .logout-btn-icon {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .logout-btn-icon:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  [data-theme='dark'] .sidebar {
+    background: #0f172a;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Sidebar Logout Tooltip positioning */
+.sidebar-user [data-tooltip]::before {
+  top: auto;
+  bottom: 100%;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+.sidebar-user [data-tooltip]:hover::before {
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* Mobile-only sub navigation inside Sidebar nav */
+.sidebar-mobile-only-nav {
+  display: none;
+}
+
+.sidebar-theme-toggle-btn-link {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .sidebar-mobile-only-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+}
