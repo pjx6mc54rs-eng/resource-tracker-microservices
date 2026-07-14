@@ -1,4 +1,8 @@
-import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join, extname } from 'path';
+import { randomUUID } from 'crypto';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
@@ -21,8 +25,28 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  @UseInterceptors(FileInterceptor('avatar'))
+  async register(
+    @Body() dto: RegisterDto,
+    @UploadedFile() file?: any,
+  ) {
+    let avatarUrl: string | undefined = undefined;
+    if (file) {
+      const uploadDir = join(process.cwd(), 'uploads');
+      if (!existsSync(uploadDir)) {
+        mkdirSync(uploadDir, { recursive: true });
+      }
+      const fileExt = extname(file.originalname);
+      const fileName = `${randomUUID()}${fileExt}`;
+      const filePath = join(uploadDir, fileName);
+      writeFileSync(filePath, file.buffer);
+      avatarUrl = `/api/auth/uploads/${fileName}`;
+    }
+
+    return this.authService.register({
+      ...dto,
+      ...(avatarUrl && { avatarUrl }),
+    });
   }
 
   @Post('login')

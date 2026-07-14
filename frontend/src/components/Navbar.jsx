@@ -7,6 +7,8 @@ import SunIcon from './SunIcon'
 import MoonIcon from './MoonIcon'
 import './Navbar.css'
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3004'
+
 export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
   const { user, logout } = useAuth()
 
@@ -79,11 +81,23 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
 
           <div className="profile-dropdown-container">
             <button className="profile-btn" aria-label="Profile menu" data-tooltip="Profile Menu">
-              <ProfileIcon size="22px" />
+              {user?.avatarUrl ? (
+                <img
+                  src={`${API_URL}${user.avatarUrl}`}
+                  alt="Profile"
+                  className="navbar-profile-avatar"
+                />
+              ) : (
+                <ProfileIcon size="72px" />
+              )}
             </button>
             <div className="profile-dropdown">
               <div className="dropdown-user-info">
-                <span className="dropdown-email">{user?.email}</span>
+                <span className="dropdown-email">
+                  {user?.firstName || user?.lastName
+                    ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                    : user?.email}
+                </span>
                 <span className="dropdown-role">{user?.role}</span>
               </div>
               <div className="dropdown-divider"></div>
@@ -96,13 +110,14 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
                   <span className="dropdown-link-icon">🔑</span>
                   Change Password
                 </Link>
+                <div className="dropdown-divider"></div>
+                <button onClick={handleLogout} className="dropdown-link dropdown-logout-btn">
+                  <span className="dropdown-link-icon"><LogoutIcon size="16px" /></span>
+                  Logout
+                </button>
               </nav>
             </div>
           </div>
-          
-          <button onClick={handleLogout} className="logout-btn-icon" data-tooltip="Logout" aria-label="Logout">
-            <LogoutIcon size="20px" />
-          </button>
         </div>
 
         <button className="navbar-toggle" onClick={toggleSidebar} aria-label="Toggle navigation">

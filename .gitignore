@@ -39,3 +39,7 @@ coverage/
 # Frontend (Vite)
 frontend/dist/
 frontend/.vite/
+
+# Uploaded assets
+auth-service/uploads/
+**/uploads/

@@ -109,19 +109,21 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const register = useCallback(async (email, password) => {
+  const register = useCallback(async (formData) => {
     dispatch({ type: 'LOGIN_START' })
     try {
       const regResponse = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: formData,
       })
 
       if (!regResponse.ok) {
         const data = await regResponse.json().catch(() => ({}))
         throw new Error(data.message || 'Registration failed')
       }
+
+      const email = formData.get('email')
+      const password = formData.get('password')
 
       // Automatically log in after registration
       const response = await fetch(`${API_URL}/api/auth/login`, {
