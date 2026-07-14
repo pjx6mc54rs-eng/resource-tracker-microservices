@@ -1,10 +1,6 @@
 import { Controller, All, Req, Res, UseGuards, Next } from '@nestjs/common';
 import * as express from 'express';
-<<<<<<< Updated upstream
-import { createProxyMiddleware, RequestHandler, fixRequestBody } from 'http-proxy-middleware';
-=======
 import { createProxyMiddleware, fixRequestBody, RequestHandler } from 'http-proxy-middleware';
->>>>>>> Stashed changes
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('api')
@@ -18,25 +14,6 @@ export class ProxyController {
     const commonOptions = {
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
-<<<<<<< Updated upstream
-      onProxyReq: (proxyReq: any, req: any) => {
-        // CORRECTION : Permet de renvoyer le body JSON consommé par NestJS aux microservices
-        fixRequestBody(proxyReq, req);
-
-        if (req.user) {
-          // Injection uniforme des en-têtes sécurisés
-          proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '');
-          proxyReq.setHeader('x-user-role', req.user.role || '');
-        }
-      },
-      onError: (err: any, req: any, res: any) => {
-        res.status(503).json({
-          statusCode: 503,
-          message: 'Service Temporarily Unavailable',
-          error: 'Service Unavailable',
-          details: err.message,
-        });
-=======
       // Nest parses JSON before this controller runs. Restore that parsed body
       // onto the outgoing stream; otherwise the auth service waits forever for
       // the Content-Length bytes advertised by the original request.
@@ -61,7 +38,6 @@ export class ProxyController {
             });
           }
         },
->>>>>>> Stashed changes
       },
     };
 

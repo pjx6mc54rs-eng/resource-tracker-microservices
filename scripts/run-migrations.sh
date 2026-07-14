@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
-
-SERVICES=("project-service" "timesheet-service" "reporting-service")
+SERVICES=("auth-service" "project-service" "timesheet-service" "reporting-service")
 
 echo "=== Vérification préalable : postgres doit être démarré et healthy ==="
 if ! docker-compose ps postgres | grep -q "healthy"; then
