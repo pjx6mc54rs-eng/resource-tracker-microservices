@@ -1,7 +1,7 @@
 .projects-list {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2.5rem 1.5rem;
 }
 
 .projects-header {
@@ -9,97 +9,171 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 1rem;
+}
+
+[data-theme='dark'] .projects-header {
+  border-bottom-color: #334155;
 }
 
 .projects-header h1 {
   margin: 0;
-  color: #2c3e50;
+  color: #1e293b;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .project-form {
   background: white;
-  border: 1px solid #ecf0f1;
-  border-radius: 6px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #2c3e50;
-  font-weight: 500;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #bdc3c7;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
   font-family: inherit;
+  transition: all 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
 }
 
 .form-group input:disabled,
 .form-group textarea:disabled {
-  background-color: #ecf0f1;
+  background-color: #f1f5f9;
   cursor: not-allowed;
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .form-group input:disabled,
+[data-theme='dark'] .form-group textarea:disabled {
+  background-color: #0f172a;
 }
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
 }
 
 .project-card {
   background: white;
-  border: 1px solid #ecf0f1;
-  border-radius: 6px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 
 .project-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #cbd5e1;
+}
+
+[data-theme='dark'] .project-card:hover {
+  border-color: #475569;
 }
 
 .project-card h3 {
-  margin-top: 0;
-  color: #2c3e50;
+  margin: 0 0 0.75rem 0;
+  color: #1e293b;
+  font-size: 1.3rem;
+  font-weight: 650;
 }
 
 .project-card p {
-  color: #7f8c8d;
-  margin-bottom: 1rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  flex-grow: 1;
 }
 
-.btn-secondary {
-  background-color: #95a5a6;
+/* Buttons */
+.btn {
+  padding: 0.65rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 550;
+  display: inline-block;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #3498db;
   color: white;
 }
 
+.btn-primary:hover {
+  background-color: #2980b9;
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.25);
+}
+
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
 .btn-secondary:hover {
-  background-color: #7f8c8d;
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+[data-theme='dark'] .btn-secondary {
+  background-color: #334155;
+  color: #cbd5e1;
+  border-color: #475569;
+}
+
+[data-theme='dark'] .btn-secondary:hover {
+  background-color: #475569;
+  color: #f8fafc;
 }
 
 .error-message {
-  background-color: #ffe6e6;
-  color: #c00;
+  background-color: #fef2f2;
+  color: #dc2626;
   padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #fee2e2;
+  font-size: 0.95rem;
 }
