@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { getProjectDetail, addTaskToProject, assignUserToProject } from './projectsApi'
+import {
+  getProjectDetail,
+  addTaskToProject,
+  assignUserToProject,
+  getMyTasks,
+  getProjectTeam,
+} from './projectsApi'
+import { listUsers } from '../auth/authApi'
 import './ProjectDetail.css'
 
 export default function ProjectDetail() {
@@ -13,22 +20,48 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Collaborator specific state
+  const [myTasks, setMyTasks] = useState([])
+  const [team, setTeam] = useState([])
+
+  // Task form state
   const [showTaskForm, setShowTaskForm] = useState(false)
-  const [taskFormData, setTaskFormData] = useState({ title: '' })
+  const [taskFormData, setTaskFormData] = useState({ title: '', status: 'todo' })
   const [taskFormError, setTaskFormError] = useState(null)
   const [submittingTask, setSubmittingTask] = useState(false)
 
+  // Assignment form state
   const [showAssignForm, setShowAssignForm] = useState(false)
-  const [assignFormData, setAssignFormData] = useState({ user_id: '' })
+  const [assignFormData, setAssignFormData] = useState({ userId: '' })
   const [assignFormError, setAssignFormError] = useState(null)
   const [submittingAssign, setSubmittingAssign] = useState(false)
 
-  const fetchProject = async () => {
+  // Admin user data list for lookup and dropdown selection
+  const [allUsers, setAllUsers] = useState([])
+  const [usersMap, setUsersMap] = useState({})
+
+  const getHeaders = () => ({
+    'Authorization': `Bearer ${token}`,
+    'user-role': user?.role,
+    'user-id': user?.id,
+  })
+
+  const fetchProjectData = async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await getProjectDetail(id, token)
+      const headers = getHeaders()
+      const data = await getProjectDetail(id, headers)
       setProject(data)
+
+      if (!isAdmin) {
+        const [tasksData, teamData] = await Promise.all([
+          getMyTasks(id, headers),
+          getProjectTeam(id, headers),
+        ])
+        setMyTasks(Array.isArray(tasksData) ? tasksData : [])
+        setTeam(Array.isArray(teamData) ? teamData : [])
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -36,11 +69,29 @@ export default function ProjectDetail() {
     }
   }
 
-  useEffect(() => {
-    if (id) {
-      fetchProject()
+  const fetchAllUsers = async () => {
+    if (!isAdmin || !token) return
+    try {
+      const list = await listUsers(token)
+      setAllUsers(Array.isArray(list) ? list : [])
+      const map = {}
+      list.forEach((u) => {
+        map[u.id] = u.email
+      })
+      setUsersMap(map)
+    } catch (err) {
+      console.error('Failed to fetch user list for mapping:', err)
     }
-  }, [id, token])
+  }
+
+  useEffect(() => {
+    if (id && token) {
+      fetchProjectData()
+      if (isAdmin) {
+        fetchAllUsers()
+      }
+    }
+  }, [id, token, user])
 
   const handleAddTask = async (e) => {
     e.preventDefault()
@@ -53,10 +104,10 @@ export default function ProjectDetail() {
 
     setSubmittingTask(true)
     try {
-      await addTaskToProject(id, taskFormData, token)
-      setTaskFormData({ title: '' })
+      await addTaskToProject(id, taskFormData, getHeaders())
+      setTaskFormData({ title: '', status: 'todo' })
       setShowTaskForm(false)
-      await fetchProject()
+      await fetchProjectData()
     } catch (err) {
       setTaskFormError(err.message)
     } finally {
@@ -68,17 +119,17 @@ export default function ProjectDetail() {
     e.preventDefault()
     setAssignFormError(null)
 
-    if (!assignFormData.user_id.trim()) {
-      setAssignFormError('Please select a user')
+    if (!assignFormData.userId) {
+      setAssignFormError('Please select a user to assign')
       return
     }
 
     setSubmittingAssign(true)
     try {
-      await assignUserToProject(id, assignFormData, token)
-      setAssignFormData({ user_id: '' })
+      await assignUserToProject(id, assignFormData, getHeaders())
+      setAssignFormData({ userId: '' })
       setShowAssignForm(false)
-      await fetchProject()
+      await fetchProjectData()
     } catch (err) {
       setAssignFormError(err.message)
     } finally {
@@ -87,13 +138,23 @@ export default function ProjectDetail() {
   }
 
   if (loading) {
-    return <div className="project-detail"><p>Loading project...</p></div>
+    return (
+      <div className="project-detail">
+        <p className="loading-text">Loading project details...</p>
+      </div>
+    )
   }
 
   if (error) {
     return (
       <div className="project-detail">
-        <div className="error-message">{error}</div>
+        <div className="error-message">
+          <h3>Error Loading Project</h3>
+          <p>{error}</p>
+          <Link to="/projects" className="btn btn-secondary mt-2">
+            Back to Projects
+          </Link>
+        </div>
       </div>
     )
   }
@@ -101,23 +162,44 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <div className="project-detail">
-        <div className="error-message">Project not found</div>
+        <div className="error-message">
+          <h3>Project Not Found</h3>
+          <p>The requested project could not be located.</p>
+          <Link to="/projects" className="btn btn-secondary mt-2">
+            Back to Projects
+          </Link>
+        </div>
       </div>
     )
   }
 
+  const tasksList = isAdmin ? (project.tasks ?? []) : myTasks
+  const teamList = isAdmin ? (project.assignments ?? []) : team
+
   return (
     <div className="project-detail">
-      <h1>{project.name}</h1>
-      <p className="project-description">{project.description}</p>
+      <div className="detail-header">
+        <Link to="/projects" className="back-link">
+          &larr; Back to Projects
+        </Link>
+        <span className="role-tag">{isAdmin ? 'Admin View' : 'Collaborator View'}</span>
+      </div>
+
+      <div className="project-banner">
+        <h1>{project.name}</h1>
+        <p className="project-description">
+          {project.description || 'No description provided.'}
+        </p>
+      </div>
 
       <div className="project-sections">
+        {/* Tâches Section */}
         <div className="project-section">
           <div className="section-header">
-            <h2>Tasks</h2>
+            <h2>Tasks ({tasksList.length})</h2>
             {isAdmin && (
               <button
-                className="btn btn-small"
+                className="btn btn-primary btn-small"
                 onClick={() => setShowTaskForm(!showTaskForm)}
               >
                 {showTaskForm ? 'Cancel' : '+ Add Task'}
@@ -138,11 +220,26 @@ export default function ProjectDetail() {
                     setTaskFormData({ ...taskFormData, title: e.target.value })
                   }
                   disabled={submittingTask}
+                  placeholder="Task title"
                 />
               </div>
-              {taskFormError && (
-                <div className="error-message">{taskFormError}</div>
-              )}
+              <div className="form-group">
+                <label htmlFor="status">Status</label>
+                <select
+                  id="status"
+                  name="status"
+                  value={taskFormData.status}
+                  onChange={(e) =>
+                    setTaskFormData({ ...taskFormData, status: e.target.value })
+                  }
+                  disabled={submittingTask}
+                >
+                  <option value="todo">Todo</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+              {taskFormError && <div className="error-message">{taskFormError}</div>}
               <button
                 type="submit"
                 className="btn btn-primary btn-small"
@@ -153,76 +250,92 @@ export default function ProjectDetail() {
             </form>
           )}
 
-          {project.tasks && project.tasks.length > 0 ? (
+          {tasksList.length > 0 ? (
             <ul className="tasks-list">
-              {project.tasks.map((task) => (
+              {tasksList.map((task) => (
                 <li key={task.id} className="task-item">
-                  {task.title}
+                  <span className="task-title">{task.title}</span>
+                  <span className={`task-badge badge-${task.status || 'todo'}`}>
+                    {(task.status || 'todo').replace('_', ' ')}
+                  </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p>No tasks yet.</p>
+            <p className="empty-state">No tasks created yet.</p>
           )}
         </div>
 
-        {isAdmin && (
-          <div className="project-section">
-            <div className="section-header">
-              <h2>Assigned Users</h2>
+        {/* Équipe Section */}
+        <div className="project-section">
+          <div className="section-header">
+            <h2>Project Team ({teamList.length})</h2>
+            {isAdmin && (
               <button
-                className="btn btn-small"
+                className="btn btn-primary btn-small"
                 onClick={() => setShowAssignForm(!showAssignForm)}
               >
-                {showAssignForm ? 'Cancel' : '+ Assign User'}
+                {showAssignForm ? 'Cancel' : '+ Assign Member'}
               </button>
-            </div>
-
-            {showAssignForm && (
-              <form onSubmit={handleAssignUser} className="assign-form">
-                <div className="form-group">
-                  <label htmlFor="user_id">User ID *</label>
-                  <input
-                    id="user_id"
-                    type="text"
-                    name="user_id"
-                    value={assignFormData.user_id}
-                    onChange={(e) =>
-                      setAssignFormData({
-                        ...assignFormData,
-                        user_id: e.target.value,
-                      })
-                    }
-                    disabled={submittingAssign}
-                    placeholder="Enter user ID"
-                  />
-                </div>
-                {assignFormError && (
-                  <div className="error-message">{assignFormError}</div>
-                )}
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-small"
-                  disabled={submittingAssign}
-                >
-                  {submittingAssign ? 'Assigning...' : 'Assign User'}
-                </button>
-              </form>
-            )}
-
-            {project.assignedUsers && project.assignedUsers.length > 0 ? (
-              <ul className="users-list">
-                {project.assignedUsers.map((user) => (
-                  <li key={user.id} className="user-item">
-                    {user.email}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No users assigned yet.</p>
             )}
           </div>
-        )}
+
+          {showAssignForm && isAdmin && (
+            <form onSubmit={handleAssignUser} className="assign-form">
+              <div className="form-group">
+                <label htmlFor="userId">Collaborator *</label>
+                <select
+                  id="userId"
+                  name="userId"
+                  value={assignFormData.userId}
+                  onChange={(e) =>
+                    setAssignFormData({ userId: e.target.value })
+                  }
+                  disabled={submittingAssign}
+                >
+                  <option value="">-- Select Collaborator --</option>
+                  {allUsers
+                    .filter((u) => u.role !== 'admin') // Only show collaborators for assignments
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.email}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              {assignFormError && <div className="error-message">{assignFormError}</div>}
+              <button
+                type="submit"
+                className="btn btn-primary btn-small"
+                disabled={submittingAssign}
+              >
+                {submittingAssign ? 'Assigning...' : 'Assign User'}
+              </button>
+            </form>
+          )}
+
+          {teamList.length > 0 ? (
+            <ul className="users-list">
+              {teamList.map((assignment) => (
+                <li key={assignment.id} className="user-item">
+                  <div className="user-info">
+                    <div className="user-avatar">
+                      {(usersMap[assignment.userId] ?? 'C')[0].toUpperCase()}
+                    </div>
+                    <div className="user-details">
+                      <span className="user-email-text">
+                        {usersMap[assignment.userId] ?? 'Collaborator'}
+                      </span>
+                      <span className="user-id-subtext">ID: {assignment.userId}</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty-state">No team members assigned yet.</p>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -20,13 +20,13 @@ export class ProxyController {
       proxyTimeout: 15_000,
       on: {
         proxyReq: (proxyReq: any, req: any) => {
-          fixRequestBody(proxyReq, req);
-
           if (req.user) {
             // Downstream header injection: pass authenticated user's info to microservices
             proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '');
             proxyReq.setHeader('x-user-role', req.user.role || '');
           }
+
+          fixRequestBody(proxyReq, req);
         },
         error: (err: any, req: any, res: any) => {
           if (!res.headersSent && !res.writableEnded) {
