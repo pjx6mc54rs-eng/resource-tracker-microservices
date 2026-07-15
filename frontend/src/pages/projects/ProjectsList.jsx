@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { getProjects, createProject } from './projectsApi'
 import { listUsers } from '../auth/authApi'
+import ChatDrawer from '../chat/ChatDrawer'
 import './ProjectsList.css'
 
 export default function ProjectsList() {
@@ -19,6 +20,9 @@ export default function ProjectsList() {
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [usersMap, setUsersMap] = useState({})
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [unreadCounts, setUnreadCounts] = useState({})
 
   const getHeaders = () => ({
     'Authorization': `Bearer ${token}`,
@@ -89,6 +93,16 @@ export default function ProjectsList() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const openChat = (project) => {
+    setSelectedProject(project)
+    setIsChatOpen(true)
+    setUnreadCounts((previous) => ({ ...previous, [project.id]: 0 }))
+  }
+
+  const closeChat = () => {
+    setIsChatOpen(false)
   }
 
   if (loading) {
@@ -163,13 +177,37 @@ export default function ProjectsList() {
                   <strong>Updated at:</strong> {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'N/A'}
                 </span>
               </div>
-              <Link to={`/projects/${project.id}`} className="btn btn-secondary">
-                View Details
-              </Link>
+              <div className="project-card-actions">
+                <Link to={`/projects/${project.id}`} className="btn btn-secondary">
+                  View Details
+                </Link>
+                <button
+                  className="project-chat-button"
+                  type="button"
+                  onClick={() => openChat(project)}
+                  aria-label={`Ouvrir le chat du projet ${project.name}`}
+                  title="Ouvrir le chat"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 11.5a7.5 7.5 0 0 1-8 7.48 8.7 8.7 0 0 1-3.18-.76L4 20l1.28-3.55A7.5 7.5 0 1 1 20 11.5Z" />
+                    <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" />
+                  </svg>
+                  {(unreadCounts[project.id] ?? project.unreadCount ?? 0) > 0 && (
+                    <span className="project-chat-badge">{unreadCounts[project.id] ?? project.unreadCount}</span>
+                  )}
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
+      <ChatDrawer
+        isOpen={isChatOpen}
+        onClose={closeChat}
+        project={selectedProject}
+        token={token}
+        currentUser={user}
+      />
     </div>
   )
 }
