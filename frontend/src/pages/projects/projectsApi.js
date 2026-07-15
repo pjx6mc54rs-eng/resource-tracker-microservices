@@ -61,3 +61,27 @@ export function getProjectTeam(projectId, headers) {
   return request(`/api/projects/${projectId}/team`, { headers })
 }
 
+export function updateTaskStatus(projectId, taskId, bodyOrStatus, headers) {
+  const body = typeof bodyOrStatus === 'string' ? { status: bodyOrStatus } : bodyOrStatus
+  return request(`/api/projects/${projectId}/tasks/${taskId}`, {
+    method: 'PATCH',
+    body,
+    headers,
+  })
+}
+
+export function unassignUserFromProject(projectId, userId, headers) {
+  return request(`/api/projects/${projectId}/assign/${userId}`, {
+    method: 'DELETE',
+    headers,
+  })
+}
+
+export function deleteTaskFromProject(projectId, taskId, headers) {
+  return request(`/api/projects/${projectId}/tasks/${taskId}`, {
+    method: 'DELETE',
+    headers,
+  })
+}
+
+

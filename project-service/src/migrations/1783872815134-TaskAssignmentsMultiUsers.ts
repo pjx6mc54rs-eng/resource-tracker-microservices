@@ -42,9 +42,7 @@ export class TaskAssignmentsMultiUsers1783872815134 implements MigrationInterfac
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "tasks" ADD "assigned_user_id" uuid`,
-    );
+    await queryRunner.query(`ALTER TABLE "tasks" ADD "assigned_user_id" uuid`);
     await queryRunner.query(`
       UPDATE "tasks" t
       SET "assigned_user_id" = (
