@@ -389,6 +389,15 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    /* Fixed on mobile so it never scrolls away */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
   .navbar-user {
     display: none;
   }

@@ -177,3 +177,31 @@
   border: 1px solid #fee2e2;
   font-size: 0.95rem;
 }
+
+.project-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.825rem;
+  color: #64748b;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 0.85rem;
+}
+
+[data-theme='dark'] .project-card-meta {
+  border-top-color: #334155;
+  color: #94a3b8;
+}
+
+.project-card-meta-item strong {
+  color: #475569;
+}
+
+[data-theme='dark'] .project-card-meta-item strong {
+  color: #cbd5e1;
+}
+
+.project-card-description {
+  margin-bottom: 1rem !important;
+}

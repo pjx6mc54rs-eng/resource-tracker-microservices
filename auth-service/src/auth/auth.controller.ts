@@ -67,7 +67,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.COLLABORATEUR)
   @Get('users')
   async listUsers() {
     const users = await this.usersService.findAll();

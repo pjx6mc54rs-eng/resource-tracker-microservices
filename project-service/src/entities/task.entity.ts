@@ -23,6 +23,9 @@ export class Task {
   @Column()
   title: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
   @Column({
     type: 'enum',
     enum: TaskStatus,

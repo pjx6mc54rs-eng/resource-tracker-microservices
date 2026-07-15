@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import { getProjects, createProject } from './projectsApi'
+import { listUsers } from '../auth/authApi'
 import './ProjectsList.css'
 
 export default function ProjectsList() {
   const { user, token } = useAuth()
+  const { showToast } = useToast()
   const isAdmin = user?.role === 'admin'
 
   const [projects, setProjects] = useState([])
@@ -15,6 +18,7 @@ export default function ProjectsList() {
   const [formData, setFormData] = useState({ name: '', description: '' })
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [usersMap, setUsersMap] = useState({})
 
   const getHeaders = () => ({
     'Authorization': `Bearer ${token}`,
@@ -35,11 +39,29 @@ export default function ProjectsList() {
     }
   }
 
+  const fetchAllUsers = async () => {
+    if (!isAdmin || !token) return
+    try {
+      const list = await listUsers(token)
+      const map = {}
+      list.forEach((u) => {
+        const displayName = u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.firstName || u.lastName || u.email)
+        map[u.id] = displayName
+      })
+      setUsersMap(map)
+    } catch (err) {
+      console.error('Failed to fetch user list for mapping:', err)
+    }
+  }
+
   useEffect(() => {
     if (token) {
       fetchProjects()
+      if (isAdmin) {
+        fetchAllUsers()
+      }
     }
-  }, [token])
+  }, [token, user])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -60,6 +82,7 @@ export default function ProjectsList() {
       await createProject(formData, getHeaders())
       setFormData({ name: '', description: '' })
       setShowForm(false)
+      showToast('Project created successfully!', 'success')
       await fetchProjects()
     } catch (err) {
       setFormError(err.message)
@@ -126,7 +149,20 @@ export default function ProjectsList() {
           {projects.map((project) => (
             <div key={project.id} className="project-card">
               <h3>{project.name}</h3>
-              <p>{project.description}</p>
+              <p className="project-card-description">
+                {project.description || 'No description provided.'}
+              </p>
+              <div className="project-card-meta">
+                <span className="project-card-meta-item">
+                  <strong>Created by:</strong> {usersMap[project.createdBy] || 'Admin'}
+                </span>
+                <span className="project-card-meta-item">
+                  <strong>Created at:</strong> {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'N/A'}
+                </span>
+                <span className="project-card-meta-item">
+                  <strong>Updated at:</strong> {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
               <Link to={`/projects/${project.id}`} className="btn btn-secondary">
                 View Details
               </Link>

@@ -18,7 +18,9 @@ export class AddTaskAssignedUserId1783872815133 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX "public"."IDX_tasks_project_assigned_user"`);
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_tasks_project_assigned_user"`,
+    );
     await queryRunner.query(`DROP INDEX "public"."IDX_tasks_assigned_user_id"`);
     await queryRunner.query(
       `ALTER TABLE "tasks" DROP COLUMN "assigned_user_id"`,
