@@ -4,7 +4,7 @@ set -e
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-SERVICES=("auth-service" "project-service" "timesheet-service" "reporting-service")
+SERVICES=("auth-service" "project-service" "timesheet-service" "reporting-service" "chat-service")
 
 # Connexion depuis la machine hôte (hors réseau Docker)
 export DATABASE_HOST="${DATABASE_HOST:-localhost}"
@@ -62,6 +62,7 @@ docker exec postgres psql -U admin -d auth_db -c "\dt"
 docker exec postgres psql -U admin -d project_db -c "\dt"
 docker exec postgres psql -U admin -d timesheet_db -c "\dt"
 docker exec postgres psql -U admin -d reporting_db -c "\dt"
+docker exec postgres psql -U admin -d chat_db -c "\dt"
 
 echo ""
 echo "=== Vérification project_db (tâches ↔ collaborateurs) ==="
