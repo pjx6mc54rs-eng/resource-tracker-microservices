@@ -22,4 +22,3 @@ import { ProjectsModule } from './projects/projects.module';
   providers: [AppService],
 })
 export class AppModule {}
-

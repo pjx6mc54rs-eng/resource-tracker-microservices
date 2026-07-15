@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Body,
   Param,
   Headers,
@@ -12,6 +14,7 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { AssignUserDto } from './dto/assign-user.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import {
   extractUserRole,
   requireAdmin,
@@ -31,7 +34,8 @@ export class ProjectsController {
     @Headers() headers: IncomingHeaders,
   ) {
     requireAdmin(headers);
-    return this.projectsService.createProject(body);
+    const creatorId = requireUserId(headers);
+    return this.projectsService.createProject(body, creatorId);
   }
 
   /** POST /projects/:id/tasks — admin only */
@@ -54,6 +58,17 @@ export class ProjectsController {
   ) {
     requireAdmin(headers);
     return this.projectsService.assignUser(projectId, body.userId);
+  }
+
+  /** DELETE /projects/:id/assign/:userId — admin only */
+  @Delete(':id/assign/:userId')
+  async unassignUser(
+    @Param('id') projectId: string,
+    @Param('userId') userId: string,
+    @Headers() headers: IncomingHeaders,
+  ) {
+    requireAdmin(headers);
+    return this.projectsService.unassignUser(projectId, userId);
   }
 
   /** GET /projects — admin: all / collaborateur: assigned only */
@@ -110,6 +125,30 @@ export class ProjectsController {
     return this.projectsService.findProjectDetailsForWorker(projectId, userId);
   }
 
+  /** PATCH /projects/:id/tasks/:taskId — assignees or admin */
+  @Patch(':id/tasks/:taskId')
+  async updateTask(
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+    @Body() body: UpdateTaskDto,
+    @Headers() headers: IncomingHeaders,
+  ) {
+    return this.accessProjectThen(projectId, headers, async () => {
+      return this.projectsService.updateTask(projectId, taskId, body);
+    });
+  }
+
+  /** DELETE /projects/:id/tasks/:taskId — admin only */
+  @Delete(':id/tasks/:taskId')
+  async deleteTask(
+    @Param('id') projectId: string,
+    @Param('taskId') taskId: string,
+    @Headers() headers: IncomingHeaders,
+  ) {
+    requireAdmin(headers);
+    return this.projectsService.deleteTask(projectId, taskId);
+  }
+
   private async accessProjectThen<T>(
     projectId: string,
     headers: IncomingHeaders,
@@ -123,7 +162,10 @@ export class ProjectsController {
     }
 
     const userId = requireUserId(headers);
-    const assigned = await this.projectsService.isUserAssigned(projectId, userId);
+    const assigned = await this.projectsService.isUserAssigned(
+      projectId,
+      userId,
+    );
     if (!assigned) {
       throw new ForbiddenException(
         "Accès refusé : vous n'êtes pas assigné à ce projet.",

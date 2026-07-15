@@ -46,12 +46,13 @@
 
 /* Project Banner styling */
 .project-banner {
-  background: linear-gradient(135deg, #2c3e50, #34495e);
-  color: white;
+  background: white;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 2.5rem;
   margin-bottom: 2.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .project-banner h1 {
@@ -59,15 +60,43 @@
   font-weight: 700;
   margin: 0 0 0.75rem 0;
   letter-spacing: -0.02em;
-  color: white !important;
+  color: #1e293b !important;
 }
 
 .project-description {
   font-size: 1.1rem;
-  color: #bdc3c7;
+  color: #475569;
   margin: 0;
   max-width: 800px;
   line-height: 1.5;
+}
+
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.project-meta-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-meta-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+.project-meta-value {
+  color: #1e293b;
+  font-weight: 500;
 }
 
 [data-theme='dark'] .project-banner {
@@ -75,17 +104,30 @@
   border: 1px solid #334155;
 }
 
-/* Grid Layout */
-.project-sections {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
+[data-theme='dark'] .project-banner h1 {
+  color: #f8fafc !important;
 }
 
-@media (max-width: 900px) {
-  .project-sections {
-    grid-template-columns: 1fr;
-  }
+[data-theme='dark'] .project-description {
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .project-meta {
+  border-top-color: #334155;
+}
+
+[data-theme='dark'] .project-meta-label {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .project-meta-value {
+  color: #f1f5f9;
+}
+
+.project-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
 }
 
 .project-section {
@@ -312,7 +354,9 @@
 
 /* Team List Styles */
 .user-item {
+  position: relative;
   padding: 1rem;
+  padding-right: 3.5rem;
   border: 1px solid #f1f5f9;
   border-radius: 8px;
   margin-bottom: 0.75rem;
@@ -365,7 +409,7 @@
   color: #1e293b;
 }
 
-.user-id-subtext {
+.user-job-title {
   font-size: 0.75rem;
   color: #64748b;
 }
@@ -374,7 +418,7 @@
   color: #f8fafc;
 }
 
-[data-theme='dark'] .user-id-subtext {
+[data-theme='dark'] .user-job-title {
   color: #94a3b8;
 }
 
@@ -423,3 +467,526 @@
 [data-theme='dark'] .btn-primary:hover {
   background-color: #1b6ca8;
 }
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='dark'] .modal-content {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: white;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.75rem;
+}
+
+[data-theme='dark'] .modal-header {
+  border-bottom-color: #334155;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+  font-weight: 650;
+}
+
+[data-theme='dark'] .modal-header h3 {
+  color: #f8fafc;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  cursor: pointer;
+  color: #64748b;
+  line-height: 1;
+  padding: 0;
+}
+
+.modal-close:hover {
+  color: #ef4444;
+}
+
+[data-theme='dark'] .modal-close {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .modal-close:hover {
+  color: #f87171;
+}
+
+.w-full {
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Scrum Board Layout */
+.scrum-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .scrum-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scrum-column {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 380px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme='dark'] .scrum-column {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.scrum-column.drag-over {
+  background-color: #f1f5f9;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  transform: translateY(-2px);
+}
+
+[data-theme='dark'] .scrum-column.drag-over {
+  background-color: #1e293b;
+  border-color: #3498db;
+}
+
+.scrum-column-header {
+  margin-bottom: 1.25rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+[data-theme='dark'] .scrum-column-header {
+  border-bottom-color: #334155;
+}
+
+.scrum-column-header h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+[data-theme='dark'] .scrum-column-header h3 {
+  color: #94a3b8;
+}
+
+.scrum-column-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex-grow: 1;
+}
+
+.scrum-task-card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+[data-theme='dark'] .scrum-task-card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.scrum-task-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .scrum-task-card:hover {
+  border-color: #475569;
+}
+
+.scrum-task-card:active {
+  cursor: grabbing;
+}
+
+.task-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+[data-theme='dark'] .task-card-title {
+  color: #f8fafc;
+}
+
+.task-card-assignees {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+[data-theme='dark'] .task-card-assignees {
+  color: #94a3b8;
+}
+
+.scrum-empty-column {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 2.5rem 0;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  background-color: rgba(248, 250, 252, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+[data-theme='dark'] .scrum-empty-column {
+  border-color: #334155;
+  background-color: rgba(15, 23, 42, 0.2);
+  color: #64748b;
+}
+
+/* User Chips */
+.selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.user-chip {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 550;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='dark'] .user-chip {
+  background-color: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip-remove:hover {
+  color: #ef4444;
+}
+
+[data-theme='dark'] .chip-remove:hover {
+  color: #f87171;
+}
+
+.task-card-description {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.65rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+[data-theme='dark'] .task-card-description {
+  color: #94a3b8;
+}
+
+/* Task details view inside cards */
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+  font-size: 0.95rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.btn-icon:hover {
+  background-color: #f1f5f9;
+  color: #3498db;
+}
+
+[data-theme='dark'] .btn-icon:hover {
+  background-color: #334155;
+  color: #3498db;
+}
+
+/* Modal details formatting */
+.task-detail-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+}
+
+[data-theme='dark'] .detail-label {
+  color: #94a3b8;
+}
+
+.detail-value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+[data-theme='dark'] .detail-value {
+  color: #f8fafc;
+}
+
+.detail-description {
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  background-color: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='dark'] .detail-description {
+  color: #cbd5e1;
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+/* Task Dropdown Menu */
+.task-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.task-menu-btn {
+  padding: 0.15rem 0.35rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.task-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0;
+  margin-top: 0.25rem;
+}
+
+[data-theme='dark'] .task-dropdown-menu {
+  background-color: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+[data-theme='dark'] .dropdown-item {
+  color: #cbd5e1;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f5f9;
+  color: #3498db;
+}
+
+[data-theme='dark'] .dropdown-item:hover {
+  background-color: #334155;
+  color: #3498db;
+}
+
+/* Team Dropdown Menu */
+.team-menu-container {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-block;
+}
+
+.team-menu-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.team-menu-btn:hover {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+[data-theme='dark'] .team-menu-btn:hover {
+  background-color: #334155;
+  color: #cbd5e1;
+}
+
+.team-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0;
+  margin-top: 0.25rem;
+}
+
+[data-theme='dark'] .team-dropdown-menu {
+  background-color: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item-danger {
+  color: #ef4444 !important;
+}
+
+.dropdown-item-danger:hover {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
+[data-theme='dark'] .dropdown-item-danger:hover {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #f87171 !important;
+}
+

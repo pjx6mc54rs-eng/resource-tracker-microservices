@@ -18,10 +18,7 @@ body {
   color: #333;
 }
 
-html {
-  height: 100%;
-}
-
+html,
 body {
   height: 100%;
   margin: 0;
@@ -32,6 +29,20 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* On mobile the navbar is fixed, so let the page grow naturally */
+@media (max-width: 768px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+  }
+
+  #root {
+    height: auto;
+    min-height: 100vh;
+  }
 }
 
 a {
@@ -57,15 +68,20 @@ select {
 .app-layout {
   display: flex;
   flex-direction: row;
-  min-height: calc(100vh - 65px);
+  flex: 1;
   width: 100%;
+  /* Fill height below the sticky navbar */
+  height: calc(100vh - 65px);
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
   background-color: var(--bg-color);
   color: var(--text-color);
-  min-height: 100%;
+  /* Only the main content area scrolls vertically */
+  overflow-y: auto;
+  height: 100%;
   transition: background-color var(--transition, 0.3s), color var(--transition, 0.3s);
 }
 
@@ -76,6 +92,15 @@ select {
 @media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
+    height: auto;
+    overflow: visible;
+    /* Push content below the fixed navbar */
+    padding-top: 65px;
+  }
+
+  .main-content {
+    height: auto;
+    overflow-y: visible;
   }
 
   .sidebar-overlay {

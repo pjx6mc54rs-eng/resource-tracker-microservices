@@ -35,7 +35,9 @@ export class InitSchema1783872815132 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "tasks" DROP CONSTRAINT "FK_e08fca67ca8966e6b9914bf2956"`,
     );
-    await queryRunner.query(`DROP INDEX "public"."IDX_assignments_project_user"`);
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_assignments_project_user"`,
+    );
     await queryRunner.query(`DROP TABLE "assignments"`);
     await queryRunner.query(`DROP TABLE "tasks"`);
     await queryRunner.query(`DROP TABLE "projects"`);

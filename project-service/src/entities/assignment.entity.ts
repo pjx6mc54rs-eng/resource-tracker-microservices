@@ -20,7 +20,9 @@ export class Assignment {
   @Column({ type: 'uuid' })
   projectId: string;
 
-  @ManyToOne(() => Project, (project) => project.assignments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Project, (project) => project.assignments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'projectId' })
   project: Project;
 }
