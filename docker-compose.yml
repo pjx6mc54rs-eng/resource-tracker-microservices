@@ -135,6 +135,28 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  chat-service:
+    build: ./chat-service
+    container_name: chat-service
+    ports:
+      - "3006:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: admin
+      DATABASE_PASSWORD: admin
+      DATABASE_NAME: chat_db
+      JWT_SECRET: change_this_secret
+      CHAT_ENCRYPTION_KEY: 4698e7cef7ccbbfa98cf7b8fdcb333a697949df021f1cf3a65e2166618f1da5d
+      PROJECT_SERVICE_URL: http://project-service:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      project-service:
+        condition: service_started
+
   # ============================================================
   # Passerelle et interface utilisateur
   # ============================================================
