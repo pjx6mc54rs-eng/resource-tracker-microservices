@@ -16,14 +16,15 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const existing = await this.usersService.findByEmail(dto.email);
+    const email = dto.email.trim().toLowerCase();
+    const existing = await this.usersService.findByEmail(email);
     if (existing) {
       throw new ConflictException('Un compte existe déjà avec cet email');
     }
     const password_hash = await bcrypt.hash(dto.password, SALT_ROUNDS);
     const user = await this.usersService.create({
       passwordHash: password_hash,
-      email: dto.email,
+      email,
       role: dto.role,
       firstName: dto.firstName ?? null,
       lastName: dto.lastName ?? null,
@@ -36,7 +37,8 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersService.findByEmail(dto.email);
+    const email = dto.email.trim().toLowerCase();
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }

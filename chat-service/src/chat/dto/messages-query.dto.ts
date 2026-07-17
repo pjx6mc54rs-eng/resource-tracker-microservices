@@ -1,16 +1,24 @@
-import { Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
+
+function clampPositiveInt(value: unknown) {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue) || numberValue < 0) {
+    return undefined
+  }
+  return Math.floor(numberValue)
+}
 
 export class MessagesQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => clampPositiveInt(value), { toClassOnly: true })
   @IsInt()
-  @Min(1)
+  @Min(0)
   @Max(100)
   limit?: number;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => clampPositiveInt(value), { toClassOnly: true })
   @IsInt()
   @Min(0)
   offset?: number;

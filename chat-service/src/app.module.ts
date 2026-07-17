@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatModule } from './chat/chat.module';
-import { ChatMessage } from './entities/chat-message.entity';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { ChatModule } from './chat/chat.module'
+import { ChatChannel } from './entities/chat-channel.entity'
+import { ChatMessage } from './entities/chat-message.entity'
+import { ChannelMember } from './entities/channel-member.entity'
 
 @Module({
   imports: [
@@ -14,7 +16,7 @@ import { ChatMessage } from './entities/chat-message.entity';
       username: process.env.DATABASE_USER ?? 'admin',
       password: process.env.DATABASE_PASSWORD ?? 'admin',
       database: process.env.DATABASE_NAME ?? 'chat_db',
-      entities: [ChatMessage],
+      entities: [ChatChannel, ChatMessage, ChannelMember],
       synchronize: false,
     }),
     ChatModule,

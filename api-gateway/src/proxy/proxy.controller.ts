@@ -8,7 +8,8 @@ export class ProxyController {
   private readonly authProxy: RequestHandler;
   private readonly projectProxy: RequestHandler;
   private readonly timesheetProxy: RequestHandler;
-  private readonly reportingProxy: RequestHandler;
+  private readonly reportingProxy: RequestHandler
+  private readonly chatProxy: RequestHandler
 
   constructor() {
     const commonOptions = {
@@ -22,11 +23,11 @@ export class ProxyController {
         proxyReq: (proxyReq: any, req: any) => {
           if (req.user) {
             // Downstream header injection: pass authenticated user's info to microservices
-            proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '');
-            proxyReq.setHeader('x-user-role', req.user.role || '');
+            proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '')
+            proxyReq.setHeader('x-user-role', req.user.role || '')
           }
 
-          fixRequestBody(proxyReq, req);
+          fixRequestBody(proxyReq, req)
         },
         error: (err: any, req: any, res: any) => {
           if (!res.headersSent && !res.writableEnded) {
@@ -35,33 +36,38 @@ export class ProxyController {
               message: 'Service Temporarily Unavailable',
               error: 'Service Unavailable',
               details: err.message,
-            });
+            })
           }
         },
       },
-    };
+    }
 
     this.authProxy = createProxyMiddleware({
       ...commonOptions,
       // Compose supplies AUTH_SERVICE_URL=http://auth-service:3000 inside
       // its network; this fallback is for running the services locally.
       target: process.env.AUTH_SERVICE_URL || 'http://localhost:3000',
-    });
+    })
 
     this.projectProxy = createProxyMiddleware({
       ...commonOptions,
       target: process.env.PROJECT_SERVICE_URL || 'http://localhost:3001',
-    });
+    })
 
     this.timesheetProxy = createProxyMiddleware({
       ...commonOptions,
       target: process.env.TIMESHEET_SERVICE_URL || 'http://localhost:3002',
-    });
+    })
 
     this.reportingProxy = createProxyMiddleware({
       ...commonOptions,
       target: process.env.REPORTING_SERVICE_URL || 'http://localhost:3003',
-    });
+    })
+
+    this.chatProxy = createProxyMiddleware({
+      ...commonOptions,
+      target: process.env.CHAT_SERVICE_URL || 'http://localhost:3007',
+    })
   }
 
   // 1. PUBLIC ROUTES
@@ -120,13 +126,25 @@ export class ProxyController {
   @All('timesheets/*')
   @UseGuards(JwtAuthGuard)
   handleTimesheetsProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
-    this.timesheetProxy(req, res, next);
+    this.timesheetProxy(req, res, next)
+  }
+
+  @All('chat')
+  @UseGuards(JwtAuthGuard)
+  handleChatRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.chatProxy(req, res, next)
+  }
+
+  @All('chat/*')
+  @UseGuards(JwtAuthGuard)
+  handleChatProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.chatProxy(req, res, next)
   }
 
   @All('reporting')
   @UseGuards(JwtAuthGuard)
   handleReportingRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
-    this.reportingProxy(req, res, next);
+    this.reportingProxy(req, res, next)
   }
 
   @All('reporting/*')

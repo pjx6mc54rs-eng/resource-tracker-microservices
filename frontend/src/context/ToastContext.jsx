@@ -24,7 +24,14 @@ export function ToastProvider({ children }) {
       {children}
       <div className="toast-container" aria-live="polite">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`toast-card toast-${toast.type}`}>
+          <div
+            key={toast.id}
+            className={`toast-card toast-${toast.type}`}
+            role={toast.onClick ? 'button' : undefined}
+            tabIndex={toast.onClick ? 0 : undefined}
+            onClick={() => toast.onClick?.()}
+            style={{ cursor: toast.onClick ? 'pointer' : 'default' }}
+          >
             <div className="toast-icon-wrapper">
               <span className="toast-icon">
                 {toast.type === 'success' && '✓'}
@@ -36,8 +43,8 @@ export function ToastProvider({ children }) {
             <div className="toast-content">
               <span className="toast-message">{toast.message}</span>
             </div>
-            <button 
-              className="toast-close" 
+            <button
+              className="toast-close"
               onClick={() => removeToast(toast.id)}
               aria-label="Close notification"
             >
