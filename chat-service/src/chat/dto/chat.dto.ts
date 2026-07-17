@@ -1,13 +1,70 @@
-import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer'
+import {
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Max,
+  Min,
+} from 'class-validator'
 
-export class JoinProjectDto {
-  @IsUUID()
-  projectId!: string;
+function clampPositiveInt(value: unknown) {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue) || numberValue < 0) {
+    return undefined
+  }
+  return Math.floor(numberValue)
 }
 
-export class SendMessageDto extends JoinProjectDto {
+export class MessagesQueryDto {
+  @IsOptional()
+  @Transform(({ value }) => clampPositiveInt(value), { toClassOnly: true })
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  limit?: number
+
+  @IsOptional()
+  @Transform(({ value }) => clampPositiveInt(value), { toClassOnly: true })
+  @IsInt()
+  @Min(0)
+  offset?: number
+}
+
+export class JoinRoomDto {
+  @IsUUID()
+  channelId!: string
+}
+
+export class SendMessageDto {
+  @IsUUID()
+  channelId!: string
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(2000)
-  message!: string;
+  message!: string
+}
+
+export class DirectChannelDto {
+  @IsUUID()
+  peerId!: string
+}
+
+export class CreateGroupDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name!: string
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayUnique()
+  @IsUUID('4', { each: true })
+  memberIds!: string[]
 }

@@ -102,7 +102,7 @@ function SignUp() {
     setFormError('')
 
     const formData = new FormData()
-    formData.append('email', values.email)
+    formData.append('email', values.email.trim())
     formData.append('password', values.password)
     formData.append('role', values.role)
     formData.append('firstName', values.firstName)

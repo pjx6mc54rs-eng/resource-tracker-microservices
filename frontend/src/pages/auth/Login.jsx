@@ -38,7 +38,7 @@ function Login() {
     setSubmitting(true)
     setFormError('')
     try {
-      await login(values.email, values.password)
+      await login(values.email.trim(), values.password)
       navigate('/dashboard')
     } catch (err) {
       setFormError(err.message)

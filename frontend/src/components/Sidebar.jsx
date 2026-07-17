@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useChat } from '../context/ChatContext'
 import LogoutIcon from './LogoutIcon'
 import ProfileIcon from './ProfileIcon'
 import './Sidebar.css'
@@ -8,6 +9,8 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3004'
 
 export default function Sidebar({ isOpen, theme, toggleTheme }) {
   const { user, logout } = useAuth()
+  const { channels } = useChat()
+  const globalUnreadCount = channels?.globalUnreadCount ?? 0
 
   const handleLogout = () => {
     logout()
@@ -50,6 +53,13 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
         <NavLink to="/projects" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
           <span className="sidebar-icon">📁</span>
           <span className="sidebar-label">Projects</span>
+        </NavLink>
+        <NavLink to="/messages" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <span className="sidebar-icon">💬</span>
+          <span className="sidebar-label">Messages</span>
+          {globalUnreadCount > 0 && (
+            <span className="sidebar-badge unread-badge-global">{globalUnreadCount}</span>
+          )}
         </NavLink>
         <NavLink to="/timesheet" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
           <span className="sidebar-icon">⏱️</span>

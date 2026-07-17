@@ -68,7 +68,7 @@ export default function ProjectDetail() {
   const [usersMap, setUsersMap] = useState({})
 
   const getHeaders = () => ({
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
     'user-role': user?.role,
     'user-id': user?.id,
   })

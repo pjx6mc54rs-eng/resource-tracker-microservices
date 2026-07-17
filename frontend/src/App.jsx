@@ -14,6 +14,7 @@ import ProjectsList from './pages/projects/ProjectsList'
 import ProjectDetail from './pages/projects/ProjectDetail'
 import TimesheetForm from './pages/timesheet/TimesheetForm'
 import UsersList from './pages/users/UsersList'
+import MessagesPage from './pages/messages/MessagesPage'
 import './App.css'
 
 function App() {
@@ -106,6 +107,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <ProjectDetail />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/messages"
+              element={
+                <PrivateRoute>
+                  <MessagesPage />
                 </PrivateRoute>
               }
             />

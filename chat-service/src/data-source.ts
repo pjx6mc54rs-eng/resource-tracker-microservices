@@ -1,8 +1,10 @@
-import * as dotenv from 'dotenv';
-import { DataSource } from 'typeorm';
-import { ChatMessage } from './entities/chat-message.entity';
+import * as dotenv from 'dotenv'
+import { DataSource } from 'typeorm'
+import { ChatChannel } from './entities/chat-channel.entity'
+import { ChatMessage } from './entities/chat-message.entity'
+import { ChannelMember } from './entities/channel-member.entity'
 
-dotenv.config();
+dotenv.config()
 
 export default new DataSource({
   type: 'postgres',
@@ -11,7 +13,7 @@ export default new DataSource({
   username: process.env.DATABASE_USER ?? 'admin',
   password: process.env.DATABASE_PASSWORD ?? 'admin',
   database: process.env.DATABASE_NAME ?? 'chat_db',
-  entities: [ChatMessage],
+  entities: [ChatChannel, ChatMessage, ChannelMember],
   migrations: [__filename.endsWith('.ts') ? 'src/migrations/*.ts' : 'dist/migrations/*.js'],
   synchronize: false,
-});
+})

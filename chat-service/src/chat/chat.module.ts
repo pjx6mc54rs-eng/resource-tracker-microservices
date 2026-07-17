@@ -1,18 +1,24 @@
-import { HttpModule } from '@nestjs/axios';
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatMessage } from '../entities/chat-message.entity';
-import { ChatController } from './chat.controller';
-import { ChatGateway } from './chat.gateway';
-import { ChatMessageService } from './chat-message.service';
-import { EncryptionService } from './encryption.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { ProjectAccessService } from './project-access.service';
+import { HttpModule } from '@nestjs/axios'
+import { Module } from '@nestjs/common'
+import { JwtModule } from '@nestjs/jwt'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { ChatChannel } from '../entities/chat-channel.entity'
+import { ChatMessage } from '../entities/chat-message.entity'
+import { ChannelMember } from '../entities/channel-member.entity'
+import { ChatController } from './chat.controller'
+import { ChatGateway } from './chat.gateway'
+import { ChatService } from './chat-message.service'
+import { EncryptionService } from './encryption.service'
+import { JwtAuthGuard } from './jwt-auth.guard'
+import { ProjectAccessService } from './project-access.service'
 
 @Module({
-  imports: [HttpModule, JwtModule.register({}), TypeOrmModule.forFeature([ChatMessage])],
+  imports: [
+    HttpModule,
+    JwtModule.register({}),
+    TypeOrmModule.forFeature([ChatChannel, ChatMessage, ChannelMember]),
+  ],
   controllers: [ChatController],
-  providers: [ChatGateway, ChatMessageService, EncryptionService, ProjectAccessService, JwtAuthGuard],
+  providers: [ChatGateway, ChatService, EncryptionService, ProjectAccessService, JwtAuthGuard],
 })
 export class ChatModule {}
