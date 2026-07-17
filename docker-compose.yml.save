@@ -151,7 +151,6 @@ services:
       JWT_SECRET: change_this_secret
       CHAT_ENCRYPTION_KEY: 4698e7cef7ccbbfa98cf7b8fdcb333a697949df021f1cf3a65e2166618f1da5d
       PROJECT_SERVICE_URL: http://project-service:3000
-      AUTH_SERVICE_URL: http://auth-service:3000
     depends_on:
       postgres:
         condition: service_healthy

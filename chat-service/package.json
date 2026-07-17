@@ -37,7 +37,8 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
-    "@types/node": "^24.0.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.3",
     "socket.io-client": "^4.8.3",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",

@@ -45,6 +45,7 @@
 }
 
 .sidebar-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -57,6 +58,22 @@
   transition: var(--transition);
   margin: 0.25rem 1rem;
   box-sizing: border-box;
+}
+
+.sidebar-badge {
+  position: absolute;
+  right: 1rem;
+  top: calc(50% - 10px);
+  min-width: 20px;
+  padding: 0 8px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .sidebar-link:hover {

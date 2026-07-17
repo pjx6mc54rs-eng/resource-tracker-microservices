@@ -25,7 +25,7 @@ export default function ProjectsList() {
   const [unreadCounts, setUnreadCounts] = useState({})
 
   const getHeaders = () => ({
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
     'user-role': user?.role,
     'user-id': user?.id,
   })

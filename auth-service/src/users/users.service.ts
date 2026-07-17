@@ -39,7 +39,7 @@ export class UsersService implements OnModuleInit {
   }
 
   findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.usersRepository.findOne({ where: { email: email.trim().toLowerCase() } });
   }
 
   findById(id: string): Promise<User | null> {
@@ -51,6 +51,9 @@ export class UsersService implements OnModuleInit {
   }
 
   create(data: Partial<User>): Promise<User> {
+    if (data.email) {
+      data.email = data.email.trim().toLowerCase();
+    }
     const user = this.usersRepository.create(data);
     return this.usersRepository.save(user);
   }
