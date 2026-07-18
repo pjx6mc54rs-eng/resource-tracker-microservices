@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import { useAuth } from './AuthContext'
 import { useToast } from './ToastContext'
-import { fetchChatChannels } from '../pages/messages/messagesApi'
+import { fetchChatChannels, markChannelAsRead } from '../pages/messages/messagesApi'
 
-const CHAT_URL = import.meta.env.VITE_CHAT_URL ?? 'http://localhost:3007'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 const ChatContext = createContext(null)
 
 function normalizeValue(value) {
@@ -76,22 +76,136 @@ export function ChatProvider({ children }) {
             channels.colleagues.find((item) => item.channelId === channelId)
         )
       },
-      [channels],
+      [channels]
   )
+
+  const markLocalChannelAsRead = useCallback((channelId) => {
+    setChannels((current) => {
+      const updateUnread = (item) => {
+        if (item.id === channelId || item.channelId === channelId) {
+          return { ...item, unreadCount: 0 }
+        }
+        return item
+      }
+      const projects = current.projects.map(updateUnread)
+      const groups = current.groups.map(updateUnread)
+      const colleagues = current.colleagues.map(updateUnread)
+
+      const globalUnreadCount =
+          projects.reduce((sum, item) => sum + normalizeValue(item.unreadCount), 0) +
+          groups.reduce((sum, item) => sum + normalizeValue(item.unreadCount), 0) +
+          colleagues.reduce((sum, item) => sum + normalizeValue(item.unreadCount), 0)
+      return { ...current, projects, groups, colleagues, globalUnreadCount }
+    })
+  }, [])
+
+  const markChannelAsReadAPI = useCallback(async (channelId) => {
+    if (!token || !channelId) return
+    try {
+      await markChannelAsRead(channelId, token)
+      markLocalChannelAsRead(channelId)
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('message_read', { channelId })
+      }
+    } catch (e) {
+      console.error('Failed to mark channel as read', e)
+    }
+  }, [token, markLocalChannelAsRead])
+
+  const handleMessageRead = useCallback((payload) => {
+    if (!payload?.channelId || !payload?.userId) return
+    setChannels((current) => {
+      const colleagues = current.colleagues.map((c) =>
+        c.userId === payload.userId ? { ...c, lastReadAt: payload.readAt } : c
+      )
+      return { ...current, colleagues }
+    })
+  }, [])
+
+  const updateChannelLastMessage = useCallback((channelId, message) => {
+    setChannels((current) => {
+      const updateMsg = (item) => {
+        if (item.id === channelId || item.channelId === channelId) {
+          const isMine = message.senderId === user?.id
+          let senderName = message.senderName || 'Membre'
+          if (isMine) senderName = 'You'
+          else {
+            const colleague = current.colleagues?.find((c) => c.userId === message.senderId)
+            if (colleague) senderName = colleague.name
+          }
+          return {
+            ...item,
+            lastMessageAt: message.createdAt,
+            lastMessage: {
+              content: message.message,
+              senderId: message.senderId,
+              senderName: senderName,
+              createdAt: message.createdAt,
+            }
+          }
+        }
+        return item
+      }
+      return {
+        ...current,
+        projects: current.projects.map(updateMsg),
+        groups: current.groups.map(updateMsg),
+        colleagues: current.colleagues.map(updateMsg),
+      }
+    })
+  }, [user?.id])
 
   const handleIncomingMessage = useCallback(
       (message) => {
         if (!message?.channelId) return
 
+        // Si le canal n'est pas encore connu localement (ex: nouveau groupe ou DM)
+        const channelExists = findChannel(message.channelId)
+        if (!channelExists) {
+          refreshChannels().then(() => {
+            if (message.senderId !== user?.id) {
+              setChannels((latest) => {
+                const refreshedChannel =
+                  latest.projects.find((item) => item.id === message.channelId) ||
+                  latest.groups.find((item) => item.id === message.channelId) ||
+                  latest.colleagues.find((item) => item.channelId === message.channelId)
+
+                const title = refreshedChannel?.name || 'Nouvelle discussion'
+                showToast(`Nouveau message dans ${title}`, 'info', 6000, () => {
+                  navigate('/messages')
+                  setActiveChannelId(message.channelId)
+                })
+                return latest
+              })
+            }
+          })
+          return
+        }
+
+        updateChannelLastMessage(message.channelId, message)
+
         // Si le message appartient au canal actuellement ouvert par l'utilisateur
         if (message.channelId === activeChannelId) {
           setMessages((previous) => {
             if (previous.some((item) => item.id === message.id)) return previous
+            if (message.senderId === user?.id) {
+              const tempIndex = previous.findIndex((item) => item.id.startsWith('temp-') && item.message === message.message)
+              if (tempIndex !== -1) {
+                return previous.map((item, idx) =>
+                  idx === tempIndex ? { ...message, createdAt: message.createdAt } : item
+                )
+              }
+            }
             return [...previous, {
               ...message,
               createdAt: message.createdAt ?? new Date().toISOString()
             }]
           })
+          return
+        }
+
+        // Si l'utilisateur connecté est l'auteur du message, on ignore les notifications et compteurs de non-lus
+        if (message.senderId === user?.id) {
           return
         }
 
@@ -123,15 +237,16 @@ export function ChatProvider({ children }) {
           setActiveChannelId(message.channelId)
         })
       },
-      [activeChannelId, findChannel, navigate, showToast],
+      [activeChannelId, findChannel, navigate, showToast, refreshChannels, user?.id],
   )
 
   // Connexion du socket. Dépend uniquement du token.
   useEffect(() => {
     if (!token) return
-    console.log('[ChatContext] connecting to', CHAT_URL, 'token present?', !!token)
+    console.log('[ChatContext] connecting to', API_URL, 'token present?', !!token)
 
-    const socket = io(CHAT_URL, {
+    const socket = io(API_URL, {
+      path: '/api/chat/socket.io',
       auth: { token },
       transports: ['websocket', 'polling'],
     })
@@ -186,13 +301,21 @@ export function ChatProvider({ children }) {
     socket.on('new_message', handleIncomingMessage)
     socket.on('newMessage', handleIncomingMessage)
     socket.on('presence_update', handlePresenceUpdate)
+    socket.on('message_read', handleMessageRead)
 
     return () => {
       socket.off('new_message', handleIncomingMessage)
       socket.off('newMessage', handleIncomingMessage)
       socket.off('presence_update', handlePresenceUpdate)
+      socket.off('message_read', handleMessageRead)
     }
-  }, [isConnected, handleIncomingMessage, handlePresenceUpdate])
+  }, [isConnected, handleIncomingMessage, handlePresenceUpdate, handleMessageRead])
+
+  useEffect(() => {
+    if (activeChannelId) {
+      markChannelAsReadAPI(activeChannelId)
+    }
+  }, [activeChannelId, markChannelAsReadAPI])
 
   const value = useMemo(
       () => ({
@@ -203,10 +326,11 @@ export function ChatProvider({ children }) {
         setMessages,    // Expose le setter pour le fetch de l'historique
         loadChannels,
         refreshChannels,
+        markChannelAsRead: markChannelAsReadAPI,
         socket: socketRef.current,
         isConnected,
       }),
-      [channels, activeChannelId, messages, loadChannels, refreshChannels, isConnected],
+      [channels, activeChannelId, messages, loadChannels, refreshChannels, markChannelAsReadAPI, isConnected],
   )
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>

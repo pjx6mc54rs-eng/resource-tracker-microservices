@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3004'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 function getHeaders(token) {
   return {
@@ -48,5 +48,56 @@ export async function createChatGroup(name, memberIds, token) {
     method: 'POST',
     headers: getHeaders(token),
     body: JSON.stringify({ name, memberIds }),
+  })
+}
+
+export async function clearChatChannel(channelId, token) {
+  return request(`/chat/channels/${channelId}/clear`, {
+    method: 'POST',
+    headers: getHeaders(token),
+  })
+}
+
+export async function deleteChatChannel(channelId, token) {
+  return request(`/chat/channels/${channelId}`, {
+    method: 'DELETE',
+    headers: getHeaders(token),
+  })
+}
+
+export async function addGroupMember(channelId, userId, token) {
+  return request(`/chat/channels/${channelId}/members`, {
+    method: 'POST',
+    headers: getHeaders(token),
+    body: JSON.stringify({ userId }),
+  })
+}
+
+export async function updateChatChannelName(channelId, name, token) {
+  return request(`/chat/channels/${channelId}`, {
+    method: 'PATCH',
+    headers: getHeaders(token),
+    body: JSON.stringify({ name }),
+  })
+}
+
+export async function leaveChatGroup(channelId, token) {
+  return request(`/chat/channels/${channelId}/leave`, {
+    method: 'POST',
+    headers: getHeaders(token),
+  })
+}
+
+export async function removeGroupMember(channelId, userId, token) {
+  return request(`/chat/channels/${channelId}/members/${userId}`, {
+    method: 'DELETE',
+    headers: getHeaders(token),
+  })
+}
+
+export async function makeMemberAdmin(channelId, userId, token) {
+  return request(`/chat/channels/${channelId}/members/${userId}/admin`, {
+    method: 'POST',
+    headers: getHeaders(token),
   })
 }

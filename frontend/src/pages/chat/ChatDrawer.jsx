@@ -3,11 +3,13 @@ import { useChat } from '../../context/ChatContext' // Hypothèse sur le chemin 
 import { getProjectMessages } from './chatApi'
 import './ChatDrawer.css'
 
-function displayName(message, currentUser) {
-  if (message.userName) return message.userName
+function displayName(message, currentUser, channels) {
   if (message.userId === currentUser?.id) {
-    return currentUser.firstName || currentUser.email || 'Vous'
+    return 'You'
   }
+  if (message.userName) return message.userName
+  const colleague = channels?.colleagues?.find((c) => c.userId === message.userId)
+  if (colleague) return colleague.name
   return 'Collaborateur'
 }
 
@@ -24,7 +26,7 @@ export default function ChatDrawer({ isOpen, onClose, project, token, currentUse
   const bottomRef = useRef(null)
 
   // Consommation du socket unique et de son état depuis ton contexte global de chat
-  const { socket, isConnected } = useChat()
+  const { socket, isConnected, channels } = useChat()
 
   // Scroll automatique vers le bas
   useEffect(() => {
@@ -71,6 +73,12 @@ export default function ChatDrawer({ isOpen, onClose, project, token, currentUse
       if (message.projectId !== project.id) return
       setMessages((previous) => {
         if (previous.some((item) => item.id === message.id)) return previous
+        if (message.userId === currentUser?.id) {
+          const tempIndex = previous.findIndex((item) => item.id.startsWith('temporary-') && item.message === message.message)
+          if (tempIndex !== -1) {
+            return previous.map((item, idx) => idx === tempIndex ? message : item)
+          }
+        }
         return [...previous, message]
       })
     }
@@ -164,7 +172,7 @@ export default function ChatDrawer({ isOpen, onClose, project, token, currentUse
               return (
                   <article className={`chat-message-row ${isMine ? 'is-mine' : ''}`} key={message.id}>
                     <p className="chat-message-meta">
-                      {displayName(message, currentUser)} · {messageTime(message)}
+                      {displayName(message, currentUser, channels)} · {messageTime(message)}
                     </p>
                     <div className="chat-message-bubble">{message.message}</div>
                   </article>

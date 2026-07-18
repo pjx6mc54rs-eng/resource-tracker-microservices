@@ -9,6 +9,8 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  Delete,
+  Patch,
 } from '@nestjs/common'
 import { JwtAuthGuard, RequestWithUser } from './jwt-auth.guard'
 import { ChatService } from './chat-message.service'
@@ -85,5 +87,74 @@ export class ChatController {
     if (!token) throw new UnauthorizedException('JWT manquant')
     await this.access.assertCanAccessProject(request.user, projectId, token)
     return this.chat.getProjectMessages(projectId, query.limit ?? 50, query.offset ?? 0)
+  }
+
+  @Post('channels/:channelId/clear')
+  async clearChannel(
+    @Param('channelId') channelId: string,
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.clearChannelMessages(channelId)
+    return { ok: true }
+  }
+
+  @Delete('channels/:channelId')
+  async deleteChannel(
+    @Param('channelId') channelId: string,
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.deleteChannel(channelId)
+    return { ok: true }
+  }
+
+  @Post('channels/:channelId/members')
+  async addGroupMember(
+    @Param('channelId') channelId: string,
+    @Body() body: { userId: string },
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    return this.chat.addGroupMember(channelId, body.userId)
+  }
+
+  @Patch('channels/:channelId')
+  async updateChannel(
+    @Param('channelId') channelId: string,
+    @Body() body: { name: string },
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    return this.chat.updateChannelName(channelId, body.name)
+  }
+
+  @Post('channels/:channelId/leave')
+  async leaveGroup(
+    @Param('channelId') channelId: string,
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    return this.chat.leaveGroup(channelId, request.user.userId)
+  }
+
+  @Delete('channels/:channelId/members/:targetUserId')
+  async removeGroupMember(
+    @Param('channelId') channelId: string,
+    @Param('targetUserId') targetUserId: string,
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    return this.chat.removeGroupMember(channelId, request.user.userId, targetUserId)
+  }
+
+  @Post('channels/:channelId/members/:targetUserId/admin')
+  async assignAdminRole(
+    @Param('channelId') channelId: string,
+    @Param('targetUserId') targetUserId: string,
+    @Req() request: RequestWithUser,
+  ) {
+    await this.chat.assertChannelMember(channelId, request.user.userId)
+    return this.chat.assignAdminRole(channelId, request.user.userId, targetUserId)
   }
 }

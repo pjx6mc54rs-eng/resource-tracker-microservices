@@ -30,6 +30,14 @@ for SERVICE in "${SERVICES[@]}"; do
     continue
   fi
 
+  # Vérification et création automatique de la base de données si elle n'existe pas
+  DB_NAME="${SERVICE%-service}_db"
+  DB_EXISTS=$(docker exec postgres psql -U "$DATABASE_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'")
+  if [ "$DB_EXISTS" != "1" ]; then
+    echo "→ Base de données '$DB_NAME' manquante. Création en cours..."
+    docker exec postgres psql -U "$DATABASE_USER" -d postgres -c "CREATE DATABASE $DB_NAME;"
+  fi
+
   if [ ! -x "$SERVICE/node_modules/.bin/typeorm-ts-node-commonjs" ]; then
     echo "→ Installation des dépendances ($SERVICE)..."
     (cd "$SERVICE" && npm install)

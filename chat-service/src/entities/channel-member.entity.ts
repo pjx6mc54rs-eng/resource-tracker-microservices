@@ -33,4 +33,7 @@ export class ChannelMember {
     default: () => 'now()',
   })
   lastReadAt!: Date
+
+  @Column({ name: 'is_admin', type: 'boolean', default: false })
+  isAdmin!: boolean
 }
