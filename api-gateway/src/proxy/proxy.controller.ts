@@ -9,7 +9,7 @@ export class ProxyController {
   private readonly projectProxy: RequestHandler;
   private readonly timesheetProxy: RequestHandler;
   private readonly reportingProxy: RequestHandler
-  private readonly chatProxy: RequestHandler
+  public readonly chatProxy: RequestHandler
 
   constructor() {
     const commonOptions = {
@@ -66,7 +66,12 @@ export class ProxyController {
 
     this.chatProxy = createProxyMiddleware({
       ...commonOptions,
-      target: process.env.CHAT_SERVICE_URL || 'http://localhost:3007',
+      pathRewrite: {
+        '^/api/chat/socket.io': '/socket.io',
+        '^/api': '',
+      },
+      target: process.env.CHAT_SERVICE_URL || 'http://localhost:3004',
+      ws: true,
     })
   }
 

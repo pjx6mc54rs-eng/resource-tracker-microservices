@@ -9,7 +9,7 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
 
-  const port = Number(process.env.PORT ?? 3007);
+  const port = Number(process.env.PORT ?? 3004);
   await app.listen(port);
   new Logger('Bootstrap').log(`chat-service listening on port ${port}`);
 }

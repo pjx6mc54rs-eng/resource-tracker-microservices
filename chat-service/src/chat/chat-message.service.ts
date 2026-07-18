@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common'
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { firstValueFrom } from 'rxjs'
@@ -62,15 +62,66 @@ export class ChatService {
 
     const directChannelMap = await this.buildDirectChannelMap(user.userId, unreadCounts)
 
+    const lastMessages = await this.messages
+      .createQueryBuilder('message')
+      .innerJoin(
+        (subQuery) =>
+          subQuery
+            .select('msg.channel_id', 'channel_id')
+            .addSelect('MAX(msg.created_at)', 'max_created_at')
+            .from(ChatMessage, 'msg')
+            .groupBy('msg.channel_id'),
+        'latest',
+        'message.channel_id = latest.channel_id AND message.created_at = latest.max_created_at',
+      )
+      .getMany()
+
+    const lastMessageMap = new Map<string, { content: string; senderId: string; createdAt: Date }>()
+    for (const msg of lastMessages) {
+      if (msg.channelId) {
+        lastMessageMap.set(msg.channelId, {
+          content: this.tryDecrypt(msg.message),
+          senderId: msg.senderId || msg.userId || '',
+          createdAt: msg.createdAt,
+        })
+      }
+    }
+
+    const userMap = new Map<string, string>(
+      users.map((u) => [
+        u.id,
+        `${u.firstName ?? ''}${u.firstName && u.lastName ? ' ' : ''}${u.lastName ?? u.email}`.trim()
+      ])
+    )
+
+    const getLastMessageForChannel = (channelId: string) => {
+      const msg = lastMessageMap.get(channelId)
+      if (!msg) return null
+      return {
+        content: msg.content,
+        senderId: msg.senderId,
+        senderName: msg.senderId === user.userId ? 'You' : (userMap.get(msg.senderId) ?? 'Membre'),
+        createdAt: msg.createdAt,
+      }
+    }
+
     const colleagues = users
       .filter((userItem) => userItem.id !== user.userId)
-      .map((userItem) => ({
-        userId: userItem.id,
-        name: `${userItem.firstName ?? ''}${userItem.firstName && userItem.lastName ? ' ' : ''}${userItem.lastName ?? userItem.email}`.trim(),
-        channelId: directChannelMap.get(userItem.id)?.channelId,
-        unreadCount: directChannelMap.get(userItem.id)?.unreadCount ?? 0,
-        online: false,
-      }))
+      .map((userItem) => {
+        const channelId = directChannelMap.get(userItem.id)?.channelId
+        const lastMsg = channelId ? getLastMessageForChannel(channelId) : null
+        return {
+          userId: userItem.id,
+          name: `${userItem.firstName ?? ''}${userItem.firstName && userItem.lastName ? ' ' : ''}${userItem.lastName ?? userItem.email}`.trim(),
+          channelId,
+          unreadCount: directChannelMap.get(userItem.id)?.unreadCount ?? 0,
+          lastReadAt: directChannelMap.get(userItem.id)?.lastReadAt,
+          lastMessageAt: lastMsg?.createdAt,
+          lastMessage: lastMsg,
+          avatarUrl: userItem.avatarUrl,
+          online: false,
+        }
+      })
 
     const groupChannels = await this.channels.find({
       where: { type: ChatChannelType.GROUP },
@@ -80,23 +131,34 @@ export class ChatService {
 
     const groupSummaries = groupChannels
       .filter((channel) => channel.members.some((member) => member.userId === user.userId))
-      .map((channel) => ({
-        id: channel.id,
-        type: channel.type,
-        name: channel.name ?? 'Groupe',
-        unreadCount: unreadCounts.get(channel.id) ?? 0,
-        memberCount: channel.members.length,
-      }))
+      .map((channel) => {
+        const lastMsg = getLastMessageForChannel(channel.id)
+        return {
+          id: channel.id,
+          type: channel.type,
+          name: channel.name ?? 'Groupe',
+          unreadCount: unreadCounts.get(channel.id) ?? 0,
+          lastMessageAt: lastMsg?.createdAt,
+          lastMessage: lastMsg,
+          memberCount: channel.members.length,
+          members: channel.members.map((m) => ({ userId: m.userId, isAdmin: m.isAdmin })),
+        }
+      })
 
     const projectSummaries = projectChannels
       .filter((channel): channel is ChatChannel => Boolean(channel))
-      .map((channel, index) => ({
-        id: channel.id,
-        type: channel.type,
-        name: channel.name ?? `# ${projects[index]?.name ?? channel.projectId}`,
-        projectId: channel.projectId,
-        unreadCount: unreadCounts.get(channel.id) ?? 0,
-      }))
+      .map((channel, index) => {
+        const lastMsg = getLastMessageForChannel(channel.id)
+        return {
+          id: channel.id,
+          type: channel.type,
+          name: channel.name ?? `# ${projects[index]?.name ?? channel.projectId}`,
+          projectId: channel.projectId,
+          unreadCount: unreadCounts.get(channel.id) ?? 0,
+          lastMessageAt: lastMsg?.createdAt,
+          lastMessage: lastMsg,
+        }
+      })
 
     return {
       projects: projectSummaries,
@@ -151,7 +213,7 @@ export class ChatService {
     const savedChannel = await this.channels.save(channel)
 
     const members = uniqueMembers.map((userId) =>
-      this.members.create({ channel: savedChannel, userId }),
+      this.members.create({ channel: savedChannel, userId, isAdmin: userId === creatorId }),
     )
     await this.members.save(members)
 
@@ -212,7 +274,7 @@ export class ChatService {
       message: this.encryption.encrypt(text),
     })
     const saved = await this.messages.save(message)
-    await this.members.update({ channelId, userId }, { lastReadAt: new Date() })
+    await this.members.update({ channelId, userId }, { lastReadAt: saved.createdAt })
 
     return {
       id: saved.id,
@@ -284,7 +346,7 @@ export class ChatService {
       relations: ['members'],
     })
 
-    const map = new Map<string, { channelId: string; unreadCount: number }>()
+    const map = new Map<string, { channelId: string; unreadCount: number; lastReadAt?: Date }>()
     for (const channel of directChannels) {
       if (!channel.members.some((member) => member.userId === userId)) {
         continue
@@ -296,6 +358,7 @@ export class ChatService {
       map.set(peer.userId, {
         channelId: channel.id,
         unreadCount: unreadCounts.get(channel.id) ?? 0,
+        lastReadAt: peer.lastReadAt,
       })
     }
     return map
@@ -388,13 +451,158 @@ export class ChatService {
         }),
       )
       const data = response.data
-      if (Array.isArray(data)) return data as Array<{ id: string; firstName?: string; lastName?: string; email?: string }>
-      if (data && Array.isArray(data.users)) return data.users as Array<{ id: string; firstName?: string; lastName?: string; email?: string }>
+      if (Array.isArray(data)) return data as Array<{ id: string; firstName?: string; lastName?: string; email?: string; avatarUrl?: string }>
+      if (data && Array.isArray(data.users)) return data.users as Array<{ id: string; firstName?: string; lastName?: string; email?: string; avatarUrl?: string }>
       return []
     } catch (e: unknown) {
       const error = e as { message?: string }
       this.logger.warn(`Unable to fetch users: ${error?.message ?? e}`)
       return []
     }
+  }
+
+  async clearChannelMessages(channelId: string): Promise<void> {
+    await this.messages.delete({ channelId })
+  }
+
+  async deleteChannel(channelId: string): Promise<void> {
+    await this.channels.delete({ id: channelId })
+  }
+
+  async addGroupMember(channelId: string, userId: string) {
+    const channel = await this.channels.findOne({
+      where: { id: channelId },
+      relations: ['members'],
+    })
+    if (!channel) {
+      throw new NotFoundException('Canal introuvable')
+    }
+    if (channel.type !== ChatChannelType.GROUP) {
+      throw new ForbiddenException('Ce canal n\'est pas un groupe de discussion')
+    }
+
+    const alreadyMember = channel.members.some((m) => m.userId === userId)
+    if (alreadyMember) {
+      return { ok: true, channel }
+    }
+
+    const newMember = this.members.create({
+      channelId,
+      userId,
+      lastReadAt: new Date(),
+    })
+    await this.members.save(newMember)
+
+    return { ok: true }
+  }
+
+  async updateChannelName(channelId: string, name: string) {
+    const channel = await this.channels.findOne({ where: { id: channelId } })
+    if (!channel) {
+      throw new NotFoundException('Canal introuvable')
+    }
+    if (channel.type !== ChatChannelType.GROUP) {
+      throw new ForbiddenException('Seuls les groupes de discussion peuvent être renommés')
+    }
+    channel.name = name
+    return this.channels.save(channel)
+  }
+
+  async leaveGroup(channelId: string, userId: string) {
+    const channel = await this.channels.findOne({
+      where: { id: channelId },
+      relations: ['members'],
+    })
+    if (!channel) {
+      throw new NotFoundException('Canal introuvable')
+    }
+    if (channel.type !== ChatChannelType.GROUP) {
+      throw new ForbiddenException('Seuls les groupes de discussion peuvent être quittés')
+    }
+
+    const membership = channel.members.find((m) => m.userId === userId)
+    if (!membership) {
+      throw new BadRequestException('Vous n\'êtes pas membre de ce groupe')
+    }
+
+    // Si l'utilisateur est le seul admin et qu'il reste d'autres membres
+    if (membership.isAdmin) {
+      const otherAdmins = channel.members.filter((m) => m.isAdmin && m.userId !== userId)
+      if (otherAdmins.length === 0) {
+        const otherMembers = channel.members.filter((m) => m.userId !== userId)
+        if (otherMembers.length > 0) {
+          // Choisir un membre au hasard pour devenir admin
+          const randomMember = otherMembers[Math.floor(Math.random() * otherMembers.length)]
+          randomMember.isAdmin = true
+          await this.members.save(randomMember)
+        }
+      }
+    }
+
+    // Supprimer le membre du canal
+    await this.members.remove(membership)
+
+    // Si le canal n'a plus de membres du tout, le supprimer complètement
+    const remainingMembersCount = await this.members.count({ where: { channelId } })
+    if (remainingMembersCount === 0) {
+      await this.channels.delete({ id: channelId })
+    }
+
+    return { ok: true }
+  }
+
+  async removeGroupMember(channelId: string, requestUserId: string, targetUserId: string) {
+    const channel = await this.channels.findOne({
+      where: { id: channelId },
+      relations: ['members'],
+    })
+    if (!channel) {
+      throw new NotFoundException('Canal introuvable')
+    }
+    if (channel.type !== ChatChannelType.GROUP) {
+      throw new ForbiddenException('Seuls les groupes de discussion sont modifiables')
+    }
+
+    // Vérifier si l'utilisateur qui fait la demande est admin
+    const requestMember = channel.members.find((m) => m.userId === requestUserId)
+    if (!requestMember || !requestMember.isAdmin) {
+      throw new ForbiddenException('Vous devez être administrateur pour supprimer des membres')
+    }
+
+    const targetMember = channel.members.find((m) => m.userId === targetUserId)
+    if (!targetMember) {
+      throw new BadRequestException('Le membre cible ne fait pas partie du groupe')
+    }
+
+    await this.members.remove(targetMember)
+    return { ok: true }
+  }
+
+  async assignAdminRole(channelId: string, requestUserId: string, targetUserId: string) {
+    const channel = await this.channels.findOne({
+      where: { id: channelId },
+      relations: ['members'],
+    })
+    if (!channel) {
+      throw new NotFoundException('Canal introuvable')
+    }
+    if (channel.type !== ChatChannelType.GROUP) {
+      throw new ForbiddenException('Seuls les groupes de discussion sont modifiables')
+    }
+
+    // Vérifier si l'utilisateur qui fait la demande est admin
+    const requestMember = channel.members.find((m) => m.userId === requestUserId)
+    if (!requestMember || !requestMember.isAdmin) {
+      throw new ForbiddenException('Vous devez être administrateur pour attribuer le rôle admin')
+    }
+
+    const targetMember = channel.members.find((m) => m.userId === targetUserId)
+    if (!targetMember) {
+      throw new BadRequestException('Le membre cible ne fait pas partie du groupe')
+    }
+
+    targetMember.isAdmin = true
+    await this.members.save(targetMember)
+    return { ok: true }
   }
 }
