@@ -1,8 +1,8 @@
-const CHAT_URL = import.meta.env.VITE_CHAT_URL ?? 'http://localhost:3007'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 export async function getProjectMessages(projectId, token) {
   const response = await fetch(
-    `${CHAT_URL}/chat/${projectId}/messages?limit=50&offset=0`,
+    `${API_URL}/api/chat/${projectId}/messages?limit=50&offset=0`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

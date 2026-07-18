@@ -136,6 +136,14 @@ export default function Chat() {
     [messagesByConversation, activeConversationId],
   )
 
+  const sortedConversations = useMemo(() => {
+    return [...conversations].sort((a, b) => {
+      const aTime = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0
+      const bTime = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0
+      return bTime - aTime
+    })
+  }, [conversations])
+
   useEffect(() => {
     if (!activeConversationId) return
     setConversations((current) =>
@@ -272,7 +280,7 @@ export default function Chat() {
         </div>
 
         <div className="chat-conversation-list">
-          {conversations.map((conversation) => (
+          {sortedConversations.map((conversation) => (
             <button
               key={conversation.id}
               type="button"
@@ -322,9 +330,11 @@ export default function Chat() {
                   {!isMine && (
                     <div className="chat-message-avatar">{getInitials(message.senderName)}</div>
                   )}
-                  <div className={`chat-message-bubble ${isMine ? 'sent' : 'received'}`}>
-                    {!isMine && <div className="chat-message-sender">{message.senderName}</div>}
-                    <p className="chat-message-content">{message.content}</p>
+                  <div className="chat-message-wrapper">
+                    <span className="chat-message-sender">{isMine ? 'You' : message.senderName}</span>
+                    <div className={`chat-message-bubble ${isMine ? 'sent' : 'received'}`}>
+                      <p className="chat-message-content">{message.content}</p>
+                    </div>
                     <div className="chat-message-meta">
                       <span>{formatTime(message.createdAt)}</span>
                       {isMine && message.status === 'sending' && <span className="chat-message-status">Envoi…</span>}

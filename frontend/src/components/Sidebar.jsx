@@ -5,7 +5,7 @@ import LogoutIcon from './LogoutIcon'
 import ProfileIcon from './ProfileIcon'
 import './Sidebar.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3004'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 export default function Sidebar({ isOpen, theme, toggleTheme }) {
   const { user, logout } = useAuth()

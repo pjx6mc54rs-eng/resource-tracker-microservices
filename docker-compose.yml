@@ -138,8 +138,8 @@ services:
   chat-service:
     build: ./chat-service
     container_name: chat-service
-    ports:
-      - "3007:3000"
+    expose:
+      - "3000"
     environment:
       PORT: 3000
       NODE_ENV: production
@@ -165,7 +165,7 @@ services:
     build: ./api-gateway
     container_name: api-gateway
     ports:
-      - "3004:3000"
+      - "3005:3000"
     environment:
       PORT: 3000
       JWT_SECRET: change_this_secret
@@ -173,6 +173,7 @@ services:
       PROJECT_SERVICE_URL: http://project-service:3000
       TIMESHEET_SERVICE_URL: http://timesheet-service:3000
       REPORTING_SERVICE_URL: http://reporting-service:3000
+      CHAT_SERVICE_URL: http://chat-service:3000
     depends_on:
       - auth-service
       - project-service
@@ -193,7 +194,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       # Exposed to the browser, so use the host-mapped gateway address rather
       # than Docker's internal service hostname.
-      - VITE_API_URL=http://localhost:3004
+      - VITE_API_URL=http://localhost:3005
     depends_on:
       - api-gateway
 

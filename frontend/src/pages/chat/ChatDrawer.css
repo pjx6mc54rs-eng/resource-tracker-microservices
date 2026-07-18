@@ -17,12 +17,12 @@
 .chat-message-row { display: flex; flex-direction: column; align-items: flex-start; margin: 0 0 18px; }
 .chat-message-row.is-mine { align-items: flex-end; }
 .chat-message-meta { margin: 0 4px 5px; color: #64748b; font-size: .72rem; }
-.chat-message-bubble { max-width: 82%; padding: 10px 13px; border: 1px solid #e2e8f0; border-radius: 4px 15px 15px 15px; color: #1e293b; background: #fff; box-shadow: 0 2px 5px rgba(15,23,42,.05); overflow-wrap: anywhere; }
+.chat-message-bubble { max-width: 90%; padding: 6px 13px; border: 1px solid #e2e8f0; border-radius: 4px 15px 15px 15px; color: #1e293b; background: #fff; box-shadow: 0 2px 5px rgba(15,23,42,.05); overflow-wrap: anywhere; }
 .chat-message-row.is-mine .chat-message-bubble { border-color: #65a30d; border-radius: 15px 4px 15px 15px; color: #fff; background: #84cc16; }
-.chat-drawer-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #e2e8f0; background: #fff; }
-.chat-drawer-footer input { min-width: 0; flex: 1; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 12px; color: #1e293b; font: inherit; }
+.chat-drawer-footer { display: flex; gap: 10px; padding: 12px 20px; border-top: 1px solid #e2e8f0; background: #fff; }
+.chat-drawer-footer input { min-width: 0; flex: 1; padding: 7px 14px; border: 1px solid #cbd5e1; border-radius: 12px; color: #1e293b; font: inherit; }
 .chat-drawer-footer input:focus { outline: 0; border-color: #65a30d; box-shadow: 0 0 0 3px rgba(132,204,22,.18); }
-.chat-drawer-footer button { display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 12px; color: #fff; background: #65a30d; cursor: pointer; transition: transform .2s, background .2s; }
+.chat-drawer-footer button { display: grid; width: 36px; height: 36px; place-items: center; border: 0; border-radius: 12px; color: #fff; background: #65a30d; cursor: pointer; transition: transform .2s, background .2s; }
 .chat-drawer-footer button:hover:not(:disabled) { background: #4d7c0f; transform: translateY(-1px); }
 .chat-drawer-footer button:disabled { cursor: not-allowed; opacity: .48; }
 .chat-drawer-footer svg { width: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
