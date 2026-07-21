@@ -40,11 +40,11 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Email ou mot de passe incorrect');
+      throw new UnauthorizedException('Incorrect email or password');
     }
     const passwordMatches = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordMatches) {
-      throw new UnauthorizedException('Email ou mot de passe incorrect');
+      throw new UnauthorizedException('Incorrect email or password');
     }
     const payload = {
       sub: user.id,

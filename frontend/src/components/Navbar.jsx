@@ -23,18 +23,18 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
         <Link to="/dashboard" className="navbar-logo-link">
           <img 
             src="/norsys_afrique_logo.png" 
-            alt="Norsys Afrique Logo" 
+            alt="Norsys Logo" 
             className="navbar-logo logo-light"
           />
           <img 
             src="/norsys_afrique_logo_dark.png" 
-            alt="Norsys Afrique Logo" 
+            alt="Norsys Logo" 
             className="navbar-logo logo-dark"
           />
         </Link>
 
         <Link to="/dashboard" className="navbar-brand-text">
-          Resource Tracker
+          Norsys Ressource Tracker
         </Link>
         
         <div className="navbar-user">
@@ -71,7 +71,7 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
                 <div className="notification-item">
                   <div className="notification-item-dot"></div>
                   <div className="notification-item-content">
-                    <p className="notification-text">Welcome to <strong>Resource Tracker</strong>!</p>
+                    <p className="notification-text">Welcome to <strong>Norsys Ressource Tracker</strong>!</p>
                     <span className="notification-time">1 day ago</span>
                   </div>
                 </div>

@@ -27,7 +27,7 @@ export function ChatProvider({ children }) {
   const [messages, setMessages] = useState([]) // Centralisé ici !
   const [isConnected, setIsConnected] = useState(false)
  
-  const originalTitleRef = useRef(document.title || 'Resource Tracker')
+  const originalTitleRef = useRef(document.title || 'Norsys Ressource Tracker')
   const flashIntervalRef = useRef(null)
  
   const stopFlashingTitle = useCallback(() => {
@@ -84,14 +84,14 @@ export function ChatProvider({ children }) {
  
     const allUnread = [
       ...unreadColleagues.map((c) => ({ senderName: c.name, time: c.lastMessageAt })),
-      ...unreadGroups.map((g) => ({ senderName: g.lastMessage?.senderName || 'un membre', time: g.lastMessageAt })),
-      ...unreadProjects.map((p) => ({ senderName: p.lastMessage?.senderName || 'un collaborateur', time: p.lastMessageAt })),
+      ...unreadGroups.map((g) => ({ senderName: g.lastMessage?.senderName || 'a member', time: g.lastMessageAt })),
+      ...unreadProjects.map((p) => ({ senderName: p.lastMessage?.senderName || 'a contributor', time: p.lastMessageAt })),
     ].filter((item) => item.time)
  
     allUnread.sort((a, b) => new Date(b.time) - new Date(a.time))
  
-    const latestName = allUnread.length > 0 ? allUnread[0].senderName : 'un collègue'
-    startFlashingTitle(`Nouveau message de ${latestName}`)
+    const latestName = allUnread.length > 0 ? allUnread[0].senderName : 'a colleague'
+    startFlashingTitle(`New message from ${latestName}`)
   }, [channels, activeChannelId, isWindowFocused, startFlashingTitle, stopFlashingTitle])
 
   const loadChannels = useCallback(async () => {
@@ -310,14 +310,14 @@ export function ChatProvider({ children }) {
       console.error('[ChatContext] socket connect_error', err)
       setIsConnected(false)
       showToast(
-          `Impossible de se connecter au service de chat (WS) : ${err?.message ?? 'erreur inconnue'}`,
+          `Unable to connect to chat service (WS): ${err?.message ?? 'unknown error'}`,
           'error',
       )
     })
 
     socket.on('reconnect_failed', () => {
       console.error('[ChatContext] socket reconnect_failed')
-      showToast('La reconnexion au service de chat a échoué.', 'error')
+      showToast('Reconnection to chat service failed.', 'error')
     })
 
     return () => {

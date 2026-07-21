@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { getProjects, createProject } from './projectsApi'
 import { listUsers } from '../auth/authApi'
-import ChatDrawer from '../chat/ChatDrawer'
+import { useChat } from '../../context/ChatContext'
+import { fetchChatChannels } from '../messages/messagesApi'
 import './ProjectsList.css'
 
 export default function ProjectsList() {
   const { user, token } = useAuth()
   const { showToast } = useToast()
+  const { channels, setActiveChannelId } = useChat()
+  const navigate = useNavigate()
   const isAdmin = user?.role === 'admin'
 
   const [projects, setProjects] = useState([])
@@ -20,9 +23,6 @@ export default function ProjectsList() {
   const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [usersMap, setUsersMap] = useState({})
-  const [isChatOpen, setIsChatOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState(null)
-  const [unreadCounts, setUnreadCounts] = useState({})
 
   const getHeaders = () => ({
     Authorization: `Bearer ${token}`,
@@ -95,14 +95,24 @@ export default function ProjectsList() {
     }
   }
 
-  const openChat = (project) => {
-    setSelectedProject(project)
-    setIsChatOpen(true)
-    setUnreadCounts((previous) => ({ ...previous, [project.id]: 0 }))
-  }
+  const openChat = async (project) => {
+    let projectChannel = channels?.projects?.find((p) => p.projectId === project.id)
+    if (!projectChannel) {
+      try {
+        const response = await fetchChatChannels(token)
+        const projectsList = response?.projects || []
+        projectChannel = projectsList.find((p) => p.projectId === project.id)
+      } catch (err) {
+        console.error('Error fetching chat channels:', err)
+      }
+    }
 
-  const closeChat = () => {
-    setIsChatOpen(false)
+    if (projectChannel) {
+      setActiveChannelId(projectChannel.id)
+      navigate('/messages')
+    } else {
+      showToast('Discussion de projet introuvable.', 'error')
+    }
   }
 
   if (loading) {
@@ -160,54 +170,51 @@ export default function ProjectsList() {
         <p>No projects found.</p>
       ) : (
         <div className="projects-grid">
-          {projects.map((project) => (
-            <div key={project.id} className="project-card">
-              <h3>{project.name}</h3>
-              <p className="project-card-description">
-                {project.description || 'No description provided.'}
-              </p>
-              <div className="project-card-meta">
-                <span className="project-card-meta-item">
-                  <strong>Created by:</strong> {usersMap[project.createdBy] || 'Admin'}
-                </span>
-                <span className="project-card-meta-item">
-                  <strong>Created at:</strong> {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'N/A'}
-                </span>
-                <span className="project-card-meta-item">
-                  <strong>Updated at:</strong> {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'N/A'}
-                </span>
+          {projects.map((project) => {
+            const projectChannel = channels?.projects?.find((p) => p.projectId === project.id)
+            const unreadCount = projectChannel ? projectChannel.unreadCount : (project.unreadCount ?? 0)
+            return (
+              <div key={project.id} className="project-card">
+                <h3>{project.name}</h3>
+                <p className="project-card-description">
+                  {project.description || 'No description provided.'}
+                </p>
+                <div className="project-card-meta">
+                  <span className="project-card-meta-item">
+                    <strong>Created by:</strong> {usersMap[project.createdBy] || 'Admin'}
+                  </span>
+                  <span className="project-card-meta-item">
+                    <strong>Created at:</strong> {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'N/A'}
+                  </span>
+                  <span className="project-card-meta-item">
+                    <strong>Updated at:</strong> {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div className="project-card-actions">
+                  <Link to={`/projects/${project.id}`} className="btn btn-secondary">
+                    View Details
+                  </Link>
+                  <button
+                    className="project-chat-button"
+                    type="button"
+                    onClick={() => openChat(project)}
+                    aria-label={`Ouvrir le chat du projet ${project.name}`}
+                    title="Ouvrir le chat"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M20 11.5a7.5 7.5 0 0 1-8 7.48 8.7 8.7 0 0 1-3.18-.76L4 20l1.28-3.55A7.5 7.5 0 1 1 20 11.5Z" />
+                      <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="project-chat-badge">{unreadCount}</span>
+                    )}
+                  </button>
+                </div>
               </div>
-              <div className="project-card-actions">
-                <Link to={`/projects/${project.id}`} className="btn btn-secondary">
-                  View Details
-                </Link>
-                <button
-                  className="project-chat-button"
-                  type="button"
-                  onClick={() => openChat(project)}
-                  aria-label={`Ouvrir le chat du projet ${project.name}`}
-                  title="Ouvrir le chat"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M20 11.5a7.5 7.5 0 0 1-8 7.48 8.7 8.7 0 0 1-3.18-.76L4 20l1.28-3.55A7.5 7.5 0 1 1 20 11.5Z" />
-                    <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" />
-                  </svg>
-                  {(unreadCounts[project.id] ?? project.unreadCount ?? 0) > 0 && (
-                    <span className="project-chat-badge">{unreadCounts[project.id] ?? project.unreadCount}</span>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
-      <ChatDrawer
-        isOpen={isChatOpen}
-        onClose={closeChat}
-        project={selectedProject}
-        token={token}
-        currentUser={user}
-      />
     </div>
   )
 }

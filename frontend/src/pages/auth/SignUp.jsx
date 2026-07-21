@@ -48,11 +48,11 @@ function SignUp() {
     const file = e.target.files[0]
     if (file) {
       if (!file.type.startsWith('image/')) {
-        setErrors((err) => ({ ...err, avatar: 'L\'avatar doit être un fichier image.' }))
+        setErrors((err) => ({ ...err, avatar: 'Avatar must be an image file.' }))
         return
       }
       if (file.size > 5 * 1024 * 1024) {
-        setErrors((err) => ({ ...err, avatar: 'L\'image doit faire moins de 5 Mo.' }))
+        setErrors((err) => ({ ...err, avatar: 'Image size must be under 5 MB.' }))
         return
       }
       setAvatarFile(file)
@@ -130,12 +130,12 @@ function SignUp() {
         <div className={styles.header}>
           <img
             src="/norsys_afrique_logo.png"
-            alt="Norsys Afrique"
+            alt="Norsys"
             className={`${styles.logo} ${styles.logoLight}`}
           />
           <img
             src="/norsys_afrique_logo_dark.png"
-            alt="Norsys Afrique"
+            alt="Norsys"
             className={`${styles.logo} ${styles.logoDark}`}
           />
           <div className={styles.headerText}>
@@ -154,7 +154,7 @@ function SignUp() {
           <div className={styles.formGrid}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="firstName">
-                Prénom (First name)
+                First name
               </label>
               <div className={styles.inputWrap}>
                 <input
@@ -173,7 +173,7 @@ function SignUp() {
 
             <div className={styles.field}>
               <label className={styles.label} htmlFor="lastName">
-                Nom (Last name)
+                Last name
               </label>
               <div className={styles.inputWrap}>
                 <input
@@ -272,7 +272,7 @@ function SignUp() {
 
             <div className={styles.field}>
               <label className={styles.label} htmlFor="phone">
-                Téléphone (Phone)
+                Phone number
               </label>
               <div className={styles.inputWrap}>
                 <input
@@ -291,7 +291,7 @@ function SignUp() {
 
             <div className={styles.field}>
               <label className={styles.label} htmlFor="jobTitle">
-                Poste (Job title)
+                Job title
               </label>
               <div className={styles.inputWrap}>
                 <input
@@ -310,7 +310,7 @@ function SignUp() {
 
             <div className={`${styles.field} ${styles.fullWidth}`}>
               <label className={styles.label} htmlFor="avatar">
-                Photo de profil (Profile picture)
+                Profile picture
               </label>
               <div className={styles.inputWrap}>
                 <label htmlFor="avatar" className={styles.fileInputLabel}>
@@ -319,7 +319,7 @@ function SignUp() {
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  <span>{avatarFile ? 'Changer de photo' : 'Choisir une photo...'}</span>
+                  <span>{avatarFile ? 'Change photo' : 'Choose a photo...'}</span>
                 </label>
                 <input
                   id="avatar"

@@ -158,6 +158,8 @@ export class ChatService {
           unreadCount: unreadCounts.get(channel.id) ?? 0,
           lastMessageAt: lastMsg?.createdAt,
           lastMessage: lastMsg,
+          memberCount: channel.members?.length ?? 0,
+          members: channel.members?.map((m) => ({ userId: m.userId, isAdmin: m.isAdmin })) ?? [],
         }
       })
 

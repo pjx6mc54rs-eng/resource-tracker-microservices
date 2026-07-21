@@ -145,7 +145,7 @@ export default function MessagesPage() {
     if (currentUserMInfo) {
       membersList.unshift({
         userId: user.id,
-        name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'Vous',
+        name: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email || 'You',
         avatarUrl: user.avatarUrl,
         online: true,
         isCurrentUser: true,
@@ -279,7 +279,7 @@ export default function MessagesPage() {
 
         await refreshChannels()
       } catch (fetchError) {
-        showToast(fetchError.message || 'Impossible de créer la discussion directe.', 'error')
+        showToast(fetchError.message || 'Failed to create direct chat.', 'error')
         setIsLoading(false)
         return
       } finally {
@@ -348,7 +348,7 @@ export default function MessagesPage() {
         const uploadRes = await uploadChatImage(selectedImage, token)
         uploadedUrl = uploadRes.imageUrl
       } catch (err) {
-        showToast(err.message || "Erreur lors de l'envoi de l'image.", 'error')
+        showToast(err.message || "Error sending image.", 'error')
         setIsLoading(false)
         return
       } finally {
@@ -405,14 +405,14 @@ export default function MessagesPage() {
       })
     } catch (e) {
       setMessages((previous) => previous.filter((message) => message.id !== temporaryId))
-      showToast("Erreur d'envoi.", 'error')
+      showToast("Failed to send.", 'error')
     }
   }
 
   const handleForwardMessage = (targetChannelId) => {
     if (!forwardingMessage || !targetChannelId) return
     if (!socket?.connected) {
-      showToast('Connexion perdue. Réessayez.', 'error')
+      showToast('Connection lost. Try again.', 'error')
       return
     }
 
@@ -424,15 +424,15 @@ export default function MessagesPage() {
         isForwarded: true
       }, (ack) => {
         if (!ack?.ok) {
-          showToast(ack?.message ?? "Impossible de transférer le message.", 'error')
+          showToast(ack?.message ?? "Failed to forward message.", 'error')
           return
         }
-        showToast("Message transféré !", "success")
+        showToast("Message forwarded!", "success")
         setIsForwardModalOpen(false)
         setForwardingMessage(null)
       })
     } catch (e) {
-      showToast("Erreur lors du transfert.", 'error')
+      showToast("Error forwarding message.", 'error')
     }
   }
 
@@ -446,9 +446,9 @@ export default function MessagesPage() {
     setConfirmModal({
       isOpen: true,
       type: 'clear',
-      title: 'Effacer la conversation',
-      message: 'Êtes-vous sûr de vouloir effacer tous les messages de cette conversation ?',
-      subMessage: 'Cette action est définitive et ne pourra pas être annulée.',
+      title: 'Clear conversation',
+      message: 'Are you sure you want to clear all messages from this conversation?',
+      subMessage: 'This action is permanent and cannot be undone.',
     })
   }
 
@@ -456,9 +456,9 @@ export default function MessagesPage() {
     setConfirmModal({
       isOpen: true,
       type: 'delete',
-      title: 'Supprimer la conversation',
-      message: 'Êtes-vous sûr de vouloir supprimer définitivement cette conversation ?',
-      subMessage: 'Tous les messages associés seront supprimés et la discussion sera retirée de votre liste.',
+      title: 'Delete conversation',
+      message: 'Are you sure you want to permanently delete this conversation?',
+      subMessage: 'All associated messages will be deleted and the conversation will be removed from your list.',
     })
   }
 
@@ -473,9 +473,9 @@ export default function MessagesPage() {
         await clearChatChannel(activeChannelId, token)
         setMessages([])
         await refreshChannels()
-        showToast("La conversation a été effacée.", "success")
+        showToast("The conversation has been cleared.", "success")
       } catch (err) {
-        showToast(err.message || "Impossible d'effacer la conversation.", "error")
+        showToast(err.message || "Failed to clear the conversation.", "error")
       }
     } else if (actionType === 'delete') {
       try {
@@ -483,9 +483,9 @@ export default function MessagesPage() {
         setActiveChannelId(null)
         setMessages([])
         await refreshChannels()
-        showToast("La conversation a été supprimée.", "success")
+        showToast("The conversation has been deleted.", "success")
       } catch (err) {
-        showToast(err.message || "Impossible de supprimer la conversation.", "error")
+        showToast(err.message || "Failed to delete the conversation.", "error")
       }
     } else if (actionType === 'leave') {
       try {
@@ -493,27 +493,27 @@ export default function MessagesPage() {
         setActiveChannelId(null)
         setMessages([])
         await refreshChannels()
-        showToast("Vous avez quitté le groupe.", "success")
+        showToast("You have left the group.", "success")
       } catch (err) {
-        showToast(err.message || "Impossible de quitter le groupe.", "error")
+        showToast(err.message || "Failed to leave the group.", "error")
       }
     } else if (actionType === 'removeMember') {
       if (!targetUserId) return
       try {
         await removeGroupMember(activeChannelId, targetUserId, token)
         await refreshChannels()
-        showToast("Membre retiré du groupe.", "success")
+        showToast("Member removed from the group.", "success")
       } catch (err) {
-        showToast(err.message || "Impossible de retirer le membre.", "error")
+        showToast(err.message || "Failed to remove the member.", "error")
       }
     } else if (actionType === 'promoteMember') {
       if (!targetUserId) return
       try {
         await makeMemberAdmin(activeChannelId, targetUserId, token)
         await refreshChannels()
-        showToast("Rôle administrateur accordé.", "success")
+        showToast("Administrator role granted.", "success")
       } catch (err) {
-        showToast(err.message || "Impossible d'accorder le rôle administrateur.", "error")
+        showToast(err.message || "Failed to grant administrator role.", "error")
       }
     }
   }
@@ -525,9 +525,9 @@ export default function MessagesPage() {
       await addGroupMember(activeChannelId, userId, token)
       setAddMemberSearch('')
       await refreshChannels()
-      showToast("Membre ajouté au groupe avec succès.", "success")
+      showToast("Member successfully added to the group.", "success")
     } catch (err) {
-      showToast(err.message || "Impossible d'ajouter le membre.", "error")
+      showToast(err.message || "Failed to add the member.", "error")
     } finally {
       setIsAddingMember(false)
     }
@@ -540,9 +540,9 @@ export default function MessagesPage() {
       await updateChatChannelName(activeChannelId, editedGroupName.trim(), token)
       await refreshChannels()
       setIsEditingGroupName(false)
-      showToast("Nom du groupe mis à jour avec succès.", "success")
+      showToast("Group name updated successfully.", "success")
     } catch (err) {
-      showToast(err.message || "Impossible de renommer le groupe.", "error")
+      showToast(err.message || "Failed to rename the group.", "error")
     } finally {
       setIsSavingGroupName(false)
     }
@@ -552,9 +552,9 @@ export default function MessagesPage() {
     setConfirmModal({
       isOpen: true,
       type: 'leave',
-      title: 'Quitter la discussion',
-      message: 'Êtes-vous sûr de vouloir quitter cette discussion ?',
-      subMessage: 'Si vous êtes le seul administrateur, un autre membre sera nommé administrateur automatiquement.',
+      title: 'Leave discussion',
+      message: 'Are you sure you want to leave this discussion?',
+      subMessage: 'If you are the only administrator, another member will be automatically promoted to administrator.',
       targetUserId: null,
     })
   }
@@ -562,13 +562,13 @@ export default function MessagesPage() {
   const handleRemoveMemberGroup = (userId) => {
     if (!activeChannelId || !token) return
     const member = currentGroupMembers.find((m) => m.userId === userId)
-    const name = member ? member.name : "ce membre"
+    const name = member ? member.name : "this member"
     setConfirmModal({
       isOpen: true,
       type: 'removeMember',
-      title: 'Retirer du groupe',
-      message: `Êtes-vous sûr de vouloir retirer ${name} du groupe ?`,
-      subMessage: 'Cette personne ne recevra plus de messages de cette discussion.',
+      title: 'Remove from group',
+      message: `Are you sure you want to remove ${name} from the group?`,
+      subMessage: 'This person will no longer receive messages from this discussion.',
       targetUserId: userId,
     })
   }
@@ -576,13 +576,13 @@ export default function MessagesPage() {
   const handleMakeAdminGroup = (userId) => {
     if (!activeChannelId || !token) return
     const member = currentGroupMembers.find((m) => m.userId === userId)
-    const name = member ? member.name : "ce membre"
+    const name = member ? member.name : "this member"
     setConfirmModal({
       isOpen: true,
       type: 'promoteMember',
-      title: 'Nommer administrateur',
-      message: `Nommer ${name} administrateur du groupe ?`,
-      subMessage: 'Les administrateurs peuvent renommer le groupe, ajouter ou retirer des membres.',
+      title: 'Make administrator',
+      message: `Make ${name} a group administrator?`,
+      subMessage: 'Administrators can rename the group, and add or remove members.',
       targetUserId: userId,
     })
   }
@@ -637,7 +637,7 @@ export default function MessagesPage() {
       setGroupAvatarPreview(null)
       setIsCreateGroupOpen(false)
     } catch (fetchError) {
-      showToast(fetchError.message || 'Impossible de créer le groupe.', 'error')
+      showToast(fetchError.message || 'Failed to create the group.', 'error')
     } finally {
       setIsCreatingGroup(false)
     }
@@ -674,22 +674,22 @@ export default function MessagesPage() {
       setAddPeopleGroupName('')
       setSelectedAddPeopleMembers([])
       setIsAddPeopleModalOpen(false)
-      showToast('Groupe créé avec succès.', 'success')
+      showToast('Group created successfully.', 'success')
     } catch (err) {
-      showToast(err.message || 'Impossible de créer le groupe.', 'error')
+      showToast(err.message || 'Failed to create the group.', 'error')
     } finally {
       setIsCreatingGroup(false)
     }
   }
 
   const activePeerStatus = !isConnected
-    ? 'Connexion...'
+    ? 'Connecting...'
     : activeChannel?.type === 'DIRECT'
-      ? (activeChannel.online ? 'En ligne' : 'Hors ligne')
+      ? (activeChannel.online ? 'Online' : 'Offline')
       : activeChannel?.type === 'PROJECT'
-        ? 'Discussion de projet'
+        ? 'Project discussion'
         : activeChannel?.type === 'GROUP'
-          ? 'Groupe de discussion'
+          ? 'Group discussion'
           : ''
 
   return (
@@ -699,7 +699,7 @@ export default function MessagesPage() {
             <input
               type="text"
               className="sidebar-search-input"
-              placeholder="Rechercher ou démarrer un chat..."
+              placeholder="Search or start a chat..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -708,7 +708,7 @@ export default function MessagesPage() {
                 type="button"
                 className="sidebar-search-clear"
                 onClick={() => setSearchQuery('')}
-                aria-label="Effacer la recherche"
+                aria-label="Clear search"
               >
                 ✕
               </button>
@@ -719,13 +719,13 @@ export default function MessagesPage() {
           <div className="sidebar-panel">
             <div className="sidebar-panel-header">
               <div>
-                <p className="panel-label">DISCUSSIONS DE PROJET</p>
-                <p className="panel-subtitle">Accès aux conversations liées à vos projets.</p>
+                <p className="panel-label">PROJECT DISCUSSIONS</p>
+                <p className="panel-subtitle">Access conversations related to your projects.</p>
               </div>
             </div>
             <div className="channel-list">
               {channels.projects.length === 0 ? (
-                  <p className="empty-list">Aucun projet disponible.</p>
+                  <p className="empty-list">No projects available.</p>
               ) : (
                   sortedProjects.map((project) => (
                       <button
@@ -769,13 +769,13 @@ export default function MessagesPage() {
           <div className="sidebar-panel">
             <div className="sidebar-panel-header">
               <div>
-                <p className="panel-label">DISCUSSIONS INDIVIDUELLES</p>
-                <p className="panel-subtitle">DMs avec vos collègues.</p>
+                <p className="panel-label">DIRECT MESSAGES</p>
+                <p className="panel-subtitle">DMs with your colleagues.</p>
               </div>
             </div>
             <div className="channel-list">
               {channels.colleagues.length === 0 ? (
-                  <p className="empty-list">Aucun collègue trouvé.</p>
+                  <p className="empty-list">No colleagues found.</p>
               ) : (
                   sortedColleagues.map((member) => (
                       <button
@@ -818,7 +818,7 @@ export default function MessagesPage() {
                               {member.lastMessage ? (
                                 `${member.lastMessage.senderName}: ${member.lastMessage.content}`
                               ) : (
-                                "Pas de message"
+                                "No messages"
                               )}
                             </span>
                             {member.unreadCount > 0 && (
@@ -836,15 +836,15 @@ export default function MessagesPage() {
           <div className="sidebar-panel">
             <div className="sidebar-panel-header with-action">
               <div>
-                <p className="panel-label">GROUPES DE DISCUSSION</p>
-                <p className="panel-subtitle">Canaux d'équipes et conversations partagées.</p>
+                <p className="panel-label">GROUP CHATS</p>
+                <p className="panel-subtitle">Team channels and shared conversations.</p>
               </div>
               <button
                 type="button"
                 className="icon-button"
                 onClick={() => setIsCreateGroupOpen(true)}
-                title="Créer un groupe de discussion"
-                aria-label="Créer un groupe de discussion"
+                title="Create a group chat"
+                aria-label="Create a group chat"
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
@@ -854,7 +854,7 @@ export default function MessagesPage() {
             </div>
             <div className="channel-list">
               {channels.groups.length === 0 ? (
-                  <p className="empty-list">Aucun groupe créé.</p>
+                  <p className="empty-list">No groups created.</p>
               ) : (
                   sortedGroups.map((group) => (
                       <button
@@ -907,7 +907,7 @@ export default function MessagesPage() {
         <section className="messages-content">
           {!activeChannel ? (
               <div className="empty-state-card">
-                <p>Sélectionnez une discussion pour commencer à communiquer.</p>
+                <p>Select a discussion to start communicating.</p>
               </div>
           ) : (
               <div className="chat-panel">
@@ -968,8 +968,8 @@ export default function MessagesPage() {
                           e.stopPropagation()
                           setIsHeaderMenuOpen(!isHeaderMenuOpen)
                         }}
-                        title="Options de discussion"
-                        aria-label="Options de discussion"
+                        title="Discussion options"
+                        aria-label="Discussion options"
                         style={{ padding: '0.5rem', borderRadius: '50%', minWidth: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -980,6 +980,24 @@ export default function MessagesPage() {
                       </button>
                       {isHeaderMenuOpen && (
                         <div className="chat-header-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                          {activeChannel.type === 'PROJECT' && (
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={() => {
+                                setIsGroupMembersModalOpen(true)
+                                setIsHeaderMenuOpen(false)
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              <span>Project members ({activeChannel.memberCount || activeChannel.members?.length || 0})</span>
+                            </button>
+                          )}
                           {activeChannel.type === 'GROUP' && (
                             <>
                               <button
@@ -998,7 +1016,7 @@ export default function MessagesPage() {
                                   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
-                                <span>Membres du groupe ({activeChannel.memberCount || activeChannel.members?.length || 0})</span>
+                                <span>Group members ({activeChannel.memberCount || activeChannel.members?.length || 0})</span>
                               </button>
                               <button
                                 type="button"
@@ -1014,7 +1032,7 @@ export default function MessagesPage() {
                                   <path d="M12 20h9" />
                                   <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                 </svg>
-                                <span>Renommer le groupe</span>
+                                <span>Rename group</span>
                               </button>
                               <button
                                 type="button"
@@ -1029,7 +1047,7 @@ export default function MessagesPage() {
                                   <polyline points="16 17 21 12 16 7" />
                                   <line x1="21" y1="12" x2="9" y2="12" />
                                 </svg>
-                                <span>Quitter le groupe</span>
+                                <span>Leave group</span>
                               </button>
                             </>
                           )}
@@ -1051,7 +1069,7 @@ export default function MessagesPage() {
                                 <line x1="19" y1="8" x2="19" y2="14" />
                                 <line x1="16" y1="11" x2="22" y2="11" />
                               </svg>
-                              <span>Ajouter des personnes</span>
+                              <span>Add people</span>
                             </button>
                           )}
                           <button
@@ -1066,7 +1084,7 @@ export default function MessagesPage() {
                               <path d="M12 20h9" />
                               <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                             </svg>
-                            <span>Effacer la conversation</span>
+                            <span>Clear conversation</span>
                           </button>
                           <button
                             type="button"
@@ -1082,14 +1100,14 @@ export default function MessagesPage() {
                               <line x1="10" y1="11" x2="10" y2="17" />
                               <line x1="14" y1="11" x2="14" y2="17" />
                             </svg>
-                            <span>Supprimer la conversation</span>
+                            <span>Delete conversation</span>
                           </button>
                         </div>
                       )}
                     </div>
                   </div>
                 </header>
-
+ 
                 <main
                     ref={messagesContainerRef}
                     className="chat-messages"
@@ -1102,14 +1120,14 @@ export default function MessagesPage() {
                       }
                     }}
                 >
-                  {isLoading && <p className="chat-empty-state">Chargement des messages…</p>}
+                  {isLoading && <p className="chat-empty-state">Loading messages...</p>}
                   {error && <p className="chat-error">{error}</p>}
                   {!isLoading && !error && messages.length === 0 && (
-                      <p className="chat-empty-state">Aucun message pour le moment. Lancez la conversation !</p>
+                      <p className="chat-empty-state">No messages yet. Start the conversation!</p>
                   )}
                   {messages.map((message, index) => {
                     const isMine = message.senderId === user?.id
-                    const senderName = isMine ? 'You' : (channels.colleagues?.find((c) => c.userId === message.senderId)?.name || message.senderName || 'Collègue')
+                    const senderName = isMine ? 'You' : (channels.colleagues?.find((c) => c.userId === message.senderId)?.name || message.senderName || 'Colleague')
                     const isLastMessage = index === messages.length - 1
                     const colleague = channels.colleagues?.find((c) => c.channelId === activeChannelId || c.userId === activeChannel?.userId)
                     const isSeen = colleague?.lastReadAt && new Date(colleague.lastReadAt) >= new Date(message.createdAt)
@@ -1144,7 +1162,7 @@ export default function MessagesPage() {
                               <div className="message-bubble" style={{ position: 'relative' }}>
                                 {message.isForwarded && (
                                   <span style={{ fontSize: '0.75rem', fontStyle: 'italic', opacity: 0.7, color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.3rem' }}>
-                                    ↪ Transféré
+                                    ↪ Forwarded
                                   </span>
                                 )}
                                 
@@ -1168,14 +1186,14 @@ export default function MessagesPage() {
                                     }}
                                   >
                                     <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: '0.15rem' }}>
-                                      {message.parentMessage.senderId === user?.id ? 'Vous' : (channels.colleagues?.find((c) => c.userId === message.parentMessage.senderId)?.name || 'Collègue')}
+                                      {message.parentMessage.senderId === user?.id ? 'You' : (channels.colleagues?.find((c) => c.userId === message.parentMessage.senderId)?.name || 'Colleague')}
                                     </div>
                                     <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>
                                       {message.parentMessage.message || (message.parentMessage.imageUrl ? '📷 Image' : '')}
                                     </div>
                                   </div>
                                 )}
-
+ 
                                 {message.imageUrl && (
                                   <div className="message-image-container" style={{ margin: '0.25rem 0' }}>
                                     <img
@@ -1189,13 +1207,13 @@ export default function MessagesPage() {
                                 )}
                                 {message.message && <p className="message-text">{message.message}</p>}
                               </div>
-
+ 
                               <div className="message-actions" style={{ display: 'flex', gap: '0.25rem', opacity: 0.5 }}>
                                 <button
                                   type="button"
                                   onClick={() => setReplyingTo(message)}
-                                  title="Répondre"
-                                  data-tooltip-chat="Répondre"
+                                  title="Reply"
+                                  data-tooltip-chat="Reply"
                                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--chat-text-muted)' }}
                                 >
                                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1209,8 +1227,8 @@ export default function MessagesPage() {
                                     setForwardingMessage(message)
                                     setIsForwardModalOpen(true)
                                   }}
-                                  title="Transférer"
-                                  data-tooltip-chat="Transférer"
+                                  title="Forward"
+                                  data-tooltip-chat="Forward"
                                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--chat-text-muted)' }}
                                 >
                                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1222,7 +1240,7 @@ export default function MessagesPage() {
                             </div>
                             <span className="message-time">
                               {formatTime(message.createdAt)}
-                              {isLastMessage && isMine && isSeen && ' · Vu'}
+                              {isLastMessage && isMine && isSeen && ' · Seen'}
                             </span>
                           </div>
                         </div>
@@ -1266,7 +1284,7 @@ export default function MessagesPage() {
                   <div className="reply-preview" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1rem', background: 'var(--chat-input-bg, #f3f4f6)', borderBottom: '1px solid var(--chat-input-border, #e5e7eb)', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', borderLeft: '3px solid #3b82f6', marginBottom: '0.25rem' }}>
                     <div>
                       <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#3b82f6', display: 'block' }}>
-                        Répondre à {replyingTo.senderId === user?.id ? 'Vous' : (channels.colleagues?.find((c) => c.userId === replyingTo.senderId)?.name || 'Collègue')}
+                        Reply to {replyingTo.senderId === user?.id ? 'You' : (channels.colleagues?.find((c) => c.userId === replyingTo.senderId)?.name || 'Colleague')}
                       </span>
                       <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--chat-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }}>
                         {replyingTo.message || (replyingTo.imageUrl ? '📷 Image' : '')}
@@ -1303,7 +1321,7 @@ export default function MessagesPage() {
                       height: '38px',
                       transition: 'background 0.2s'
                     }}
-                    title="Ajouter une image"
+                    title="Add image"
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -1318,14 +1336,14 @@ export default function MessagesPage() {
                       onChange={(event) => setText(event.target.value)}
                       onFocus={handleInputFocus}
                       onClick={handleInputFocus}
-                      placeholder="Écrire un message…"
+                      placeholder="Type a message..."
                       maxLength={2000}
                       disabled={!isConnected}
-                      aria-label="Votre message"
+                      aria-label="Your message"
                       style={{ flex: 1 }}
                   />
                   <button type="submit" className="chat-send-button" disabled={!isConnected || (!text.trim() && !selectedImage)}>
-                    Envoyer
+                    Send
                   </button>
                 </form>
               </div>
@@ -1337,7 +1355,7 @@ export default function MessagesPage() {
             <div className="modal-overlay" role="dialog" aria-modal="true">
               <div className="modal-card">
                 <header className="modal-header">
-                  <h3>Nouveau groupe de discussion</h3>
+                  <h3>New group chat</h3>
                   <button type="button" className="modal-close" onClick={() => { setIsCreateGroupOpen(false); setMemberSearch('') }}>
                     ×
                   </button>
@@ -1365,7 +1383,7 @@ export default function MessagesPage() {
                         onClick={() => groupAvatarInputRef.current?.click()}
                         style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', borderRadius: '4px', cursor: 'pointer' }}
                       >
-                        Ajouter une photo
+                        Add photo
                       </button>
                       {groupAvatarPreview && (
                         <button
@@ -1373,24 +1391,24 @@ export default function MessagesPage() {
                           onClick={() => { setGroupAvatar(null); setGroupAvatarPreview(null) }}
                           style={{ marginLeft: '0.5rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}
                         >
-                          Retirer
+                          Remove
                         </button>
                       )}
                     </div>
                   </div>
 
                   <label className="modal-label">
-                    Nom du groupe
+                    Group Name
                     <input
                         value={groupName}
                         onChange={(event) => setGroupName(event.target.value)}
-                        placeholder="Ex: Équipe design, Sprint 3…"
+                        placeholder="e.g. Design Team, Sprint 3..."
                         required
                     />
                   </label>
 
                   <div className="modal-members">
-                    <p className="modal-subtitle">Ajouter des membres</p>
+                    <p className="modal-subtitle">Add members</p>
 
                     {/* Selected chips */}
                     {selectedMembers.length > 0 && (
@@ -1405,7 +1423,7 @@ export default function MessagesPage() {
                                 type="button"
                                 className="member-chip-remove"
                                 onClick={() => toggleMemberSelection(id)}
-                                aria-label={`Retirer ${m.name}`}
+                                aria-label={`Remove ${m.name}`}
                               >
                                 ×
                               </button>
@@ -1424,7 +1442,7 @@ export default function MessagesPage() {
                       <input
                         type="text"
                         className="member-search-input"
-                        placeholder="Rechercher un collaborateur…"
+                        placeholder="Search a colleague..."
                         value={memberSearch}
                         onChange={(e) => setMemberSearch(e.target.value)}
                         autoComplete="off"
@@ -1459,7 +1477,7 @@ export default function MessagesPage() {
                                 <div className="member-result-info">
                                   <span className="member-result-name">{m.name}</span>
                                   <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
-                                    {m.online ? 'En ligne' : 'Hors ligne'}
+                                    {m.online ? 'Online' : 'Offline'}
                                   </span>
                                 </div>
                                 {selected && (
@@ -1471,7 +1489,7 @@ export default function MessagesPage() {
                             )
                           })}
                         {channels.colleagues.filter((m) => m.name.toLowerCase().includes(memberSearch.toLowerCase())).length === 0 && (
-                          <p className="member-results-empty">Aucun collaborateur trouvé.</p>
+                          <p className="member-results-empty">No colleagues found.</p>
                         )}
                       </div>
                     )}
@@ -1479,23 +1497,23 @@ export default function MessagesPage() {
 
                   <div className="modal-actions">
                     <button type="button" className="btn-secondary" onClick={() => { setIsCreateGroupOpen(false); setMemberSearch('') }}>
-                      Annuler
+                      Cancel
                     </button>
                     <button type="submit" className="btn-primary" disabled={isCreatingGroup || !groupName.trim() || selectedMembers.length === 0}>
-                      {isCreatingGroup ? 'Création…' : `Créer (${selectedMembers.length})`}
+                      {isCreatingGroup ? 'Creating...' : `Create (${selectedMembers.length})`}
                     </button>
                   </div>
                 </form>
               </div>
             </div>
         )}
- 
+
         {/* Modal Ajouter des personnes à la discussion */}
         {isAddPeopleModalOpen && activeChannel && (
           <div className="modal-overlay" role="dialog" aria-modal="true">
             <div className="modal-card">
               <header className="modal-header">
-                <h3>Ajouter des personnes à la discussion</h3>
+                <h3>Add people to the discussion</h3>
                 <button
                   type="button"
                   className="modal-close"
@@ -1527,12 +1545,12 @@ export default function MessagesPage() {
                     <circle cx="9" cy="7" r="4" />
                   </svg>
                   <span>
-                    Membres de la discussion : <strong>Vous</strong> et <strong>{activeChannel.name}</strong>
+                    Discussion members: <strong>You</strong> and <strong>{activeChannel.name}</strong>
                   </span>
                 </div>
 
                 <label className="modal-label">
-                  Nom du groupe (optionnel)
+                  Group name (optional)
                   <input
                     value={addPeopleGroupName}
                     onChange={(event) => setAddPeopleGroupName(event.target.value)}
@@ -1542,12 +1560,12 @@ export default function MessagesPage() {
                     ].join(', ')}
                   />
                   <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--chat-text-muted, #64748b)', marginTop: '0.2rem' }}>
-                    Par défaut : le nom des autres participants séparés par une virgule.
+                    Default: names of other participants separated by commas.
                   </span>
                 </label>
 
                 <div className="modal-members">
-                  <p className="modal-subtitle">Ajouter des personnes</p>
+                  <p className="modal-subtitle">Add people</p>
 
                   {selectedAddPeopleMembers.length > 0 && (
                     <div className="member-chips">
@@ -1561,7 +1579,7 @@ export default function MessagesPage() {
                               type="button"
                               className="member-chip-remove"
                               onClick={() => toggleAddPeopleMemberSelection(id)}
-                              aria-label={`Retirer ${m.name}`}
+                              aria-label={`Remove ${m.name}`}
                             >
                               ×
                             </button>
@@ -1579,7 +1597,7 @@ export default function MessagesPage() {
                     <input
                       type="text"
                       className="member-search-input"
-                      placeholder="Rechercher un collaborateur…"
+                      placeholder="Search a colleague..."
                       value={addPeopleSearch}
                       onChange={(e) => setAddPeopleSearch(e.target.value)}
                       autoComplete="off"
@@ -1616,7 +1634,7 @@ export default function MessagesPage() {
                               <div className="member-result-info">
                                 <span className="member-result-name">{m.name}</span>
                                 <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
-                                  {m.online ? 'En ligne' : 'Hors ligne'}
+                                  {m.online ? 'Online' : 'Offline'}
                                 </span>
                               </div>
                               {selected && (
@@ -1631,7 +1649,7 @@ export default function MessagesPage() {
                         m.userId !== activeChannel.userId &&
                         m.name.toLowerCase().includes(addPeopleSearch.toLowerCase())
                       ).length === 0 && (
-                        <p className="member-results-empty">Aucun collaborateur trouvé.</p>
+                        <p className="member-results-empty">No colleagues found.</p>
                       )}
                     </div>
                   )}
@@ -1648,21 +1666,21 @@ export default function MessagesPage() {
                       setAddPeopleGroupName('')
                     }}
                   >
-                    Annuler
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className="btn-primary"
                     disabled={isCreatingGroup || selectedAddPeopleMembers.length === 0}
                   >
-                    {isCreatingGroup ? 'Création…' : `Ajouter (${selectedAddPeopleMembers.length})`}
+                    {isCreatingGroup ? 'Creating...' : `Add (${selectedAddPeopleMembers.length})`}
                   </button>
                 </div>
               </form>
             </div>
           </div>
         )}
- 
+
         {confirmModal.isOpen && (
           <div className="modal-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1100 }}>
             <div className="modal-card" style={{ maxWidth: '420px' }}>
@@ -1684,7 +1702,7 @@ export default function MessagesPage() {
                     style={{ flex: 1, padding: '0.75rem 1rem' }}
                     onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
                   >
-                    Annuler
+                    Cancel
                   </button>
                   <button
                     type="button"
@@ -1707,14 +1725,14 @@ export default function MessagesPage() {
                     onClick={handleConfirmAction}
                   >
                     {confirmModal.type === 'delete'
-                      ? 'Supprimer'
+                      ? 'Delete'
                       : confirmModal.type === 'leave'
-                        ? 'Quitter'
+                        ? 'Leave'
                         : confirmModal.type === 'removeMember'
-                          ? 'Retirer'
+                          ? 'Remove'
                           : confirmModal.type === 'promoteMember'
-                            ? 'Promouvoir'
-                            : 'Effacer'}
+                            ? 'Promote'
+                            : 'Clear'}
                   </button>
                 </div>
               </div>
@@ -1734,162 +1752,175 @@ export default function MessagesPage() {
               <div className="modal-body" style={{ padding: '0 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 
                 {/* Rename Group / Avatar section */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderBottom: '1px solid var(--chat-sidebar-border)', paddingBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '50%', background: 'var(--chat-input-bg, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid var(--chat-input-border, #e5e7eb)', flexShrink: 0 }}>
-                      {activeChannel.avatarUrl ? (
-                        <img src={`${API_URL}${activeChannel.avatarUrl}`} alt="Group Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <GroupIcon />
-                      )}
+                {activeChannel.type === 'GROUP' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderBottom: '1px solid var(--chat-sidebar-border)', paddingBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '50%', background: 'var(--chat-input-bg, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid var(--chat-input-border, #e5e7eb)', flexShrink: 0 }}>
+                        {activeChannel.avatarUrl ? (
+                          <img src={`${API_URL}${activeChannel.avatarUrl}`} alt="Group Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <GroupIcon />
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id="edit-group-avatar-file"
+                          style={{ display: 'none' }}
+                          onChange={async (e) => {
+                            const file = e.target.files[0]
+                            if (!file) return
+                            try {
+                              setIsSavingGroupName(true)
+                              const uploadRes = await uploadChatImage(file, token)
+                              await updateChatChannelName(activeChannelId, activeChannel.name, token, uploadRes.imageUrl)
+                              await refreshChannels()
+                              showToast("Group photo updated!", "success")
+                            } catch (err) {
+                              showToast(err.message || "Error updating photo.", "error")
+                            } finally {
+                              setIsSavingGroupName(false)
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => document.getElementById('edit-group-avatar-file')?.click()}
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '4px', cursor: 'pointer' }}
+                          disabled={isSavingGroupName}
+                        >
+                          Change photo
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        id="edit-group-avatar-file"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files[0]
-                          if (!file) return
-                          try {
-                            setIsSavingGroupName(true)
-                            const uploadRes = await uploadChatImage(file, token)
-                            await updateChatChannelName(activeChannelId, activeChannel.name, token, uploadRes.imageUrl)
-                            await refreshChannels()
-                            showToast("Photo du groupe mise à jour !", "success")
-                          } catch (err) {
-                            showToast(err.message || "Erreur lors de la mise à jour de la photo.", "error")
-                          } finally {
-                            setIsSavingGroupName(false)
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => document.getElementById('edit-group-avatar-file')?.click()}
-                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '4px', cursor: 'pointer' }}
-                        disabled={isSavingGroupName}
-                      >
-                        Changer la photo
-                      </button>
+
+                    <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)', margin: 0 }}>Discussion name</p>
+                    {isEditingGroupName ? (
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          className="member-search-input"
+                          style={{ flex: 1, height: '38px' }}
+                          value={editedGroupName}
+                          onChange={(e) => setEditedGroupName(e.target.value)}
+                          placeholder="Enter group name..."
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={handleSaveGroupName}
+                          disabled={isSavingGroupName || !editedGroupName.trim()}
+                          style={{ height: '38px', padding: '0 1rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                        >
+                          {isSavingGroupName ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => { setIsEditingGroupName(false); setEditedGroupName(activeChannel.name); }}
+                          style={{ height: '38px', padding: '0 1rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--chat-input-bg)', padding: '0.6rem 0.85rem', borderRadius: '6px', border: '1px solid var(--chat-input-border)' }}>
+                        <span style={{ fontWeight: 500, color: 'var(--chat-text-primary)' }}>{activeChannel.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingGroupName(true)}
+                          style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderBottom: '1px solid var(--chat-sidebar-border)', paddingBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '50%', background: 'var(--chat-input-bg, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid var(--chat-input-border, #e5e7eb)', flexShrink: 0, color: 'var(--chat-text-primary)' }}>
+                        <ProjectIcon />
+                      </div>
+                      <span style={{ fontWeight: 600, color: 'var(--chat-text-primary)', fontSize: '1.1rem' }}>{activeChannel.name}</span>
                     </div>
                   </div>
+                )}
 
-                  <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)', margin: 0 }}>Nom de la discussion</p>
-                  {isEditingGroupName ? (
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {/* Search / Add section */}
+                {activeChannel.type === 'GROUP' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)' }}>Ajouter un nouveau membre</p>
+                    <div className="member-search-wrap">
+                      <svg className="member-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <line x1="16.5" y1="16.5" x2="22" y2="22" />
+                      </svg>
                       <input
                         type="text"
                         className="member-search-input"
-                        style={{ flex: 1, height: '38px' }}
-                        value={editedGroupName}
-                        onChange={(e) => setEditedGroupName(e.target.value)}
-                        placeholder="Entrez le nom du groupe…"
-                        autoFocus
+                        placeholder="Rechercher un collaborateur à ajouter…"
+                        value={addMemberSearch}
+                        onChange={(e) => setAddMemberSearch(e.target.value)}
+                        autoComplete="off"
                       />
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        onClick={handleSaveGroupName}
-                        disabled={isSavingGroupName || !editedGroupName.trim()}
-                        style={{ height: '38px', padding: '0 1rem', borderRadius: '6px', fontSize: '0.85rem' }}
-                      >
-                        {isSavingGroupName ? 'Sauvegarde…' : 'Enregistrer'}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => { setIsEditingGroupName(false); setEditedGroupName(activeChannel.name); }}
-                        style={{ height: '38px', padding: '0 1rem', borderRadius: '6px', fontSize: '0.85rem' }}
-                      >
-                        Annuler
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--chat-input-bg)', padding: '0.6rem 0.85rem', borderRadius: '6px', border: '1px solid var(--chat-input-border)' }}>
-                      <span style={{ fontWeight: 500, color: 'var(--chat-text-primary)' }}>{activeChannel.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingGroupName(true)}
-                        style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                      >
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
-                        Modifier
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Search / Add section */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)' }}>Ajouter un nouveau membre</p>
-                  <div className="member-search-wrap">
-                    <svg className="member-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <circle cx="11" cy="11" r="7" />
-                      <line x1="16.5" y1="16.5" x2="22" y2="22" />
-                    </svg>
-                    <input
-                      type="text"
-                      className="member-search-input"
-                      placeholder="Rechercher un collaborateur à ajouter…"
-                      value={addMemberSearch}
-                      onChange={(e) => setAddMemberSearch(e.target.value)}
-                      autoComplete="off"
-                    />
-                    {addMemberSearch && (
-                      <button type="button" className="member-search-clear" onClick={() => setAddMemberSearch('')}>×</button>
-                    )}
-                  </div>
-
-                  {/* Add Search Results */}
-                  {addMemberSearch && (
-                    <div className="member-results" style={{ marginTop: '0.25rem', border: '1px solid var(--chat-sidebar-border)' }}>
-                      {addableColleagues
-                        .filter((m) => m.name.toLowerCase().includes(addMemberSearch.toLowerCase()))
-                        .map((m) => (
-                          <button
-                            key={m.userId}
-                            type="button"
-                            className="member-result-item"
-                            onClick={() => handleAddMemberGroup(m.userId)}
-                            disabled={isAddingMember}
-                            style={{ width: '100%' }}
-                          >
-                            <div className="member-result-avatar">
-                              {m.avatarUrl ? (
-                                <img src={`${API_URL}${m.avatarUrl}`} alt={m.name} className="member-result-img" />
-                              ) : (
-                                <ProfileIcon />
-                              )}
-                              <span className={`status-dot ${m.online ? 'online' : 'offline'}`} />
-                            </div>
-                            <div className="member-result-info">
-                              <span className="member-result-name">{m.name}</span>
-                              <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
-                                {m.online ? 'En ligne' : 'Hors ligne'}
-                              </span>
-                            </div>
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
-                              <line x1="12" y1="5" x2="12" y2="19" />
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                          </button>
-                        ))}
-                      {addableColleagues.filter((m) => m.name.toLowerCase().includes(addMemberSearch.toLowerCase())).length === 0 && (
-                        <p className="member-results-empty">Aucun collaborateur à ajouter.</p>
+                      {addMemberSearch && (
+                        <button type="button" className="member-search-clear" onClick={() => setAddMemberSearch('')}>×</button>
                       )}
                     </div>
-                  )}
-                </div>
+
+                    {/* Add Search Results */}
+                    {addMemberSearch && (
+                      <div className="member-results" style={{ marginTop: '0.25rem', border: '1px solid var(--chat-sidebar-border)' }}>
+                        {addableColleagues
+                          .filter((m) => m.name.toLowerCase().includes(addMemberSearch.toLowerCase()))
+                          .map((m) => (
+                            <button
+                              key={m.userId}
+                              type="button"
+                              className="member-result-item"
+                              onClick={() => handleAddMemberGroup(m.userId)}
+                              disabled={isAddingMember}
+                              style={{ width: '100%' }}
+                            >
+                              <div className="member-result-avatar">
+                                {m.avatarUrl ? (
+                                  <img src={`${API_URL}${m.avatarUrl}`} alt={m.name} className="member-result-img" />
+                                ) : (
+                                  <ProfileIcon />
+                                )}
+                                <span className={`status-dot ${m.online ? 'online' : 'offline'}`} />
+                              </div>
+                              <div className="member-result-info">
+                                <span className="member-result-name">{m.name}</span>
+                                <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
+                                  {m.online ? 'Online' : 'Offline'}
+                                </span>
+                              </div>
+                              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+                          ))}
+                        {addableColleagues.filter((m) => m.name.toLowerCase().includes(addMemberSearch.toLowerCase())).length === 0 && (
+                          <p className="member-results-empty">No colleagues to add.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Members list section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.25rem' }}>
-                  <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)' }}>Membres actuels ({currentGroupMembers.length})</p>
+                  <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)' }}>Current members ({currentGroupMembers.length})</p>
                   <div className="member-results" style={{ maxHeight: '250px', overflowY: 'auto' }}>
                     {currentGroupMembers.map((m) => (
                       <div
@@ -1909,17 +1940,17 @@ export default function MessagesPage() {
                           <div className="member-result-info">
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                               <span className="member-result-name" style={{ fontWeight: 500 }}>{m.name}</span>
-                              {m.isCurrentUser && <span style={{ fontSize: '0.8rem', color: 'var(--chat-text-muted)', marginLeft: '0.25rem' }}>(Vous)</span>}
+                              {m.isCurrentUser && <span style={{ fontSize: '0.8rem', color: 'var(--chat-text-muted)', marginLeft: '0.25rem' }}>(You)</span>}
                               {m.isAdmin && <span style={{ fontSize: '0.7rem', background: '#3b82f6', color: '#fff', padding: '0.1rem 0.35rem', borderRadius: '4px', marginLeft: '0.4rem', fontWeight: 600 }}>Admin</span>}
                             </div>
                             <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
-                              {m.online ? 'En ligne' : 'Hors ligne'}
+                              {m.online ? 'Online' : 'Offline'}
                             </span>
                           </div>
                         </div>
 
                         {/* Admin actions */}
-                        {isCurrentUserAdmin && !m.isCurrentUser && (
+                        {activeChannel.type === 'GROUP' && isCurrentUserAdmin && !m.isCurrentUser && (
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             {!m.isAdmin && (
                               <button
@@ -1927,15 +1958,16 @@ export default function MessagesPage() {
                                 onClick={() => handleMakeAdminGroup(m.userId)}
                                 style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #3b82f6', background: 'transparent', color: '#3b82f6', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
                               >
-                                Promouvoir
+                                Promote
                               </button>
                             )}
                             <button
                               type="button"
+                              className="btn-remove"
                               onClick={() => handleRemoveMemberGroup(m.userId)}
                               style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #ef4444', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
                             >
-                              Retirer
+                              Remove
                             </button>
                           </div>
                         )}
@@ -1950,9 +1982,9 @@ export default function MessagesPage() {
                     type="button"
                     className="btn-secondary"
                     onClick={() => { setIsGroupMembersModalOpen(false); setAddMemberSearch(''); }}
-                    style={{ padding: '0.75rem 1.5rem' }}
+                    style={{ padding: '0.75rem 1rem' }}
                   >
-                    Fermer
+                    Close
                   </button>
                 </div>
 
@@ -1965,20 +1997,20 @@ export default function MessagesPage() {
           <div className="modal-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1200 }}>
             <div className="modal-card" style={{ maxWidth: '420px' }}>
               <header className="modal-header">
-                <h3>Transférer le message</h3>
+                <h3>Forward message</h3>
                 <button type="button" className="modal-close" onClick={() => { setIsForwardModalOpen(false); setForwardingMessage(null); }}>
                   ×
                 </button>
               </header>
               <div className="modal-body" style={{ padding: '1rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ borderLeft: '3px solid #10b981', paddingLeft: '0.75rem', background: 'var(--chat-input-bg, #f3f4f6)', padding: '0.5rem 0.75rem', borderRadius: '4px', fontSize: '0.85rem' }}>
-                  <p style={{ margin: 0, color: 'var(--chat-text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Message à transférer :</p>
+                  <p style={{ margin: 0, color: 'var(--chat-text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Message to forward:</p>
                   <p style={{ margin: '0.25rem 0 0 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '350px' }}>
                     {forwardingMessage.message || (forwardingMessage.imageUrl ? '📷 Image' : '')}
                   </p>
                 </div>
                 
-                <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)', margin: '0.5rem 0 0 0' }}>Choisir une discussion</p>
+                <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)', margin: '0.5rem 0 0 0' }}>Choose a discussion</p>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', border: '1px solid var(--chat-sidebar-border)', borderRadius: '6px', padding: '0.5rem' }}>
                   {/* Colleagues */}
@@ -2031,7 +2063,7 @@ export default function MessagesPage() {
                     onClick={() => { setIsForwardModalOpen(false); setForwardingMessage(null); }}
                     style={{ flex: 1, padding: '0.6rem 1rem' }}
                   >
-                    Annuler
+                    Cancel
                   </button>
                 </div>
               </div>
