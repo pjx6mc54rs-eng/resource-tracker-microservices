@@ -1,6 +1,4 @@
 .dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 2rem;
 }
 
@@ -98,13 +96,9 @@
 /* Quick Access Section */
 .quick-access-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2.5rem;
-}
-
-.quick-access-grid.user-grid {
-  grid-template-columns: repeat(2, 1fr);
 }
 
 .quick-access-card {
