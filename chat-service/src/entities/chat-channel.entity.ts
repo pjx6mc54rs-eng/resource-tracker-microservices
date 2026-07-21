@@ -29,6 +29,9 @@ export class ChatChannel {
   @Column({ type: 'text', nullable: true })
   name?: string
 
+  @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
+  avatarUrl?: string | null
+
   @Column({ name: 'project_id', type: 'uuid', nullable: true })
   projectId?: string
 

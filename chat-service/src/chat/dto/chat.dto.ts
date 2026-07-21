@@ -46,9 +46,20 @@ export class SendMessageDto {
   channelId!: string
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(2000)
-  message!: string
+  message?: string
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string
+
+  @IsUUID()
+  @IsOptional()
+  parentMessageId?: string
+
+  @IsOptional()
+  isForwarded?: boolean
 }
 
 export class DirectChannelDto {
@@ -67,4 +78,8 @@ export class CreateGroupDto {
   @ArrayUnique()
   @IsUUID('4', { each: true })
   memberIds!: string[]
+
+  @IsString()
+  @IsOptional()
+  avatarUrl?: string
 }

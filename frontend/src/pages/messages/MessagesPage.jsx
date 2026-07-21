@@ -14,6 +14,7 @@ import {
   leaveChatGroup,
   removeGroupMember,
   makeMemberAdmin,
+  uploadChatImage,
 } from './messagesApi'
 import './MessagesPage.css'
 
@@ -60,6 +61,15 @@ export default function MessagesPage() {
   } = useChat()
   const { showToast } = useToast()
   const [text, setText] = useState('')
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
+  const fileInputRef = useRef(null)
+  const [groupAvatar, setGroupAvatar] = useState(null)
+  const [groupAvatarPreview, setGroupAvatarPreview] = useState(null)
+  const groupAvatarInputRef = useRef(null)
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [isForwardModalOpen, setIsForwardModalOpen] = useState(false)
+  const [forwardingMessage, setForwardingMessage] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false)
@@ -83,6 +93,10 @@ export default function MessagesPage() {
   const [editedGroupName, setEditedGroupName] = useState('')
   const [isSavingGroupName, setIsSavingGroupName] = useState(false)
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
+  const [isAddPeopleModalOpen, setIsAddPeopleModalOpen] = useState(false)
+  const [selectedAddPeopleMembers, setSelectedAddPeopleMembers] = useState([])
+  const [addPeopleSearch, setAddPeopleSearch] = useState('')
+  const [addPeopleGroupName, setAddPeopleGroupName] = useState('')
 
   const messagesContainerRef = useRef(null)
   const shouldAutoScrollRef = useRef(true)
@@ -284,34 +298,100 @@ export default function MessagesPage() {
     }
   }
 
-  const handleSendMessage = (event) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Veuillez sélectionner un fichier image.', 'error')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('L\'image est trop grande. Maximum 5 Mo.', 'error')
+      return
+    }
+
+    setSelectedImage(file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreviewUrl(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCancelImage = () => {
+    setSelectedImage(null)
+    setImagePreviewUrl(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleSendMessage = async (event) => {
     event.preventDefault()
     if (!activeChannelId) {
       showToast('Aucune discussion sélectionnée.', 'error')
       return
     }
-    if (!text.trim()) return
+    if (!text.trim() && !selectedImage) return
     if (!socket?.connected) {
       showToast('Connexion temporairement perdue. Réessayez.', 'error')
       return
     }
     if (!token) return
 
+    let uploadedUrl = null
+    if (selectedImage) {
+      try {
+        setIsLoading(true)
+        const uploadRes = await uploadChatImage(selectedImage, token)
+        uploadedUrl = uploadRes.imageUrl
+      } catch (err) {
+        showToast(err.message || "Erreur lors de l'envoi de l'image.", 'error')
+        setIsLoading(false)
+        return
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     const content = text.trim()
     const temporaryId = `temp-${Date.now()}`
+    const parentMsgId = replyingTo?.id || null
+
     const optimisticMessage = {
       id: temporaryId,
       channelId: activeChannelId,
       senderId: user?.id,
       message: content,
+      imageUrl: uploadedUrl,
+      parentMessageId: parentMsgId,
+      parentMessage: replyingTo ? {
+        id: replyingTo.id,
+        senderId: replyingTo.senderId,
+        message: replyingTo.message,
+        imageUrl: replyingTo.imageUrl,
+      } : null,
       createdAt: new Date().toISOString(),
     }
 
     setMessages((previous) => [...previous, optimisticMessage])
     setText('')
+    setSelectedImage(null)
+    setImagePreviewUrl(null)
+    setReplyingTo(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
 
     try {
-      socket.emit('send_message', { channelId: activeChannelId, message: content }, (ack) => {
+      socket.emit('send_message', {
+        channelId: activeChannelId,
+        message: content,
+        imageUrl: uploadedUrl,
+        parentMessageId: parentMsgId
+      }, (ack) => {
         if (!ack?.ok) {
           setMessages((previous) => previous.filter((message) => message.id !== temporaryId))
           showToast(ack?.message ?? "Le message n'a pas pu être envoyé.", 'error')
@@ -326,6 +406,33 @@ export default function MessagesPage() {
     } catch (e) {
       setMessages((previous) => previous.filter((message) => message.id !== temporaryId))
       showToast("Erreur d'envoi.", 'error')
+    }
+  }
+
+  const handleForwardMessage = (targetChannelId) => {
+    if (!forwardingMessage || !targetChannelId) return
+    if (!socket?.connected) {
+      showToast('Connexion perdue. Réessayez.', 'error')
+      return
+    }
+
+    try {
+      socket.emit('send_message', {
+        channelId: targetChannelId,
+        message: forwardingMessage.message || '',
+        imageUrl: forwardingMessage.imageUrl || null,
+        isForwarded: true
+      }, (ack) => {
+        if (!ack?.ok) {
+          showToast(ack?.message ?? "Impossible de transférer le message.", 'error')
+          return
+        }
+        showToast("Message transféré !", "success")
+        setIsForwardModalOpen(false)
+        setForwardingMessage(null)
+      })
+    } catch (e) {
+      showToast("Erreur lors du transfert.", 'error')
     }
   }
 
@@ -488,20 +595,88 @@ export default function MessagesPage() {
     )
   }
 
+  const handleGroupAvatarChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Veuillez sélectionner un fichier image.', 'error')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('L\'image est trop grande. Maximum 5 Mo.', 'error')
+      return
+    }
+
+    setGroupAvatar(file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setGroupAvatarPreview(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleCreateGroup = async (event) => {
     event.preventDefault()
     if (!token || !groupName.trim() || selectedMembers.length === 0) return
 
     setIsCreatingGroup(true)
     try {
-      const channel = await createChatGroup(groupName.trim(), selectedMembers, token)
+      let avatarUrl = null
+      if (groupAvatar) {
+        const uploadRes = await uploadChatImage(groupAvatar, token)
+        avatarUrl = uploadRes.imageUrl
+      }
+      const channel = await createChatGroup(groupName.trim(), selectedMembers, token, avatarUrl)
       await refreshChannels()
       setActiveChannelId(channel.id)
       setGroupName('')
       setSelectedMembers([])
+      setGroupAvatar(null)
+      setGroupAvatarPreview(null)
       setIsCreateGroupOpen(false)
     } catch (fetchError) {
       showToast(fetchError.message || 'Impossible de créer le groupe.', 'error')
+    } finally {
+      setIsCreatingGroup(false)
+    }
+  }
+
+  const toggleAddPeopleMemberSelection = (userId) => {
+    setSelectedAddPeopleMembers((current) =>
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
+    )
+  }
+
+  const handleAddPeopleSubmit = async (event) => {
+    event.preventDefault()
+    if (!token || !activeChannel || selectedAddPeopleMembers.length === 0) return
+
+    setIsCreatingGroup(true)
+    try {
+      const memberIds = [activeChannel.userId, ...selectedAddPeopleMembers]
+      const otherNames = [
+        activeChannel.name,
+        ...selectedAddPeopleMembers.map((id) => {
+          const colleague = channels.colleagues.find((c) => c.userId === id)
+          return colleague ? colleague.name : ''
+        }).filter(Boolean),
+      ]
+      const defaultGroupName = otherNames.join(', ')
+      const finalGroupName = addPeopleGroupName.trim() || defaultGroupName
+
+      const channel = await createChatGroup(finalGroupName, memberIds, token, null)
+      await refreshChannels()
+      setActiveChannelId(channel.id)
+      setAddPeopleGroupName('')
+      setSelectedAddPeopleMembers([])
+      setIsAddPeopleModalOpen(false)
+      showToast('Groupe créé avec succès.', 'success')
+    } catch (err) {
+      showToast(err.message || 'Impossible de créer le groupe.', 'error')
     } finally {
       setIsCreatingGroup(false)
     }
@@ -688,8 +863,17 @@ export default function MessagesPage() {
                           className={`channel-item ${activeChannelId === group.id ? 'active' : ''} ${group.unreadCount > 0 ? 'unread' : ''}`}
                           onClick={() => handleSelectChannel(group, 'GROUP')}
                       >
-                        <div className="channel-avatar-container group">
-                          <GroupIcon />
+                        <div className="channel-avatar-container group" style={{ position: 'relative', width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {group.avatarUrl ? (
+                            <img
+                              className="channel-avatar-img"
+                              src={`${API_URL}${group.avatarUrl}`}
+                              alt={group.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <GroupIcon />
+                          )}
                         </div>
                         <div className="channel-item-details">
                           <div className="channel-item-header">
@@ -757,8 +941,17 @@ export default function MessagesPage() {
                       </div>
                     )}
                     {activeChannel.type === 'GROUP' && (
-                      <div className="chat-header-avatar-container group">
-                        <GroupIcon />
+                      <div className="chat-header-avatar-container group" style={{ position: 'relative', width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {activeChannel.avatarUrl ? (
+                          <img
+                            className="chat-header-avatar-img"
+                            src={`${API_URL}${activeChannel.avatarUrl}`}
+                            alt={activeChannel.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <GroupIcon />
+                        )}
                       </div>
                     )}
                     <div className="chat-header-text">
@@ -840,6 +1033,27 @@ export default function MessagesPage() {
                               </button>
                             </>
                           )}
+                          {activeChannel.type === 'DIRECT' && (
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={() => {
+                                setIsAddPeopleModalOpen(true)
+                                setAddPeopleGroupName('')
+                                setSelectedAddPeopleMembers([])
+                                setAddPeopleSearch('')
+                                setIsHeaderMenuOpen(false)
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}>
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <line x1="19" y1="8" x2="19" y2="14" />
+                                <line x1="16" y1="11" x2="22" y2="11" />
+                              </svg>
+                              <span>Ajouter des personnes</span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="dropdown-item"
@@ -902,7 +1116,7 @@ export default function MessagesPage() {
                     const senderCol = channels.colleagues?.find((c) => c.userId === message.senderId)
                     const senderAvatarUrl = senderCol?.avatarUrl
                     return (
-                        <div key={message.id} className={`message-row ${isMine ? 'sent' : 'received'}`}>
+                        <div id={`msg-${message.id}`} key={message.id} className={`message-row ${isMine ? 'sent' : 'received'}`}>
                           {!isMine && (
                             <div className="message-avatar" aria-hidden="true">
                               {senderAvatarUrl ? (
@@ -926,8 +1140,85 @@ export default function MessagesPage() {
                           )}
                           <div className="message-wrapper">
                             <span className="message-sender">{senderName}</span>
-                            <div className="message-bubble">
-                              <p className="message-text">{message.message}</p>
+                            <div className="message-bubble-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexDirection: isMine ? 'row-reverse' : 'row' }}>
+                              <div className="message-bubble" style={{ position: 'relative' }}>
+                                {message.isForwarded && (
+                                  <span style={{ fontSize: '0.75rem', fontStyle: 'italic', opacity: 0.7, color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.3rem' }}>
+                                    ↪ Transféré
+                                  </span>
+                                )}
+                                
+                                {message.parentMessage && (
+                                  <div
+                                    style={{
+                                      borderLeft: '3px solid #3b82f6',
+                                      background: 'rgba(0, 0, 0, 0.06)',
+                                      padding: '0.35rem 0.6rem',
+                                      borderRadius: '4px',
+                                      marginBottom: '0.5rem',
+                                      fontSize: '0.8rem',
+                                      opacity: 0.85,
+                                      cursor: 'pointer'
+                                    }}
+                                    onClick={() => {
+                                      const parentEl = document.getElementById(`msg-${message.parentMessage.id}`)
+                                      if (parentEl) {
+                                        parentEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                      }
+                                    }}
+                                  >
+                                    <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: '0.15rem' }}>
+                                      {message.parentMessage.senderId === user?.id ? 'Vous' : (channels.colleagues?.find((c) => c.userId === message.parentMessage.senderId)?.name || 'Collègue')}
+                                    </div>
+                                    <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>
+                                      {message.parentMessage.message || (message.parentMessage.imageUrl ? '📷 Image' : '')}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {message.imageUrl && (
+                                  <div className="message-image-container" style={{ margin: '0.25rem 0' }}>
+                                    <img
+                                      src={message.imageUrl.startsWith('data:') ? message.imageUrl : `${API_URL}${message.imageUrl}`}
+                                      alt="Shared media"
+                                      className="message-image"
+                                      onClick={() => window.open(message.imageUrl.startsWith('data:') ? message.imageUrl : `${API_URL}${message.imageUrl}`, '_blank')}
+                                      style={{ maxWidth: '100%', maxHeight: '250px', borderRadius: '8px', cursor: 'pointer', display: 'block' }}
+                                    />
+                                  </div>
+                                )}
+                                {message.message && <p className="message-text">{message.message}</p>}
+                              </div>
+
+                              <div className="message-actions" style={{ display: 'flex', gap: '0.25rem', opacity: 0.5 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setReplyingTo(message)}
+                                  title="Répondre"
+                                  data-tooltip-chat="Répondre"
+                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--chat-text-muted)' }}
+                                >
+                                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="9 17 4 12 9 7" />
+                                    <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                                  </svg>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setForwardingMessage(message)
+                                    setIsForwardModalOpen(true)
+                                  }}
+                                  title="Transférer"
+                                  data-tooltip-chat="Transférer"
+                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--chat-text-muted)' }}
+                                >
+                                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="15 17 20 12 15 7" />
+                                    <path d="M4 18v-2a4 4 0 0 1 4-4h12" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                             <span className="message-time">
                               {formatTime(message.createdAt)}
@@ -939,7 +1230,87 @@ export default function MessagesPage() {
                   })}
                 </main>
 
-                <form className="chat-form" onSubmit={handleSendMessage}>
+                {imagePreviewUrl && (
+                  <div className="chat-image-preview-container" style={{ padding: '0.75rem 1rem', background: 'var(--chat-input-bg, #f3f4f6)', borderTop: '1px solid var(--chat-input-border, #e5e7eb)', display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative', borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <img src={imagePreviewUrl} alt="Preview" style={{ maxHeight: '80px', borderRadius: '6px', objectFit: 'cover', display: 'block', border: '1px solid var(--chat-input-border, #e5e7eb)' }} />
+                      <button
+                        type="button"
+                        onClick={handleCancelImage}
+                        style={{
+                          position: 'absolute',
+                          top: '-8px',
+                          right: '-8px',
+                          background: '#ef4444',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: 'bold',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {replyingTo && (
+                  <div className="reply-preview" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1rem', background: 'var(--chat-input-bg, #f3f4f6)', borderBottom: '1px solid var(--chat-input-border, #e5e7eb)', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', borderLeft: '3px solid #3b82f6', marginBottom: '0.25rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#3b82f6', display: 'block' }}>
+                        Répondre à {replyingTo.senderId === user?.id ? 'Vous' : (channels.colleagues?.find((c) => c.userId === replyingTo.senderId)?.name || 'Collègue')}
+                      </span>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--chat-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }}>
+                        {replyingTo.message || (replyingTo.imageUrl ? '📷 Image' : '')}
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => setReplyingTo(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'var(--chat-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  </div>
+                )}
+
+                <form className="chat-form" onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    className="chat-attach-button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!isConnected}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0.5rem',
+                      borderRadius: '50%',
+                      color: 'var(--chat-text-muted, #9ca3af)',
+                      minWidth: '38px',
+                      height: '38px',
+                      transition: 'background 0.2s'
+                    }}
+                    title="Ajouter une image"
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  </button>
                   <input
                       className="chat-input"
                       type="text"
@@ -951,8 +1322,9 @@ export default function MessagesPage() {
                       maxLength={2000}
                       disabled={!isConnected}
                       aria-label="Votre message"
+                      style={{ flex: 1 }}
                   />
-                  <button type="submit" className="chat-send-button" disabled={!isConnected || !text.trim()}>
+                  <button type="submit" className="chat-send-button" disabled={!isConnected || (!text.trim() && !selectedImage)}>
                     Envoyer
                   </button>
                 </form>
@@ -971,6 +1343,42 @@ export default function MessagesPage() {
                   </button>
                 </header>
                 <form className="modal-body" onSubmit={handleCreateGroup}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                    <div style={{ position: 'relative', width: '60px', height: '60px', borderRadius: '50%', background: 'var(--chat-input-bg, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px dashed var(--chat-input-border, #e5e7eb)', flexShrink: 0 }}>
+                      {groupAvatarPreview ? (
+                        <img src={groupAvatarPreview} alt="Group Avatar Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <GroupIcon />
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={groupAvatarInputRef}
+                        onChange={handleGroupAvatarChange}
+                        style={{ display: 'none' }}
+                      />
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => groupAvatarInputRef.current?.click()}
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        Ajouter une photo
+                      </button>
+                      {groupAvatarPreview && (
+                        <button
+                          type="button"
+                          onClick={() => { setGroupAvatar(null); setGroupAvatarPreview(null) }}
+                          style={{ marginLeft: '0.5rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}
+                        >
+                          Retirer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                   <label className="modal-label">
                     Nom du groupe
                     <input
@@ -1081,7 +1489,180 @@ export default function MessagesPage() {
               </div>
             </div>
         )}
+ 
+        {/* Modal Ajouter des personnes à la discussion */}
+        {isAddPeopleModalOpen && activeChannel && (
+          <div className="modal-overlay" role="dialog" aria-modal="true">
+            <div className="modal-card">
+              <header className="modal-header">
+                <h3>Ajouter des personnes à la discussion</h3>
+                <button
+                  type="button"
+                  className="modal-close"
+                  onClick={() => {
+                    setIsAddPeopleModalOpen(false)
+                    setSelectedAddPeopleMembers([])
+                    setAddPeopleSearch('')
+                    setAddPeopleGroupName('')
+                  }}
+                >
+                  ×
+                </button>
+              </header>
+              <form className="modal-body" onSubmit={handleAddPeopleSubmit}>
+                <div style={{
+                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
+                  background: 'var(--chat-input-bg, #f3f4f6)',
+                  border: '1px solid var(--chat-input-border, #e5e7eb)',
+                  fontSize: '0.9rem',
+                  color: 'var(--chat-text-muted, #475569)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.5rem',
+                }}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                  </svg>
+                  <span>
+                    Membres de la discussion : <strong>Vous</strong> et <strong>{activeChannel.name}</strong>
+                  </span>
+                </div>
 
+                <label className="modal-label">
+                  Nom du groupe (optionnel)
+                  <input
+                    value={addPeopleGroupName}
+                    onChange={(event) => setAddPeopleGroupName(event.target.value)}
+                    placeholder={[
+                      activeChannel.name,
+                      ...selectedAddPeopleMembers.map((id) => channels.colleagues.find((c) => c.userId === id)?.name).filter(Boolean),
+                    ].join(', ')}
+                  />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--chat-text-muted, #64748b)', marginTop: '0.2rem' }}>
+                    Par défaut : le nom des autres participants séparés par une virgule.
+                  </span>
+                </label>
+
+                <div className="modal-members">
+                  <p className="modal-subtitle">Ajouter des personnes</p>
+
+                  {selectedAddPeopleMembers.length > 0 && (
+                    <div className="member-chips">
+                      {selectedAddPeopleMembers.map((id) => {
+                        const m = channels.colleagues.find((c) => c.userId === id)
+                        if (!m) return null
+                        return (
+                          <span key={id} className="member-chip">
+                            {m.name}
+                            <button
+                              type="button"
+                              className="member-chip-remove"
+                              onClick={() => toggleAddPeopleMemberSelection(id)}
+                              aria-label={`Retirer ${m.name}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  <div className="member-search-wrap">
+                    <svg className="member-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <circle cx="11" cy="11" r="7" />
+                      <line x1="16.5" y1="16.5" x2="22" y2="22" />
+                    </svg>
+                    <input
+                      type="text"
+                      className="member-search-input"
+                      placeholder="Rechercher un collaborateur…"
+                      value={addPeopleSearch}
+                      onChange={(e) => setAddPeopleSearch(e.target.value)}
+                      autoComplete="off"
+                    />
+                    {addPeopleSearch && (
+                      <button type="button" className="member-search-clear" onClick={() => setAddPeopleSearch('')}>×</button>
+                    )}
+                  </div>
+
+                  {addPeopleSearch && (
+                    <div className="member-results">
+                      {channels.colleagues
+                        .filter((m) =>
+                          m.userId !== activeChannel.userId &&
+                          m.name.toLowerCase().includes(addPeopleSearch.toLowerCase())
+                        )
+                        .map((m) => {
+                          const selected = selectedAddPeopleMembers.includes(m.userId)
+                          return (
+                            <button
+                              key={m.userId}
+                              type="button"
+                              className={`member-result-item ${selected ? 'selected' : ''}`}
+                              onClick={() => { toggleAddPeopleMemberSelection(m.userId); setAddPeopleSearch('') }}
+                            >
+                              <div className="member-result-avatar">
+                                {m.avatarUrl ? (
+                                  <img src={`${API_URL}${m.avatarUrl}`} alt={m.name} className="member-result-img" />
+                                ) : (
+                                  <ProfileIcon />
+                                )}
+                                <span className={`status-dot ${m.online ? 'online' : 'offline'}`} />
+                              </div>
+                              <div className="member-result-info">
+                                <span className="member-result-name">{m.name}</span>
+                                <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
+                                  {m.online ? 'En ligne' : 'Hors ligne'}
+                                </span>
+                              </div>
+                              {selected && (
+                                <svg className="member-result-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </button>
+                          )
+                        })}
+                      {channels.colleagues.filter((m) =>
+                        m.userId !== activeChannel.userId &&
+                        m.name.toLowerCase().includes(addPeopleSearch.toLowerCase())
+                      ).length === 0 && (
+                        <p className="member-results-empty">Aucun collaborateur trouvé.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => {
+                      setIsAddPeopleModalOpen(false)
+                      setSelectedAddPeopleMembers([])
+                      setAddPeopleSearch('')
+                      setAddPeopleGroupName('')
+                    }}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={isCreatingGroup || selectedAddPeopleMembers.length === 0}
+                  >
+                    {isCreatingGroup ? 'Création…' : `Ajouter (${selectedAddPeopleMembers.length})`}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+ 
         {confirmModal.isOpen && (
           <div className="modal-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1100 }}>
             <div className="modal-card" style={{ maxWidth: '420px' }}>
@@ -1152,9 +1733,51 @@ export default function MessagesPage() {
               </header>
               <div className="modal-body" style={{ padding: '0 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 
-                {/* Rename Group section */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderBottom: '1px solid var(--chat-sidebar-border)', paddingBottom: '1rem' }}>
-                  <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)' }}>Nom de la discussion</p>
+                {/* Rename Group / Avatar section */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderBottom: '1px solid var(--chat-sidebar-border)', paddingBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '50%', background: 'var(--chat-input-bg, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid var(--chat-input-border, #e5e7eb)', flexShrink: 0 }}>
+                      {activeChannel.avatarUrl ? (
+                        <img src={`${API_URL}${activeChannel.avatarUrl}`} alt="Group Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <GroupIcon />
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="edit-group-avatar-file"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files[0]
+                          if (!file) return
+                          try {
+                            setIsSavingGroupName(true)
+                            const uploadRes = await uploadChatImage(file, token)
+                            await updateChatChannelName(activeChannelId, activeChannel.name, token, uploadRes.imageUrl)
+                            await refreshChannels()
+                            showToast("Photo du groupe mise à jour !", "success")
+                          } catch (err) {
+                            showToast(err.message || "Erreur lors de la mise à jour de la photo.", "error")
+                          } finally {
+                            setIsSavingGroupName(false)
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => document.getElementById('edit-group-avatar-file')?.click()}
+                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderRadius: '4px', cursor: 'pointer' }}
+                        disabled={isSavingGroupName}
+                      >
+                        Changer la photo
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)', margin: 0 }}>Nom de la discussion</p>
                   {isEditingGroupName ? (
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <input
@@ -1333,6 +1956,84 @@ export default function MessagesPage() {
                   </button>
                 </div>
 
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isForwardModalOpen && forwardingMessage && (
+          <div className="modal-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1200 }}>
+            <div className="modal-card" style={{ maxWidth: '420px' }}>
+              <header className="modal-header">
+                <h3>Transférer le message</h3>
+                <button type="button" className="modal-close" onClick={() => { setIsForwardModalOpen(false); setForwardingMessage(null); }}>
+                  ×
+                </button>
+              </header>
+              <div className="modal-body" style={{ padding: '1rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ borderLeft: '3px solid #10b981', paddingLeft: '0.75rem', background: 'var(--chat-input-bg, #f3f4f6)', padding: '0.5rem 0.75rem', borderRadius: '4px', fontSize: '0.85rem' }}>
+                  <p style={{ margin: 0, color: 'var(--chat-text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Message à transférer :</p>
+                  <p style={{ margin: '0.25rem 0 0 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '350px' }}>
+                    {forwardingMessage.message || (forwardingMessage.imageUrl ? '📷 Image' : '')}
+                  </p>
+                </div>
+                
+                <p className="modal-subtitle" style={{ fontWeight: 600, color: 'var(--chat-text-primary)', margin: '0.5rem 0 0 0' }}>Choisir une discussion</p>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', border: '1px solid var(--chat-sidebar-border)', borderRadius: '6px', padding: '0.5rem' }}>
+                  {/* Colleagues */}
+                  {channels.colleagues.map((c) => (
+                    <button
+                      key={c.userId}
+                      type="button"
+                      onClick={() => handleForwardMessage(c.channelId)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', transition: 'background 0.2s', alignSelf: 'stretch' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--chat-input-bg)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div className="member-result-avatar" style={{ width: '32px', height: '32px' }}>
+                        {c.avatarUrl ? (
+                          <img src={`${API_URL}${c.avatarUrl}`} alt={c.name} className="member-result-img" style={{ width: '32px', height: '32px' }} />
+                        ) : (
+                          <ProfileIcon />
+                        )}
+                      </div>
+                      <span style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--chat-text-primary)' }}>{c.name}</span>
+                    </button>
+                  ))}
+
+                  {/* Groups */}
+                  {channels.groups.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => handleForwardMessage(g.id)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', transition: 'background 0.2s', alignSelf: 'stretch' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--chat-input-bg)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div className="channel-avatar-container group" style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--chat-input-bg)', borderRadius: '50%', overflow: 'hidden' }}>
+                        {g.avatarUrl ? (
+                          <img src={`${API_URL}${g.avatarUrl}`} alt={g.name} style={{ width: '32px', height: '32px', objectFit: 'cover' }} />
+                        ) : (
+                          <GroupIcon />
+                        )}
+                      </div>
+                      <span style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--chat-text-primary)' }}>{g.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="modal-actions" style={{ marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => { setIsForwardModalOpen(false); setForwardingMessage(null); }}
+                    style={{ flex: 1, padding: '0.6rem 1rem' }}
+                  >
+                    Annuler
+                  </button>
+                </div>
               </div>
             </div>
           </div>

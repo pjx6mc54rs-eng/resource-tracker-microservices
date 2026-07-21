@@ -26,6 +26,73 @@ export function ChatProvider({ children }) {
   const [activeChannelId, setActiveChannelId] = useState(null)
   const [messages, setMessages] = useState([]) // Centralisé ici !
   const [isConnected, setIsConnected] = useState(false)
+ 
+  const originalTitleRef = useRef(document.title || 'Resource Tracker')
+  const flashIntervalRef = useRef(null)
+ 
+  const stopFlashingTitle = useCallback(() => {
+    if (flashIntervalRef.current) {
+      clearInterval(flashIntervalRef.current)
+      flashIntervalRef.current = null
+    }
+    document.title = originalTitleRef.current
+  }, [])
+ 
+  const startFlashingTitle = useCallback((text) => {
+    if (flashIntervalRef.current) {
+      clearInterval(flashIntervalRef.current)
+    }
+    let isShowingNotification = false
+    flashIntervalRef.current = setInterval(() => {
+      isShowingNotification = !isShowingNotification
+      document.title = isShowingNotification ? text : originalTitleRef.current
+    }, 1500)
+  }, [])
+ 
+  const [isWindowFocused, setIsWindowFocused] = useState(document.hasFocus())
+ 
+  useEffect(() => {
+    const handleFocus = () => setIsWindowFocused(true)
+    const handleBlur = () => setIsWindowFocused(false)
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('blur', handleBlur)
+    window.addEventListener('click', handleFocus)
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('blur', handleBlur)
+      window.removeEventListener('click', handleFocus)
+    }
+  }, [])
+ 
+  useEffect(() => {
+    const unreadColleagues = channels.colleagues.filter(
+      (c) => c.unreadCount > 0 && (c.channelId !== activeChannelId || !isWindowFocused)
+    )
+    const unreadGroups = channels.groups.filter(
+      (g) => g.unreadCount > 0 && (g.id !== activeChannelId || !isWindowFocused)
+    )
+    const unreadProjects = channels.projects.filter(
+      (p) => p.unreadCount > 0 && (p.id !== activeChannelId || !isWindowFocused)
+    )
+ 
+    const hasUnread = unreadColleagues.length > 0 || unreadGroups.length > 0 || unreadProjects.length > 0
+ 
+    if (!hasUnread) {
+      stopFlashingTitle()
+      return
+    }
+ 
+    const allUnread = [
+      ...unreadColleagues.map((c) => ({ senderName: c.name, time: c.lastMessageAt })),
+      ...unreadGroups.map((g) => ({ senderName: g.lastMessage?.senderName || 'un membre', time: g.lastMessageAt })),
+      ...unreadProjects.map((p) => ({ senderName: p.lastMessage?.senderName || 'un collaborateur', time: p.lastMessageAt })),
+    ].filter((item) => item.time)
+ 
+    allUnread.sort((a, b) => new Date(b.time) - new Date(a.time))
+ 
+    const latestName = allUnread.length > 0 ? allUnread[0].senderName : 'un collègue'
+    startFlashingTitle(`Nouveau message de ${latestName}`)
+  }, [channels, activeChannelId, isWindowFocused, startFlashingTitle, stopFlashingTitle])
 
   const loadChannels = useCallback(async () => {
     if (!token) return
@@ -158,32 +225,16 @@ export function ChatProvider({ children }) {
   const handleIncomingMessage = useCallback(
       (message) => {
         if (!message?.channelId) return
-
+ 
         // Si le canal n'est pas encore connu localement (ex: nouveau groupe ou DM)
         const channelExists = findChannel(message.channelId)
         if (!channelExists) {
-          refreshChannels().then(() => {
-            if (message.senderId !== user?.id) {
-              setChannels((latest) => {
-                const refreshedChannel =
-                  latest.projects.find((item) => item.id === message.channelId) ||
-                  latest.groups.find((item) => item.id === message.channelId) ||
-                  latest.colleagues.find((item) => item.channelId === message.channelId)
-
-                const title = refreshedChannel?.name || 'Nouvelle discussion'
-                showToast(`Nouveau message dans ${title}`, 'info', 6000, () => {
-                  navigate('/messages')
-                  setActiveChannelId(message.channelId)
-                })
-                return latest
-              })
-            }
-          })
+          refreshChannels()
           return
         }
-
+ 
         updateChannelLastMessage(message.channelId, message)
-
+ 
         // Si le message appartient au canal actuellement ouvert par l'utilisateur
         if (message.channelId === activeChannelId) {
           setMessages((previous) => {
@@ -203,12 +254,12 @@ export function ChatProvider({ children }) {
           })
           return
         }
-
+ 
         // Si l'utilisateur connecté est l'auteur du message, on ignore les notifications et compteurs de non-lus
         if (message.senderId === user?.id) {
           return
         }
-
+ 
         // Sinon (si c'est pour un autre canal), on gère les notifications et compteurs de non-lus
         setChannels((current) => {
           let updated = false
@@ -229,15 +280,8 @@ export function ChatProvider({ children }) {
               colleagues.reduce((sum, item) => sum + normalizeValue(item.unreadCount), 0)
           return { ...current, projects, groups, colleagues, globalUnreadCount }
         })
-
-        const channel = findChannel(message.channelId)
-        const title = channel?.name || 'Nouvelle discussion'
-        showToast(`Nouveau message dans ${title}`, 'info', 6000, () => {
-          navigate('/messages')
-          setActiveChannelId(message.channelId)
-        })
       },
-      [activeChannelId, findChannel, navigate, showToast, refreshChannels, user?.id],
+      [activeChannelId, findChannel, refreshChannels, user?.id, updateChannelLastMessage],
   )
 
   // Connexion du socket. Dépend uniquement du token.
