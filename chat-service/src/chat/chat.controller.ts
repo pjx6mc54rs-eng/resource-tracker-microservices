@@ -11,7 +11,14 @@ import {
   UseGuards,
   Delete,
   Patch,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { writeFileSync, existsSync, mkdirSync } from 'fs'
+import { join, extname } from 'path'
+import { randomUUID } from 'crypto'
 import { JwtAuthGuard, RequestWithUser } from './jwt-auth.guard'
 import { ChatService } from './chat-message.service'
 import {
@@ -22,6 +29,7 @@ import {
   SendMessageDto,
 } from './dto/chat.dto'
 import { ProjectAccessService } from './project-access.service'
+
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -73,7 +81,7 @@ export class ChatController {
     @Body() body: CreateGroupDto,
     @Req() request: RequestWithUser,
   ) {
-    return this.chat.createGroup(body.name, body.memberIds, request.user.userId)
+    return this.chat.createGroup(body.name, body.memberIds, request.user.userId, body.avatarUrl)
   }
 
   @Get(':projectId/messages')
@@ -122,11 +130,11 @@ export class ChatController {
   @Patch('channels/:channelId')
   async updateChannel(
     @Param('channelId') channelId: string,
-    @Body() body: { name: string },
+    @Body() body: { name?: string; avatarUrl?: string },
     @Req() request: RequestWithUser,
   ) {
     await this.chat.assertChannelMember(channelId, request.user.userId)
-    return this.chat.updateChannelName(channelId, body.name)
+    return this.chat.updateChannelName(channelId, body.name, body.avatarUrl)
   }
 
   @Post('channels/:channelId/leave')
@@ -156,5 +164,26 @@ export class ChatController {
   ) {
     await this.chat.assertChannelMember(channelId, request.user.userId)
     return this.chat.assignAdminRole(channelId, request.user.userId, targetUserId)
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('image'))
+  async uploadImage(
+    @UploadedFile() file?: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Aucun fichier fourni')
+    }
+    const uploadDir = join(process.cwd(), 'uploads')
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true })
+    }
+    const fileExt = extname(file.originalname)
+    const fileName = `${randomUUID()}${fileExt}`
+    const filePath = join(uploadDir, fileName)
+    writeFileSync(filePath, file.buffer)
+    return {
+      imageUrl: `/api/chat/uploads/${fileName}`,
+    }
   }
 }

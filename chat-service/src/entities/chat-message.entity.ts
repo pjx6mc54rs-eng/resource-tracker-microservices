@@ -30,6 +30,19 @@ export class ChatMessage {
   @Column({ type: 'text' })
   message!: string
 
+  @Column({ name: 'image_url', type: 'varchar', nullable: true })
+  imageUrl?: string | null
+
+  @Column({ name: 'parent_message_id', type: 'uuid', nullable: true })
+  parentMessageId?: string | null
+
+  @Column({ name: 'is_forwarded', type: 'boolean', default: false })
+  isForwarded!: boolean
+
+  @ManyToOne(() => ChatMessage, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'parent_message_id' })
+  parentMessage?: ChatMessage
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt!: Date
 }

@@ -137,6 +137,7 @@ export class ChatService {
           id: channel.id,
           type: channel.type,
           name: channel.name ?? 'Groupe',
+          avatarUrl: channel.avatarUrl,
           unreadCount: unreadCounts.get(channel.id) ?? 0,
           lastMessageAt: lastMsg?.createdAt,
           lastMessage: lastMsg,
@@ -174,6 +175,7 @@ export class ChatService {
     const messages = await this.messages.find({
       where: { channelId },
       order: { createdAt: 'ASC' },
+      relations: ['parentMessage'],
       take: safeLimit,
       skip: safeOffset,
     })
@@ -181,7 +183,16 @@ export class ChatService {
       id: message.id,
       channelId: message.channelId,
       senderId: message.senderId,
-      message: this.tryDecrypt(message.message),
+      message: message.message ? this.tryDecrypt(message.message) : '',
+      imageUrl: message.imageUrl,
+      parentMessageId: message.parentMessageId,
+      parentMessage: message.parentMessage ? {
+        id: message.parentMessage.id,
+        senderId: message.parentMessage.senderId,
+        message: message.parentMessage.message ? this.tryDecrypt(message.parentMessage.message) : '',
+        imageUrl: message.parentMessage.imageUrl,
+      } : null,
+      isForwarded: message.isForwarded,
       createdAt: message.createdAt,
     }))
   }
@@ -192,6 +203,7 @@ export class ChatService {
     const messages = await this.messages.find({
       where: { projectId },
       order: { createdAt: 'ASC' },
+      relations: ['parentMessage'],
       take: safeLimit,
       skip: safeOffset,
     })
@@ -199,16 +211,26 @@ export class ChatService {
       id: message.id,
       projectId: message.projectId,
       senderId: message.senderId ?? (message as any).userId,
-      message: this.tryDecrypt(message.message),
+      message: message.message ? this.tryDecrypt(message.message) : '',
+      imageUrl: message.imageUrl,
+      parentMessageId: message.parentMessageId,
+      parentMessage: message.parentMessage ? {
+        id: message.parentMessage.id,
+        senderId: message.parentMessage.senderId,
+        message: message.parentMessage.message ? this.tryDecrypt(message.parentMessage.message) : '',
+        imageUrl: message.parentMessage.imageUrl,
+      } : null,
+      isForwarded: message.isForwarded,
       createdAt: message.createdAt,
     }))
   }
 
-  async createGroup(name: string, memberIds: string[], creatorId: string) {
+  async createGroup(name: string, memberIds: string[], creatorId: string, avatarUrl?: string) {
     const uniqueMembers = Array.from(new Set([...memberIds, creatorId]))
     const channel = this.channels.create({
       type: ChatChannelType.GROUP,
       name,
+      avatarUrl: avatarUrl ?? null,
     })
     const savedChannel = await this.channels.save(channel)
 
@@ -258,10 +280,16 @@ export class ChatService {
     return this.members.save(member)
   }
 
-  async saveMessage(channelId: string, userId: string, text: string) {
+  async saveMessage(channelId: string, userId: string, text: string, imageUrl?: string, parentMessageId?: string, isForwarded?: boolean) {
     const channel = await this.channels.findOne({ where: { id: channelId } })
     if (!channel) {
       throw new NotFoundException('Canal introuvable')
+    }
+
+    let parentMessage: ChatMessage | undefined = undefined
+    if (parentMessageId) {
+      const found = await this.messages.findOne({ where: { id: parentMessageId } })
+      parentMessage = found || undefined
     }
 
     const message = this.messages.create({
@@ -271,7 +299,11 @@ export class ChatService {
       senderId: userId,
       userId: userId,
       projectId: channel.type === ChatChannelType.PROJECT ? channel.projectId : undefined,
-      message: this.encryption.encrypt(text),
+      message: this.encryption.encrypt(text ?? ''),
+      imageUrl: imageUrl ?? null,
+      parentMessageId: parentMessageId ?? null,
+      parentMessage: parentMessage,
+      isForwarded: isForwarded ?? false,
     })
     const saved = await this.messages.save(message)
     await this.members.update({ channelId, userId }, { lastReadAt: saved.createdAt })
@@ -281,6 +313,15 @@ export class ChatService {
       channelId: saved.channelId,
       senderId: saved.senderId,
       message: this.tryDecrypt(saved.message),
+      imageUrl: saved.imageUrl,
+      parentMessageId: saved.parentMessageId,
+      parentMessage: saved.parentMessage ? {
+        id: saved.parentMessage.id,
+        senderId: saved.parentMessage.senderId,
+        message: saved.parentMessage.message ? this.tryDecrypt(saved.parentMessage.message) : '',
+        imageUrl: saved.parentMessage.imageUrl,
+      } : null,
+      isForwarded: saved.isForwarded,
       createdAt: saved.createdAt,
       projectId: channel.type === ChatChannelType.PROJECT ? channel.projectId : undefined,
     }
@@ -496,15 +537,20 @@ export class ChatService {
     return { ok: true }
   }
 
-  async updateChannelName(channelId: string, name: string) {
+  async updateChannelName(channelId: string, name?: string, avatarUrl?: string) {
     const channel = await this.channels.findOne({ where: { id: channelId } })
     if (!channel) {
       throw new NotFoundException('Canal introuvable')
     }
     if (channel.type !== ChatChannelType.GROUP) {
-      throw new ForbiddenException('Seuls les groupes de discussion peuvent être renommés')
+      throw new ForbiddenException('Seuls les groupes de discussion sont modifiables')
     }
-    channel.name = name
+    if (name !== undefined) {
+      channel.name = name
+    }
+    if (avatarUrl !== undefined) {
+      channel.avatarUrl = avatarUrl
+    }
     return this.channels.save(channel)
   }
 
