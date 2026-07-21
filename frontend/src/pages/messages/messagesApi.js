@@ -43,11 +43,11 @@ export async function markChannelAsRead(channelId, token) {
   })
 }
 
-export async function createChatGroup(name, memberIds, token) {
+export async function createChatGroup(name, memberIds, token, avatarUrl) {
   return request('/chat/groups', {
     method: 'POST',
     headers: getHeaders(token),
-    body: JSON.stringify({ name, memberIds }),
+    body: JSON.stringify({ name, memberIds, avatarUrl }),
   })
 }
 
@@ -73,11 +73,11 @@ export async function addGroupMember(channelId, userId, token) {
   })
 }
 
-export async function updateChatChannelName(channelId, name, token) {
+export async function updateChatChannelName(channelId, name, token, avatarUrl) {
   return request(`/chat/channels/${channelId}`, {
     method: 'PATCH',
     headers: getHeaders(token),
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, avatarUrl }),
   })
 }
 
@@ -100,4 +100,21 @@ export async function makeMemberAdmin(channelId, userId, token) {
     method: 'POST',
     headers: getHeaders(token),
   })
+}
+
+export async function uploadChatImage(file, token) {
+  const formData = new FormData()
+  formData.append('image', file)
+  const response = await fetch(`${API_URL}/api/chat/upload`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  })
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new Error(data?.message || "Impossible d'importer l'image.")
+  }
+  return data
 }

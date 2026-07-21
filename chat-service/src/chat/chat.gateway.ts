@@ -92,8 +92,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async sendMessageToChannel(@ConnectedSocket() client: ChatSocket, @MessageBody() body: SendMessageDto) {
     const user = client.data.user
     const messageText = body?.message?.trim()
-    if (!user || !body?.channelId || !messageText) {
-      return { ok: false, message: 'Message invalide' }
+    const imageUrl = body?.imageUrl?.trim()
+    if (!user || !body?.channelId || (!messageText && !imageUrl)) {
+      return { ok: false, message: 'Message ou image invalide' }
     }
 
     const existingChannel = await this.chatService.getChannelById(body.channelId)
@@ -108,7 +109,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Enregistre le message en BDD d'abord
-    const saved = await this.chatService.saveMessage(body.channelId, user.userId, messageText)
+    const saved = await this.chatService.saveMessage(
+      body.channelId,
+      user.userId,
+      messageText ?? '',
+      imageUrl,
+      body.parentMessageId,
+      body.isForwarded,
+    )
     const payload = {
       ...saved,
       createdAt: saved.createdAt.toISOString(),
@@ -161,11 +169,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendMessage')
-  async sendMessage(@ConnectedSocket() client: ChatSocket, @MessageBody() body: { projectId: string; message: string }) {
+  async sendMessage(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() body: { projectId: string; message?: string; imageUrl?: string; parentMessageId?: string; isForwarded?: boolean },
+  ) {
     const user = client.data.user
     const messageText = body?.message?.trim()
-    if (!user || !body?.projectId || !messageText) {
-      return { ok: false, message: 'Message invalide' }
+    const imageUrl = body?.imageUrl?.trim()
+    if (!user || !body?.projectId || (!messageText && !imageUrl)) {
+      return { ok: false, message: 'Message ou image invalide' }
     }
 
     const room = `project-${body.projectId}`
@@ -180,7 +192,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.ensureChannelMembersJoined(channel.id, body.projectId)
 
-    const saved = await this.chatService.saveMessage(channel.id, user.userId, messageText)
+    const saved = await this.chatService.saveMessage(
+      channel.id,
+      user.userId,
+      messageText ?? '',
+      imageUrl,
+      body.parentMessageId,
+      body.isForwarded,
+    )
     const payload = {
       ...saved,
       createdAt: saved.createdAt.toISOString(),

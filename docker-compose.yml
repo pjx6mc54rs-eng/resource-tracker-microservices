@@ -157,6 +157,8 @@ services:
         condition: service_healthy
       project-service:
         condition: service_started
+    volumes:
+      - ./chat-service/uploads:/app/uploads
 
   # ============================================================
   # Passerelle et interface utilisateur

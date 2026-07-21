@@ -91,6 +91,11 @@ export class ProxyController {
     this.authProxy(req, res, next);
   }
 
+  @All('chat/uploads/*')
+  handlePublicChatUploads(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.chatProxy(req, res, next);
+  }
+
   // 2. PROTECTED ROUTES
   @All('auth/*')
   @UseGuards(JwtAuthGuard)
