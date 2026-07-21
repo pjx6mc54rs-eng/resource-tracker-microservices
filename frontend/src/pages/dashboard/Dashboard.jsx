@@ -27,6 +27,14 @@ export default function Dashboard() {
             <p>Log work hours, track spent time on tasks.</p>
           </div>
         </Link>
+
+        <Link to="/messages" className="quick-access-card">
+          <div className="quick-access-icon">💬</div>
+          <div className="quick-access-info">
+            <h4>Messages</h4>
+            <p>Chat with colleagues, project groups, and teams.</p>
+          </div>
+        </Link>
         
         {isAdmin && (
           <Link to="/users" className="quick-access-card">

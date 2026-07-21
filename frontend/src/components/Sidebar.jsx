@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useChat } from '../context/ChatContext'
@@ -12,13 +13,25 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
   const { channels } = useChat()
   const globalUnreadCount = channels?.globalUnreadCount ?? 0
 
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('sidebar-collapsed', String(next))
+      return next
+    })
+  }
+
   const handleLogout = () => {
     logout()
     window.location.href = '/login'
   }
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+    <aside className={`sidebar ${isOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-user">
         <div className="sidebar-user-header">
           {user?.avatarUrl ? (
@@ -42,10 +55,24 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
       </div>
 
       <div className="sidebar-header">
-        <span className="sidebar-brand-title">Resource Tracker</span>
+        <span className="sidebar-brand-title">Norsys Ressource Tracker</span>
       </div>
 
       <nav className="sidebar-nav">
+        <button
+          onClick={toggleCollapse}
+          className="sidebar-collapse-btn"
+          type="button"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <span className="sidebar-icon collapse-icon-wrapper">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </span>
+          <span className="sidebar-label">Collapse Menu</span>
+        </button>
+
         <NavLink to="/dashboard" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
           <span className="sidebar-icon">📊</span>
           <span className="sidebar-label">Dashboard</span>

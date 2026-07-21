@@ -52,12 +52,12 @@ function Login() {
         <div className={styles.header}>
           <img
             src="/norsys_afrique_logo.png"
-            alt="Norsys Afrique"
+            alt="Norsys"
             className={`${styles.logo} ${styles.logoLight}`}
           />
           <img
             src="/norsys_afrique_logo_dark.png"
-            alt="Norsys Afrique"
+            alt="Norsys"
             className={`${styles.logo} ${styles.logoDark}`}
           />
           <div className={styles.headerText}>

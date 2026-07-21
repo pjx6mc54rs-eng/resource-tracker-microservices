@@ -11,7 +11,7 @@ async function request(path, options = {}) {
   const response = await fetch(`${API_URL}/api${path}`, options)
   const data = await response.json().catch(() => null)
   if (!response.ok) {
-    throw new Error(data?.message || 'Une erreur est survenue.')
+    throw new Error(data?.message || 'An error occurred.')
   }
   return data
 }
@@ -114,7 +114,7 @@ export async function uploadChatImage(file, token) {
   })
   const data = await response.json().catch(() => null)
   if (!response.ok) {
-    throw new Error(data?.message || "Impossible d'importer l'image.")
+    throw new Error(data?.message || "Failed to upload image.")
   }
   return data
 }
