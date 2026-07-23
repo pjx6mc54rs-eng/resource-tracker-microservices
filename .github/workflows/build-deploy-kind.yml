@@ -1,0 +1,64 @@
+name: Build and deploy to local Kind
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  KIND_CLUSTER_NAME: desktop
+  KUBERNETES_NAMESPACE: resource-tracker
+
+jobs:
+  build-and-deploy:
+    # This runner must be installed on the machine that runs the Kind cluster.
+    runs-on:
+      - self-hosted
+      - macOS
+    concurrency:
+      group: kind-desktop-deployment
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify the Kind cluster
+        run: |
+          kubectl config use-context "kind-$KIND_CLUSTER_NAME"
+          kubectl cluster-info
+
+      - name: Build local Docker images
+        run: |
+          set -euo pipefail
+          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
+          for service in "${services[@]}"; do
+            docker build \
+              --tag "resource-tracker-microservices-$service:latest" \
+              "./$service"
+          done
+
+      - name: Load images into Kind
+        run: |
+          set -euo pipefail
+          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
+          for service in "${services[@]}"; do
+            kind load docker-image \
+              --name "$KIND_CLUSTER_NAME" \
+              "resource-tracker-microservices-$service:latest"
+          done
+
+      - name: Apply manifests and restart deployments
+        run: |
+          set -euo pipefail
+          kubectl apply -k k8s
+
+          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
+          for service in "${services[@]}"; do
+            kubectl rollout restart "deployment/$service" -n "$KUBERNETES_NAMESPACE"
+            kubectl rollout status "deployment/$service" \
+              -n "$KUBERNETES_NAMESPACE" \
+              --timeout=180s
+          done
