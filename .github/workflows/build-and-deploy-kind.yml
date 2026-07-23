@@ -1,4 +1,4 @@
-name: Build and deploy to Docker Desktop K8s
+name: Build and deploy to local Kind
 
 on:
   push:
@@ -10,43 +10,64 @@ permissions:
   contents: read
 
 env:
-  KUBERNETES_CONTEXT: docker-desktop
+  KIND_CLUSTER_NAME: desktop
   KUBERNETES_NAMESPACE: resource-tracker
 
 jobs:
   build-and-deploy:
+    # This runner must be installed on the machine that runs the Kind cluster.
     runs-on:
       - self-hosted
       - macOS
     concurrency:
-      group: docker-desktop-deployment
+      group: kind-desktop-deployment
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify the cluster
+      - name: Verify the Kind cluster
         run: |
-          kubectl config use-context "$KUBERNETES_CONTEXT"
+          kind export kubeconfig --name "$KIND_CLUSTER_NAME"
+          kubectl config use-context "kind-$KIND_CLUSTER_NAME"
           kubectl cluster-info
 
       - name: Build local Docker images
         run: |
           set -euo pipefail
           services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
+          image_tag="sha-$GITHUB_SHA"
           for service in "${services[@]}"; do
             docker build \
-              --tag "resource-tracker-microservices-$service:latest" \
+              --tag "resource-tracker-microservices-$service:$image_tag" \
               "./$service"
           done
 
-      - name: Apply manifests and restart deployments
+      - name: Load images into Kind
         run: |
           set -euo pipefail
+          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
+          image_tag="sha-$GITHUB_SHA"
+          for service in "${services[@]}"; do
+            kind load docker-image \
+              --name "$KIND_CLUSTER_NAME" \
+              "resource-tracker-microservices-$service:$image_tag"
+          done
+
+      - name: Apply manifests and deploy new image versions
+        run: |
+          set -euo pipefail
+          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
+          image_tag="sha-$GITHUB_SHA"
+
           kubectl apply -k k8s
 
-          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
           for service in "${services[@]}"; do
-            kubectl rollout restart "deployment/$service" -n "$KUBERNETES_NAMESPACE"
+            kubectl set image "deployment/$service" \
+              "$service=resource-tracker-microservices-$service:$image_tag" \
+              -n "$KUBERNETES_NAMESPACE"
+          done
+
+          for service in "${services[@]}"; do
             kubectl rollout status "deployment/$service" \
               -n "$KUBERNETES_NAMESPACE" \
               --timeout=180s
