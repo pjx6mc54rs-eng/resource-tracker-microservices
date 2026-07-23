@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  KIND_CLUSTER_NAME: docker-desktop
+  KUBERNETES_CONTEXT: docker-desktop
   KUBERNETES_NAMESPACE: resource-tracker
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Verify the cluster
         run: |
-          kubectl config use-context "$KIND_CLUSTER_NAME"
+          kubectl config use-context "$KUBERNETES_CONTEXT"
           kubectl cluster-info
 
       - name: Build local Docker images
