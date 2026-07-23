@@ -1,7 +1,7 @@
 import { createContext, useReducer, useCallback, useContext, useEffect } from 'react'
+import API_URL from '../config/api'
 
 const AuthContext = createContext()
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 const tokenFromStorage = localStorage.getItem('access_token')
 

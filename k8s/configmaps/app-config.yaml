@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: resource-tracker
+data:
+  DATABASE_HOST: "postgres-service.resource-tracker.svc.cluster.local"
+  DATABASE_PORT: "5432"
+  DATABASE_USER: admin
+  DATABASE_NAME_AUTH: auth_db
+  DATABASE_NAME_PROJECT: project_db
+  DATABASE_NAME_TIMESHEET: timesheet_db
+  DATABASE_NAME_REPORTING: reporting_db
+  DATABASE_NAME_CHAT: chat_db
+  RABBITMQ_HOST: rabbitmq-service
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USER: admin
+  RABBITMQ_URL: amqp://admin:admin@rabbitmq-service:5672
+  AUTH_SERVICE_URL: http://auth-service:3000
+  PROJECT_SERVICE_URL: http://project-service:3000
+  TIMESHEET_SERVICE_URL: http://timesheet-service:3000
+  REPORTING_SERVICE_URL: http://reporting-service:3000
+  CHAT_SERVICE_URL: http://chat-service:3000
+  NODE_ENV: development
+  PORT: "3000"

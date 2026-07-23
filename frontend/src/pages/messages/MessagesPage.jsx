@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import { useToast } from '../../context/ToastContext'
+import API_URL from '../../config/api'
 import {
   createChatGroup,
   createDirectChatChannel,
@@ -25,8 +26,6 @@ function formatTime(isoString) {
     minute: '2-digit',
   })
 }
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 const ProfileIcon = () => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">

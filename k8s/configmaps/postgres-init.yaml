@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+  namespace: resource-tracker
+data:
+  init.sql: |
+    -- Créer les bases de données
+    CREATE DATABASE auth_db;
+    CREATE DATABASE project_db;
+    CREATE DATABASE timesheet_db;
+    CREATE DATABASE reporting_db;
+    CREATE DATABASE chat_db;
+
+    -- Vous pouvez ajouter ici les scripts d'initialisation spécifiques
+    -- par exemple, créer des tables, des index, etc.
