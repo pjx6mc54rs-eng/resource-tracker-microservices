@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import API_URL from '../../config/api'
 import './UsersList.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 async function request(path, { method = 'GET', body, token } = {}) {
   let res

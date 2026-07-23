@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: resource-tracker
+  labels:
+    app: pgadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+      - name: pgadmin
+        image: dpage/pgadmin4:latest
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: PGADMIN_DEFAULT_EMAIL
+          value: admin@admin.com
+        - name: PGADMIN_DEFAULT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DATABASE_PASSWORD
+        - name: PGADMIN_CONFIG_SERVER_MODE
+          value: "False"
+        volumeMounts:
+        - name: pgadmin-storage
+          mountPath: /var/lib/pgadmin
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+      volumes:
+      - name: pgadmin-storage
+        persistentVolumeClaim:
+          claimName: pgadmin-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-service
+  namespace: resource-tracker
+  labels:
+    app: pgadmin
+spec:
+  selector:
+    app: pgadmin
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http

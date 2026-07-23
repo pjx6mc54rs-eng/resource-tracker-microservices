@@ -5,8 +5,10 @@ import { ChatModule } from './chat/chat.module'
 import { ChatChannel } from './entities/chat-channel.entity'
 import { ChatMessage } from './entities/chat-message.entity'
 import { ChannelMember } from './entities/channel-member.entity'
+import { HealthController } from './health/health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TimesheetsModule } from './timesheets/timesheets.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { TimesheetsModule } from './timesheets/timesheets.module';
     }),
     TimesheetsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}

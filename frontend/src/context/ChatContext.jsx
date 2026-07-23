@@ -4,8 +4,8 @@ import { io } from 'socket.io-client'
 import { useAuth } from './AuthContext'
 import { useToast } from './ToastContext'
 import { fetchChatChannels, markChannelAsRead } from '../pages/messages/messagesApi'
+import API_URL from '../config/api'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 const ChatContext = createContext(null)
 
 function normalizeValue(value) {
