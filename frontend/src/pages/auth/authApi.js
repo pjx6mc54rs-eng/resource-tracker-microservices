@@ -1,5 +1,4 @@
-// Base URL of the API gateway. Override with VITE_API_URL at build time.
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
+import API_URL from '../../config/api'
 
 async function request(path, { method = 'POST', body, token } = {}) {
   let res

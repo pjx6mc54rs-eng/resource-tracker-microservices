@@ -5,8 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     // 1. Charge automatiquement le fichier .env à la racine du microservice
     ConfigModule.forRoot({

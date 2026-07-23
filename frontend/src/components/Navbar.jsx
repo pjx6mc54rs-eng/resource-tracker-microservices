@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import API_URL from '../config/api'
 import LogoutIcon from './LogoutIcon'
 import ProfileIcon from './ProfileIcon'
 import NotificationIcon from './NotificationIcon'
 import SunIcon from './SunIcon'
 import MoonIcon from './MoonIcon'
 import './Navbar.css'
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
 
 export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
   const { user, logout } = useAuth()

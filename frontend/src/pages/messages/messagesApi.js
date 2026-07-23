@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3005'
+import API_URL from '../../config/api'
 
 function getHeaders(token) {
   return {
