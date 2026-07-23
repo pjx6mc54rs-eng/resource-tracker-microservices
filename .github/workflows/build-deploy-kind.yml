@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  KIND_CLUSTER_NAME: desktop
+  KIND_CLUSTER_NAME: docker-desktop
   KUBERNETES_NAMESPACE: resource-tracker
 
 jobs:
