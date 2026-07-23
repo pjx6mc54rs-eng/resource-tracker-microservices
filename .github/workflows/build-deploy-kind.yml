@@ -1,4 +1,4 @@
-name: Build and deploy to local Kind
+name: Build and deploy to Docker Desktop K8s
 
 on:
   push:
@@ -11,23 +11,24 @@ permissions:
 
 env:
   KIND_CLUSTER_NAME: docker-desktop
+  KUBERNETES_CONTEXT: docker-desktop
   KUBERNETES_NAMESPACE: resource-tracker
 
 jobs:
   build-and-deploy:
-    # This runner must be installed on the machine that runs the Kind cluster.
     runs-on:
       - self-hosted
       - macOS
     concurrency:
-      group: kind-desktop-deployment
+      group: docker-desktop-deployment
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify the Kind cluster
+      - name: Verify the cluster
         run: |
-          kubectl config use-context "kind-$KIND_CLUSTER_NAME"
+          kubectl config use-context "$KIND_CLUSTER_NAME"
+          kubectl config use-context "$KUBERNETES_CONTEXT"
           kubectl cluster-info
 
       - name: Build local Docker images
@@ -38,16 +39,6 @@ jobs:
             docker build \
               --tag "resource-tracker-microservices-$service:latest" \
               "./$service"
-          done
-
-      - name: Load images into Kind
-        run: |
-          set -euo pipefail
-          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
-          for service in "${services[@]}"; do
-            kind load docker-image \
-              --name "$KIND_CLUSTER_NAME" \
-              "resource-tracker-microservices-$service:latest"
           done
 
       - name: Apply manifests and restart deployments
@@ -62,3 +53,4 @@ jobs:
               -n "$KUBERNETES_NAMESPACE" \
               --timeout=180s
           done
+
