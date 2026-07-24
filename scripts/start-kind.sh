@@ -29,6 +29,8 @@ elif [[ -n "${1:-}" ]]; then
 fi
 
 if ! kind get clusters | grep -Fxq "$CLUSTER_NAME"; then
+  echo "Cleaning up any stale containers for cluster: $CLUSTER_NAME"
+  docker rm -f "${CLUSTER_NAME}-control-plane" "${CLUSTER_NAME}-worker" >/dev/null 2>&1 || true
   echo "Creating Kind cluster: $CLUSTER_NAME"
   kind create cluster --name "$CLUSTER_NAME" --config "$ROOT_DIR/k8s/kind-config.yaml"
 fi

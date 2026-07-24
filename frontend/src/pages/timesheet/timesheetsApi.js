@@ -37,6 +37,20 @@ export function submitTimesheet(data, token) {
   return request('/api/timesheets', { method: 'POST', body: data, token })
 }
 
-export function getMyTimesheets(token) {
-  return request('/api/timesheets/me', { token })
+export function bulkSubmitTimesheets(entries, token) {
+  return request('/api/timesheets/bulk', { method: 'POST', body: { entries }, token })
+}
+
+export function getMyTimesheets(token, year, month) {
+  const queryParams = new URLSearchParams()
+  if (year) queryParams.append('year', year)
+  if (month) queryParams.append('month', month)
+
+  const queryString = queryParams.toString()
+  const path = `/api/timesheets/me${queryString ? `?${queryString}` : ''}`
+  return request(path, { token })
+}
+
+export function deleteTimesheetEntry(id, token) {
+  return request(`/api/timesheets/${id}`, { method: 'DELETE', token })
 }

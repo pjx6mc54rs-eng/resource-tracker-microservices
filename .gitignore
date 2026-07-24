@@ -43,3 +43,8 @@ frontend/.vite/
 # Uploaded assets
 auth-service/uploads/
 **/uploads/
+
+# Backups and SQL dumps
+backups/
+*.sql
+*.tar.gz

@@ -8,14 +8,23 @@ export class Timesheet {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ name: 'task_id', type: 'uuid' })
-  taskId: string;
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  projectId?: string | null;
+
+  @Column({ name: 'task_id', type: 'uuid', nullable: true })
+  taskId?: string | null;
 
   @Column({ type: 'date' })
-  date: Date | string;
+  date: string;
 
-  @Column({ name: 'hours_spent', type: 'decimal', precision: 5, scale: 2 })
+  @Column({ name: 'hours_spent', type: 'decimal', precision: 5, scale: 2, default: 0 })
   hoursSpent: number;
+
+  @Column({ name: 'is_holiday', type: 'boolean', default: false })
+  isHoliday: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  note?: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
