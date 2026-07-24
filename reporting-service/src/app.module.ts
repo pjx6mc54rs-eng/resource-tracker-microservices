@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ReportingModule } from './reporting/reporting.module';
 import { HealthController } from './health/health.controller';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -15,7 +16,9 @@ import { HealthController } from './health/health.controller';
       password: process.env.DATABASE_PASSWORD || 'admin',
       database: process.env.DATABASE_NAME || 'reporting_db',
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
+      migrationsRun: true,
+      migrations: [path.join(__dirname, '/migrations/*.{ts,js}')],
     }),
     ReportingModule,
   ],

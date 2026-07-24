@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health/health.controller';
+import * as path from 'path';
 
 @Module({
   controllers: [HealthController],
@@ -24,7 +25,9 @@ import { HealthController } from './health/health.controller';
       password: process.env.DATABASE_PASSWORD || 'admin',
       database: process.env.DATABASE_NAME || 'auth_db',
       autoLoadEntities: true, // Charge automatiquement User, etc.
-      synchronize: false,    // Source de vérité via les migrations/init SQL
+      synchronize: true,    // Synchronise la base de données au démarrage
+      migrationsRun: true,
+      migrations: [path.join(__dirname, '/migrations/*.{ts,js}')],
     }),
 
     UsersModule,

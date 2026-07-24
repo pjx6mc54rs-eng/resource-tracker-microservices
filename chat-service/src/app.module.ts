@@ -6,6 +6,7 @@ import { ChatChannel } from './entities/chat-channel.entity'
 import { ChatMessage } from './entities/chat-message.entity'
 import { ChannelMember } from './entities/channel-member.entity'
 import { HealthController } from './health/health.controller';
+import * as path from 'path';
 
 @Module({
   controllers: [HealthController],
@@ -19,7 +20,9 @@ import { HealthController } from './health/health.controller';
       password: process.env.DATABASE_PASSWORD ?? 'admin',
       database: process.env.DATABASE_NAME ?? 'chat_db',
       entities: [ChatChannel, ChatMessage, ChannelMember],
-      synchronize: false,
+      synchronize: true,
+      migrationsRun: true,
+      migrations: [path.join(__dirname, '/migrations/*.{ts,js}')],
     }),
     ChatModule,
   ],
