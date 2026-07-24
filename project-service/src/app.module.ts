@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProjectsModule } from './projects/projects.module';
 import { HealthController } from './health/health.controller';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { HealthController } from './health/health.controller';
       database: process.env.DATABASE_NAME || 'project_db',
       autoLoadEntities: true,
       synchronize: false,
+      migrationsRun: true,
+      migrations: [path.join(__dirname, '/migrations/*.{ts,js}')],
     }),
     ProjectsModule,
   ],
