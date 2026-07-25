@@ -38,20 +38,23 @@ spec:
           exec:
             command:
             - rabbitmq-diagnostics
-            - check_port_connectivity
-          initialDelaySeconds: 30
+            - -q
+            - ping
+          # RabbitMQ can take more than 40 seconds to initialise on a small VM.
+          initialDelaySeconds: 90
           periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          timeoutSeconds: 15
+          failureThreshold: 6
         readinessProbe:
           exec:
             command:
             - rabbitmq-diagnostics
+            - -q
             - check_port_connectivity
-          initialDelaySeconds: 10
+          initialDelaySeconds: 30
           periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          timeoutSeconds: 15
+          failureThreshold: 6
         resources:
           requests:
             memory: "256Mi"
