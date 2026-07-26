@@ -6,6 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
+    # 1. ACCÈS DIRECT PAR IP (Pour téléphone)
     - http:
         paths:
           - path: /api
@@ -22,6 +23,8 @@ spec:
                 name: frontend
                 port:
                   number: 80
+
+    # 2. ACCÈS PAR NOM DE DOMAINE LOCAL (Pour Mac)
     - host: api.resource-tracker.local
       http:
         paths:
@@ -32,6 +35,7 @@ spec:
                 name: api-gateway
                 port:
                   number: 3000
+
     - host: app.resource-tracker.local
       http:
         paths:
@@ -42,6 +46,7 @@ spec:
                 name: frontend
                 port:
                   number: 80
+
     - host: pgadmin.resource-tracker.local
       http:
         paths:
@@ -49,9 +54,10 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: pgadmin-service
+                name: pgadmin
                 port:
                   number: 80
+
     - host: rabbitmq.resource-tracker.local
       http:
         paths:
