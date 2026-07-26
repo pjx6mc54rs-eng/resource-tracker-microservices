@@ -16,35 +16,35 @@ spec:
         app: pgadmin
     spec:
       containers:
-      - name: pgadmin
-        image: dpage/pgadmin4:latest
-        ports:
-        - containerPort: 80
-          name: http
-        env:
-        - name: PGADMIN_DEFAULT_EMAIL
-          value: admin@admin.com
-        - name: PGADMIN_DEFAULT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: DATABASE_PASSWORD
-        - name: PGADMIN_CONFIG_SERVER_MODE
-          value: "False"
-        volumeMounts:
-        - name: pgadmin-storage
-          mountPath: /var/lib/pgadmin
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "250m"
+        - name: pgadmin
+          image: dpage/pgadmin4:latest
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: admin@admin.com
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: DATABASE_PASSWORD
+            - name: PGADMIN_CONFIG_SERVER_MODE
+              value: "True"
+          volumeMounts:
+            - name: pgadmin-storage
+              mountPath: /var/lib/pgadmin
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
       volumes:
-      - name: pgadmin-storage
-        persistentVolumeClaim:
-          claimName: pgadmin-pvc
+        - name: pgadmin-storage
+          persistentVolumeClaim:
+            claimName: pgadmin-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -58,6 +58,6 @@ spec:
     app: pgadmin
   type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 80
-    name: http
+    - port: 80
+      targetPort: 80
+      name: http
