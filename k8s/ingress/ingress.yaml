@@ -1,7 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: resource-tracker-ingress
+  namespace: resource-tracker
 spec:
   ingressClassName: nginx
   rules:
-    # 1. ACCÈS DIRECT PAR IP (Pour votre téléphone et autres appareils)
+    # 1. ACCÈS DIRECT PAR IP (Pour téléphone)
     - http:
         paths:
           - path: /api
@@ -19,7 +24,7 @@ spec:
                 port:
                   number: 80
 
-    # 2. ACCÈS PAR NOM DE DOMAINE LOCAL (Pour votre Mac)
+    # 2. ACCÈS PAR NOM DE DOMAINE LOCAL (Pour Mac)
     - host: api.resource-tracker.local
       http:
         paths:
