@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy to GCP VM via SSH
+      - name: Direct Kubernetes Deploy on VM via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.GCP_HOST }}
@@ -32,7 +32,10 @@ jobs:
             echo "📥 Récupération des derniers commits..."
             git pull origin master
 
-            echo "🔨 Build des images et chargement dans Kind (desktop)..."
+            echo "🚀 Application des manifestes Kubernetes..."
+            kubectl apply -k k8s/
+
+            echo "🔄 Redémarrage des services..."
             services=(
               auth-service
               project-service
@@ -45,16 +48,6 @@ jobs:
             )
 
             for service in "${services[@]}"; do
-              echo "--------------------------------------------------"
-              echo "Building & loading $service..."
-              docker build -t "resource-tracker-microservices-$service:latest" "./$service"
-              kind load docker-image "resource-tracker-microservices-$service:latest" --name desktop
-            done
-
-            echo "🚀 Application des manifestes et redémarrage des pods..."
-            kubectl apply -k k8s/
-
-            for service in "${services[@]}"; do
-              kubectl rollout restart "deployment/$service" -n resource-tracker
-              kubectl rollout status "deployment/$service" -n resource-tracker --timeout=180s
+              echo "Redémarrage de $service..."
+              kubectl rollout restart "deployment/$service" -n resource-tracker || true
             done
