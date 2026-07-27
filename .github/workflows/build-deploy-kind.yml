@@ -1,18 +1,19 @@
-name: Deploy via SSH to GCP VM
+name: Deploy Microservices to GCP VM
 
 on:
   push:
     branches:
       - master
-      - main
-  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚀 Se connecter en SSH à la VM GCP et déployer
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to GCP VM via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.GCP_HOST }}
@@ -23,6 +24,10 @@ jobs:
 
             echo "📂 Navigation dans le projet..."
             cd ~/resource-tracker-microservices
+
+            echo "🧹 Nettoyage des modifications locales sur la VM..."
+            git reset --hard HEAD
+            git clean -fd
 
             echo "📥 Récupération des derniers commits..."
             git pull origin master
