@@ -48,3 +48,4 @@ auth-service/uploads/
 backups/
 *.sql
 *.tar.gz
+actions-runner/
