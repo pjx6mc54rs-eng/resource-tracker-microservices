@@ -61,7 +61,7 @@ function Login() {
             className={`${styles.logo} ${styles.logoDark}`}
           />
           <div className={styles.headerText}>
-            <h1 className={styles.title}>Welcome  back back</h1>
+            <h1 className={styles.title}>Welcome back</h1>
             <p className={styles.subtitle}>Sign in to your account to continue.</p>
           </div>
         </div>
