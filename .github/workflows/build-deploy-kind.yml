@@ -1,56 +1,55 @@
-name: Build and deploy to Docker Desktop K8s
+name: Deploy via SSH to GCP VM
 
 on:
   push:
     branches:
       - master
+      - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-
-env:
-  KIND_CLUSTER_NAME: docker-desktop
-  KUBERNETES_CONTEXT: docker-desktop
-  KUBERNETES_NAMESPACE: resource-tracker
-
 jobs:
-  build-and-deploy:
-    runs-on:
-      - self-hosted
-      - macOS
-    concurrency:
-      group: docker-desktop-deployment
-      cancel-in-progress: true
+  deploy:
+    runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: 🚀 Se connecter en SSH à la VM GCP et déployer
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            set -e
 
-      - name: Verify the cluster
-        run: |
-          kubectl config use-context "$KIND_CLUSTER_NAME"
-          kubectl config use-context "$KUBERNETES_CONTEXT"
-          kubectl cluster-info
+            echo "📂 Navigation dans le projet..."
+            cd ~/resource-tracker-microservices
 
-      - name: Build local Docker images
-        run: |
-          set -euo pipefail
-          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
-          for service in "${services[@]}"; do
-            docker build \
-              --tag "resource-tracker-microservices-$service:latest" \
-              "./$service"
-          done
+            echo "📥 Récupération des derniers commits..."
+            git pull origin master
 
-      - name: Apply manifests and restart deployments
-        run: |
-          set -euo pipefail
-          kubectl apply -k k8s
+            echo "🔨 Build des images et chargement dans Kind (desktop)..."
+            services=(
+              auth-service
+              project-service
+              timesheet-service
+              reporting-service
+              chat-service
+              notification-service
+              api-gateway
+              frontend
+            )
 
-          services=(auth-service project-service timesheet-service reporting-service chat-service notification-service api-gateway frontend)
-          for service in "${services[@]}"; do
-            kubectl rollout restart "deployment/$service" -n "$KUBERNETES_NAMESPACE"
-            kubectl rollout status "deployment/$service" \
-              -n "$KUBERNETES_NAMESPACE" \
-              --timeout=180s
-          done
+            for service in "${services[@]}"; do
+              echo "--------------------------------------------------"
+              echo "Building & loading $service..."
+              docker build -t "resource-tracker-microservices-$service:latest" "./$service"
+              kind load docker-image "resource-tracker-microservices-$service:latest" --name desktop
+            done
 
+            echo "🚀 Application des manifestes et redémarrage des pods..."
+            kubectl apply -k k8s/
+
+            for service in "${services[@]}"; do
+              kubectl rollout restart "deployment/$service" -n resource-tracker
+              kubectl rollout status "deployment/$service" -n resource-tracker --timeout=180s
+            done
