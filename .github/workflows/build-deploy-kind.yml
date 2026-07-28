@@ -19,6 +19,7 @@ jobs:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_KEY }}
+          command_timeout: 40m
           script: |
             set -e
 
@@ -30,6 +31,9 @@ jobs:
 
             # Tag d'image basé sur le SHA du commit pour forcer le remplacement
             IMAGE_TAG="${{ github.sha }}"
+
+            # Utilisateur postgres (défaut "admin" si non défini sur la VM)
+            export POSTGRES_USER="${POSTGRES_USER:-admin}"
 
             ROOT_DIR="$HOME/resource-tracker-microservices"
             cd "$ROOT_DIR"
@@ -63,9 +67,6 @@ jobs:
 
             for service in "${SERVICES[@]}"; do
               if [ -d "./$service" ]; then
-                echo "→ Installation des dépendances sur la VM pour $service..."
-                (cd "$service" && npm install)
-
                 echo "🐳 Build de l'image $service:$IMAGE_TAG..."
                 docker build -t "$service:$IMAGE_TAG" -t "$service:latest" "./$service"
 
@@ -133,6 +134,11 @@ jobs:
               if [ ! -f "$service/src/data-source.ts" ]; then
                 echo "❌ $service/src/data-source.ts introuvable — migrations ignorées."
                 continue
+              fi
+
+              if [ ! -x "$service/node_modules/.bin/typeorm-ts-node-commonjs" ]; then
+                echo "→ Installation des dépendances ($service) pour exécuter les migrations..."
+                (cd "$service" && npm install)
               fi
 
               echo "→ Migrations détectées :"
