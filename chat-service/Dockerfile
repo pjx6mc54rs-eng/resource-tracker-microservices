@@ -1,14 +1,14 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --unsafe-perm=true --allow-root
+RUN npm install --no-audit --no-fund
 COPY . .
 RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /app
 COPY --from=build /app/package*.json ./
-RUN npm install --omit=dev
+RUN npm install --no-audit --no-fund
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/uploads ./uploads
 EXPOSE 3000
