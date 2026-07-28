@@ -26,7 +26,7 @@ jobs:
             export KUBECONFIG=$HOME/.kube/config
 
             # Nom du cluster kind (à adapter si différent)
-            KIND_CLUSTER_NAME="kind"
+            KIND_CLUSTER_NAME="resource-tracker"
 
             # Tag d'image basé sur le SHA du commit pour forcer le remplacement
             IMAGE_TAG="${{ github.sha }}"
