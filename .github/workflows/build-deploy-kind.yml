@@ -25,8 +25,14 @@ jobs:
             # Export explicite du fichier kubeconfig de l'utilisateur
             export KUBECONFIG=$HOME/.kube/config
 
-            echo "📂 Navigation dans le projet..."
-            cd ~/resource-tracker-microservices
+            # Nom du cluster kind (à adapter si différent)
+            KIND_CLUSTER_NAME="kind"
+
+            # Tag d'image basé sur le SHA du commit pour forcer le remplacement
+            IMAGE_TAG="${{ github.sha }}"
+
+            ROOT_DIR="$HOME/resource-tracker-microservices"
+            cd "$ROOT_DIR"
 
             echo "🧹 Nettoyage des modifications locales sur la VM..."
             git reset --hard HEAD
@@ -35,11 +41,16 @@ jobs:
             echo "📥 Récupération des derniers commits..."
             git pull origin master
 
-            echo "🚀 Application des manifestes Kubernetes..."
-            kubectl apply -k k8s/
+            echo "🔎 Vérification du cluster kind..."
+            kind get clusters | grep -q "^${KIND_CLUSTER_NAME}$" || {
+              echo "❌ Cluster kind '${KIND_CLUSTER_NAME}' introuvable."
+              exit 1
+            }
 
-            echo "🔄 Redémarrage des services..."
-            services=(
+            # ==================================================================
+            # 1. BUILD + CHARGEMENT DES IMAGES
+            # ==================================================================
+            SERVICES=(
               auth-service
               project-service
               timesheet-service
@@ -50,7 +61,121 @@ jobs:
               frontend
             )
 
-            for service in "${services[@]}"; do
+            for service in "${SERVICES[@]}"; do
+              if [ -d "./$service" ]; then
+                echo "🐳 Build de l'image $service:$IMAGE_TAG..."
+                docker build -t "$service:$IMAGE_TAG" -t "$service:latest" "./$service"
+
+                echo "📦 Chargement de l'image $service dans le cluster kind..."
+                kind load docker-image "$service:$IMAGE_TAG" --name "$KIND_CLUSTER_NAME"
+                kind load docker-image "$service:latest" --name "$KIND_CLUSTER_NAME"
+              else
+                echo "⚠️  Dossier ./$service introuvable, build ignoré."
+              fi
+            done
+
+            # ==================================================================
+            # 2. APPLICATION DES MANIFESTES KUBERNETES
+            # ==================================================================
+            echo "🚀 Application des manifestes Kubernetes..."
+            kubectl apply -k k8s/
+
+            echo "⏳ Attente que postgres soit prêt..."
+            kubectl rollout status deployment/postgres -n resource-tracker --timeout=120s || true
+
+            # ==================================================================
+            # 3. VÉRIFICATION / CRÉATION DES BASES DE DONNÉES
+            # ==================================================================
+            DATABASES=(auth_db project_db timesheet_db reporting_db chat_db)
+
+            run_psql() {
+              # $1 = base cible, $2 = commande SQL
+              kubectl exec -n resource-tracker deployment/postgres -- \
+                psql -U "$POSTGRES_USER" -d "$1" -c "$2"
+            }
+
+            run_psql_select() {
+              # $1 = base cible, $2 = requête SQL (retourne une seule valeur)
+              kubectl exec -n resource-tracker deployment/postgres -- \
+                psql -U "$POSTGRES_USER" -d "$1" -tAc "$2"
+            }
+
+            echo "🔍 Vérification des bases de données..."
+            for DB in "${DATABASES[@]}"; do
+              DB_EXISTS=$(run_psql_select postgres "SELECT 1 FROM pg_database WHERE datname='$DB'" | tr -d '[:space:]')
+              if [ "$DB_EXISTS" != "1" ]; then
+                echo "→ Base '$DB' manquante. Création en cours..."
+                run_psql postgres "CREATE DATABASE $DB;"
+                echo "✅ Base '$DB' créée."
+              else
+                echo "✅ Base '$DB' déjà présente."
+              fi
+            done
+
+            # ==================================================================
+            # 4. EXÉCUTION DES MIGRATIONS TYPEORM PAR SERVICE
+            # ==================================================================
+            export DATABASE_HOST="${DATABASE_HOST:-localhost}"
+            export DATABASE_PORT="${DATABASE_PORT:-5432}"
+            export DATABASE_USER="${DATABASE_USER:-admin}"
+            export DATABASE_PASSWORD="${DATABASE_PASSWORD:-admin}"
+
+            MIGRATION_SERVICES=(auth-service project-service timesheet-service reporting-service chat-service)
+
+            for service in "${MIGRATION_SERVICES[@]}"; do
+              echo "============================================================"
+              echo "=== Migrations : $service ==="
+              echo "============================================================"
+
+              if [ ! -f "$service/src/data-source.ts" ]; then
+                echo "❌ $service/src/data-source.ts introuvable — migrations ignorées."
+                continue
+              fi
+
+              if [ ! -x "$service/node_modules/.bin/typeorm-ts-node-commonjs" ]; then
+                echo "→ Installation des dépendances ($service)..."
+                (cd "$service" && npm install)
+              fi
+
+              echo "→ Migrations détectées :"
+              if ls "$service"/src/migrations/*.ts >/dev/null 2>&1; then
+                for MIGRATION_FILE in "$service"/src/migrations/*.ts; do
+                  echo "   - $(basename "$MIGRATION_FILE")"
+                done
+              else
+                echo "   (aucune)"
+              fi
+
+              (
+                cd "$service"
+                echo "→ Exécution des migrations en attente..."
+                ./node_modules/.bin/typeorm-ts-node-commonjs migration:run -d src/data-source.ts || true
+              )
+              echo "✅ $service : migrations à jour"
+              echo ""
+            done
+
+            # ==================================================================
+            # 5. AFFICHAGE DES TABLES PAR BASE
+            # ==================================================================
+            echo "=== 📋 Tables actuelles par base ==="
+            for DB in "${DATABASES[@]}"; do
+              echo "--- $DB ---"
+              run_psql "$DB" "\dt" || echo "⚠️  Impossible de lister les tables de $DB"
+              echo ""
+            done
+
+            # ==================================================================
+            # 6. REDÉMARRAGE DES SERVICES
+            # ==================================================================
+            echo "🔄 Redémarrage des services..."
+            for service in "${SERVICES[@]}"; do
+              echo "Mise à jour de l'image pour $service..."
+              kubectl set image "deployment/$service" "$service=$service:$IMAGE_TAG" -n resource-tracker || true
+
               echo "Redémarrage de $service..."
               kubectl rollout restart "deployment/$service" -n resource-tracker || true
+
+              echo "⏳ Attente de la disponibilité de $service..."
+              kubectl rollout status "deployment/$service" -n resource-tracker --timeout=120s || true
             done
