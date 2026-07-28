@@ -1,7 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --unsafe-perm=true --allow-root
 COPY . .
 RUN npm run build
 
