@@ -1,13 +1,13 @@
 FROM node:20-slim AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --no-audit --no-fund --progress=false
+RUN npm install -g npm@latest && npm ci --no-audit --no-fund --progress=false
 COPY . .
 RUN npm run build
 
 FROM node:20-slim
 WORKDIR /app
 COPY --from=build /app/package*.json ./
-RUN npm install --no-audit --no-fund --progress=false
+RUN npm install -g npm@latest && npm ci --omit=dev --no-audit --no-fund --progress=false
 COPY --from=build /app/dist ./dist
 CMD ["node", "dist/main"]
