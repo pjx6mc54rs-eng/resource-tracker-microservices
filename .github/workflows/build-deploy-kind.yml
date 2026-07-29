@@ -60,6 +60,13 @@ jobs:
             echo "🧹 Purge du cache de build (plafonne a 5 Go)..."
             docker builder prune -af --keep-storage 5GB || docker builder prune -af || true
 
+            # Les images des commits precedents sont deja copiees dans containerd
+            # cote noeud kind : la copie hote ne sert plus a rien. Purger ici, et
+            # pas seulement en fin de workflow, evite qu'un run en echec laisse le
+            # disque sature pour le run suivant.
+            echo "🧹 Purge des images hote des deploiements precedents..."
+            docker image prune -af || true
+
             AVAIL_GB=$(df -BG --output=avail / | tail -1 | tr -dc '0-9')
             echo "💾 Espace disponible : ${AVAIL_GB} Go"
             if [ "$AVAIL_GB" -lt 5 ]; then

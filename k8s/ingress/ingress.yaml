@@ -1,20 +1,26 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: resource-tracker-ingress
+  # Ce nom reprend volontairement celui de l'ingress cree manuellement dans le
+  # cluster le 2026-07-28. Sous un autre nom, l'admission webhook nginx refuse
+  # la creation : host "_" et path "/api" ne peuvent etre definis qu'une fois.
+  name: resource-tracker-main-ingress
   namespace: resource-tracker
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
     - http:
         paths:
+          # Le Service api-gateway expose le port 80 (targetPort 3000).
           - path: /api
             pathType: Prefix
             backend:
               service:
                 name: api-gateway
                 port:
-                  number: 3000
+                  number: 80
           - path: /
             pathType: Prefix
             backend:
@@ -31,7 +37,7 @@ spec:
               service:
                 name: api-gateway
                 port:
-                  number: 3000
+                  number: 80
     - host: app.resource-tracker.local
       http:
         paths:
@@ -59,6 +65,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: rabbitmq
+                name: rabbitmq-service
                 port:
                   number: 15672
