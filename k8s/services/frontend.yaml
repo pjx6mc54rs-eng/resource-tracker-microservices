@@ -57,10 +57,14 @@ metadata:
   labels:
     app: frontend
 spec:
-  type: ClusterIP
+  # NodePort et non ClusterIP : le nginx installe sur la VM proxifie "/" vers
+  # 172.18.0.2:31458. Repasser en ClusterIP supprime ce NodePort et casse
+  # l'acces exterieur au frontend (502 Bad Gateway).
+  type: NodePort
   selector:
     app: frontend
   ports:
     - name: http
       port: 80
       targetPort: 5173
+      nodePort: 31458
