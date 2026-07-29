@@ -8,13 +8,14 @@ ENV NPM_CONFIG_FETCH_RETRIES=5 \
 
 FROM base AS build
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund --progress=false
+RUN npm ci --no-audit --no-fund --progress=false && test -x node_modules/.bin/nest
 COPY . .
 RUN npm run build
 
 FROM base
 COPY --from=build /app/package*.json ./
-RUN npm ci --omit=dev --no-audit --no-fund --progress=false && npm cache clean --force
+COPY --from=build /app/node_modules ./node_modules
+RUN npm prune --omit=dev && test -d node_modules/@nestjs/core && npm cache clean --force
 COPY --from=build /app/dist ./dist
 EXPOSE 3000
 CMD ["node", "dist/main"]

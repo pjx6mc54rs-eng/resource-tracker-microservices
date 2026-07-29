@@ -8,12 +8,12 @@ ENV NPM_CONFIG_FETCH_RETRIES=5 \
 
 FROM base AS build
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund --progress=false
+RUN npm ci --no-audit --no-fund --progress=false && test -x node_modules/.bin/vite
 COPY . .
 RUN npm run build
 
 FROM base
-RUN npm install -g serve --no-audit --no-fund --progress=false && npm cache clean --force
 COPY --from=build /app/dist ./dist
+RUN npm install -g serve --no-audit --no-fund --progress=false && npm cache clean --force
 EXPOSE 5173
 CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:5173"]
