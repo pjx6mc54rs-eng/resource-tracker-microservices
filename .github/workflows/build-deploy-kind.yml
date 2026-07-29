@@ -52,6 +52,23 @@ jobs:
             }
 
             # ==================================================================
+            # 0. NETTOYAGE DISQUE
+            # Chaque deploiement ajoute 8 images taguees par SHA sur l'hote ET
+            # dans le noeud kind. Sans purge, le disque sature et npm ci echoue
+            # avec ENOSPC (constate a 96% d'occupation).
+            # ==================================================================
+            echo "🧹 Purge du cache de build (plafonne a 5 Go)..."
+            docker builder prune -af --keep-storage 5GB || docker builder prune -af || true
+
+            AVAIL_GB=$(df -BG --output=avail / | tail -1 | tr -dc '0-9')
+            echo "💾 Espace disponible : ${AVAIL_GB} Go"
+            if [ "$AVAIL_GB" -lt 5 ]; then
+              echo "❌ Moins de 5 Go libres, les builds npm vont echouer (ENOSPC)."
+              echo "   Purge manuelle requise : docker image prune -af"
+              exit 1
+            fi
+
+            # ==================================================================
             # 1. BUILD + CHARGEMENT DES IMAGES
             # ==================================================================
             SERVICES=(
@@ -183,3 +200,18 @@ jobs:
               echo "⏳ Attente de la disponibilité de $service..."
               kubectl rollout status "deployment/$service" -n resource-tracker --timeout=120s || true
             done
+
+            # ==================================================================
+            # 7. PURGE DES IMAGES OBSOLETES
+            # Fait apres le rollout : les pods tournent deja sur les nouvelles
+            # images, donc les anciennes ne sont plus referencees.
+            # Aucune purge de volumes ici : les donnees PostgreSQL y resident.
+            # ==================================================================
+            echo "🧹 Purge des images obsolètes sur l'hôte..."
+            docker image prune -af || true
+
+            echo "🧹 Purge des images orphelines dans le nœud kind..."
+            docker exec "${KIND_CLUSTER_NAME}-control-plane" crictl rmi --prune || true
+
+            echo "💾 Espace disque final :"
+            df -h / | tail -1
