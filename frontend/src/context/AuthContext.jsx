@@ -167,11 +167,16 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'LOGOUT' })
   }, [])
 
+  const updateUser = useCallback((user) => {
+    dispatch({ type: 'SET_USER', payload: user })
+  }, [])
+
   const value = {
     ...state,
     login,
     register,
     logout,
+    updateUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

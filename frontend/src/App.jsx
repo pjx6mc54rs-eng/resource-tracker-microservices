@@ -15,6 +15,8 @@ import ProjectDetail from './pages/projects/ProjectDetail'
 import TimesheetForm from './pages/timesheet/TimesheetForm'
 import UsersList from './pages/users/UsersList'
 import MessagesPage from './pages/messages/MessagesPage'
+import ProfilePage from './pages/profile/ProfilePage'
+import ChangePassword from './pages/profile/ChangePassword'
 import './App.css'
 
 function App() {
@@ -125,6 +127,24 @@ function App() {
               element={
                 <PrivateRoute>
                   <TimesheetForm />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/change-password"
+              element={
+                <PrivateRoute>
+                  <ChangePassword />
                 </PrivateRoute>
               }
             />
