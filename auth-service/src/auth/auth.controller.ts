@@ -4,6 +4,8 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
+  Param,
   Patch,
   Post,
   Req,
@@ -15,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join, extname, basename } from 'path';
 import { randomUUID } from 'crypto';
+import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
@@ -158,10 +161,145 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.COLLABORATEUR)
+  @Roles(UserRole.ADMIN, UserRole.COLLABORATEUR, UserRole.RESPONSABLE)
   @Get('users')
   async listUsers() {
     const users = await this.usersService.findAll();
     return users.map((u) => this.usersService.sanitize(u));
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Patch('users/:id/role')
+  async updateUserRole(
+    @Param('id') userId: string,
+    @Body() body: { role?: UserRole; roles?: UserRole[] },
+  ) {
+    const roles = Array.isArray(body.roles)
+      ? body.roles.filter((r) => Object.values(UserRole).includes(r))
+      : (body.role ? [body.role] : []);
+
+    if (roles.length === 0) {
+      throw new BadRequestException('Au moins un rôle valide est requis');
+    }
+    const updated = await this.usersService.update(userId, { roles });
+    return this.usersService.sanitize(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Patch('users/:id')
+  async adminUpdateUser(
+    @Param('id') userId: string,
+    @Body() body: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      jobTitle?: string;
+      bio?: string;
+      roles?: UserRole[];
+      role?: UserRole;
+      responsableIds?: string[];
+      newPassword?: string;
+    },
+  ) {
+    const existing = await this.usersService.findById(userId);
+    if (!existing) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    let roles: UserRole[] = existing.roles && existing.roles.length > 0
+      ? existing.roles
+      : [existing.role || UserRole.COLLABORATEUR];
+
+    if (Array.isArray(body.roles) && body.roles.length > 0) {
+      roles = body.roles.filter((r) => Object.values(UserRole).includes(r));
+    } else if (body.role && Object.values(UserRole).includes(body.role)) {
+      roles = [body.role];
+    }
+
+    let responsableIds: string[] | undefined = undefined;
+    if (Array.isArray(body.responsableIds)) {
+      responsableIds = await this.usersService.validateResponsables(
+        userId,
+        body.responsableIds,
+        roles,
+      );
+    } else if ((body.responsableIds as any) === null) {
+      responsableIds = await this.usersService.validateResponsables(
+        userId,
+        [],
+        roles,
+      );
+    } else {
+      const existingIds = existing.responsableIds || [];
+      responsableIds = await this.usersService.validateResponsables(
+        userId,
+        existingIds,
+        roles,
+      );
+    }
+
+    let passwordHash: string | undefined = undefined;
+    if (body.newPassword && body.newPassword.trim().length > 0) {
+      if (body.newPassword.trim().length < 6) {
+        throw new BadRequestException('Le mot de passe doit contenir au moins 6 caractères');
+      }
+      passwordHash = await bcrypt.hash(body.newPassword.trim(), 10);
+    }
+
+    const updated = await this.usersService.update(userId, {
+      ...(body.firstName !== undefined && { firstName: body.firstName }),
+      ...(body.lastName !== undefined && { lastName: body.lastName }),
+      ...(body.phone !== undefined && { phone: body.phone }),
+      ...(body.jobTitle !== undefined && { jobTitle: body.jobTitle }),
+      ...(body.bio !== undefined && { bio: body.bio }),
+      ...(roles !== undefined && roles.length > 0 && { roles }),
+      ...(responsableIds !== undefined && { responsableIds }),
+      ...(passwordHash !== undefined && { passwordHash }),
+    });
+    return this.usersService.sanitize(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Patch('users/:id/password')
+  async adminChangePassword(
+    @Param('id') userId: string,
+    @Body() body: { newPassword?: string },
+  ) {
+    if (!body.newPassword || body.newPassword.trim().length < 6) {
+      throw new BadRequestException('Le mot de passe doit contenir au moins 6 caractères');
+    }
+    const updated = await this.usersService.adminChangePassword(userId, body.newPassword);
+    return this.usersService.sanitize(updated);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Patch('users/:id/avatar')
+  @UseInterceptors(FileInterceptor('avatar', avatarUploadOptions))
+  async adminUpdateAvatar(
+    @Param('id') userId: string,
+    @UploadedFile() file?: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+    const current = await this.authService.getProfile(userId);
+    const avatarUrl = this.saveAvatarFile(file);
+    const updated = await this.authService.setAvatar(userId, avatarUrl);
+    this.deleteAvatarFile(current.avatarUrl);
+    return updated;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Delete('users/:id/avatar')
+  async adminDeleteAvatar(@Param('id') userId: string) {
+    const current = await this.authService.getProfile(userId);
+    const updated = await this.authService.setAvatar(userId, null);
+    this.deleteAvatarFile(current.avatarUrl);
+    return updated;
   }
 }

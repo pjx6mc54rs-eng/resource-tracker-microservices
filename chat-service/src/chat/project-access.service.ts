@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 
-export type AuthUser = { userId: string; email?: string; role: 'admin' | 'collaborateur' };
+export type AuthUser = { userId: string; email?: string; role: 'admin' | 'responsable' | 'collaborateur' };
 
 @Injectable()
 export class ProjectAccessService {

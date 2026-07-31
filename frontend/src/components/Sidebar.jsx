@@ -50,7 +50,9 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
               : user?.email}
           </span>
         </div>
-        <span className="sidebar-user-role">{user?.role}</span>
+        <span className="sidebar-user-role">
+          {(Array.isArray(user?.roles) && user.roles.length > 0 ? user.roles : [user?.role || 'collaborateur']).join(', ')}
+        </span>
       </div>
 
       <div className="sidebar-header">
@@ -91,10 +93,10 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
           <span className="sidebar-icon">⏱️</span>
           <span className="sidebar-label">Timesheet</span>
         </NavLink>
-        {user?.role === 'admin' && (
+        {(user?.roles?.includes('admin') || user?.role === 'admin') && (
           <NavLink to="/users" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <span className="sidebar-icon">👥</span>
-            <span className="sidebar-label">Users</span>
+            <span className="sidebar-label">User Space & Roles</span>
           </NavLink>
         )}
 

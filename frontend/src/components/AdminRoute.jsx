@@ -12,7 +12,8 @@ export function AdminRoute({ children }) {
     return <Navigate to="/login" replace />
   }
 
-  if (user?.role !== 'admin') {
+  const isAdmin = user?.roles?.includes('admin') || user?.role === 'admin'
+  if (!isAdmin) {
     return <Navigate to="/dashboard" replace />
   }
 
