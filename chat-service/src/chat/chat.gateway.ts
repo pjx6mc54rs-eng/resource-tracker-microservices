@@ -78,7 +78,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
-      await this.chatService.assertChannelMember(body.channelId, user.userId)
+      await this.chatService.assertChannelMember(body.channelId, user)
       await client.join(body.channelId)
       this.logger.log(`[WS] Client ${client.id} (${user.userId}) a rejoint manuellement la room ${body.channelId}`)
       return { ok: true, channelId: body.channelId }
@@ -103,9 +103,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // Vérifie que l'utilisateur fait bien partie de ce canal
-    const isMember = existingChannel.members?.some(member => member.userId === user.userId)
+    let isMember = existingChannel.members?.some(member => member.userId === user.userId)
     if (!isMember) {
-      return { ok: false, message: 'Vous ne faites pas partie de ce canal' }
+      try {
+        await this.chatService.assertChannelMember(body.channelId, user)
+        isMember = true
+      } catch {
+        return { ok: false, message: 'Vous ne faites pas partie de ce canal' }
+      }
     }
 
     // Enregistre le message en BDD d'abord

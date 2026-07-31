@@ -37,7 +37,15 @@ export class ProjectsService {
       ...data,
       createdBy: creatorId,
     });
-    return this.projectRepo.save(project);
+    const saved = await this.projectRepo.save(project);
+    if (creatorId) {
+      const assignment = this.assignmentRepo.create({
+        projectId: saved.id,
+        userId: creatorId,
+      });
+      await this.assignmentRepo.save(assignment);
+    }
+    return saved;
   }
 
   async createTask(projectId: string, data: CreateTaskDto): Promise<Task> {
@@ -153,13 +161,12 @@ export class ProjectsService {
   async findProjectsByWorker(userId: string): Promise<Project[]> {
     const projects = await this.projectRepo
       .createQueryBuilder('project')
-      .innerJoin(
+      .leftJoin(
         'project.assignments',
         'assignment',
-        'assignment.userId = :userId',
-        { userId },
       )
       .leftJoinAndSelect('project.assignments', 'all_assignments')
+      .where('assignment.userId = :userId OR project.createdBy = :userId', { userId })
       .orderBy('project.createdAt', 'DESC')
       .getMany();
 
@@ -175,14 +182,15 @@ export class ProjectsService {
   ): Promise<Project> {
     const project = await this.projectRepo
       .createQueryBuilder('project')
-      .innerJoin(
+      .leftJoin(
         'project.assignments',
         'assignment',
-        'assignment.userId = :userId',
-        { userId },
       )
       .leftJoinAndSelect('project.assignments', 'all_assignments')
-      .where('project.id = :projectId', { projectId })
+      .where('project.id = :projectId AND (assignment.userId = :userId OR project.createdBy = :userId)', {
+        projectId,
+        userId,
+      })
       .getOne();
 
     if (!project) {
@@ -218,7 +226,14 @@ export class ProjectsService {
   }
 
   async findTeamMembers(projectId: string): Promise<Assignment[]> {
-    return this.assignmentRepo.find({ where: { projectId } });
+    const assignments = await this.assignmentRepo.find({ where: { projectId } });
+    const project = await this.projectRepo.findOne({ where: { id: projectId } });
+    if (project?.createdBy && !assignments.some((a) => a.userId === project.createdBy)) {
+      assignments.push(
+        this.assignmentRepo.create({ projectId, userId: project.createdBy }),
+      );
+    }
+    return assignments;
   }
 
   // ── Shared helpers ─────────────────────────────────────────────────────
@@ -234,6 +249,10 @@ export class ProjectsService {
   }
 
   async isUserAssigned(projectId: string, userId: string): Promise<boolean> {
+    const project = await this.projectRepo.findOne({ where: { id: projectId } });
+    if (project && project.createdBy === userId) {
+      return true;
+    }
     const assignment = await this.assignmentRepo.findOne({
       where: { projectId, userId },
     });
