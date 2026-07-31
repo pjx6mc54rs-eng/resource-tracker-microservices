@@ -9,6 +9,9 @@ export class ProjectAccessService {
   constructor(private readonly http: HttpService) {}
 
   async assertCanAccessProject(user: AuthUser, projectId: string, token: string): Promise<void> {
+    if (user.role === 'admin') {
+      return;
+    }
     const baseUrl = process.env.PROJECT_SERVICE_URL ?? 'http://localhost:3001';
     try {
       await firstValueFrom(

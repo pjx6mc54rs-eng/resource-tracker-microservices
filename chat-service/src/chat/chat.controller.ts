@@ -63,7 +63,7 @@ export class ChatController {
     @Query() query: MessagesQueryDto,
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     return this.chat.getChannelMessages(channelId, query.limit ?? 50, query.offset ?? 0)
   }
 
@@ -102,7 +102,7 @@ export class ChatController {
     @Param('channelId') channelId: string,
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     await this.chat.clearChannelMessages(channelId)
     return { ok: true }
   }
@@ -112,7 +112,7 @@ export class ChatController {
     @Param('channelId') channelId: string,
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     await this.chat.deleteChannel(channelId)
     return { ok: true }
   }
@@ -123,7 +123,7 @@ export class ChatController {
     @Body() body: { userId: string },
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     return this.chat.addGroupMember(channelId, body.userId)
   }
 
@@ -133,7 +133,7 @@ export class ChatController {
     @Body() body: { name?: string; avatarUrl?: string },
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     return this.chat.updateChannelName(channelId, body.name, body.avatarUrl)
   }
 
@@ -142,7 +142,7 @@ export class ChatController {
     @Param('channelId') channelId: string,
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     return this.chat.leaveGroup(channelId, request.user.userId)
   }
 
@@ -152,7 +152,7 @@ export class ChatController {
     @Param('targetUserId') targetUserId: string,
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     return this.chat.removeGroupMember(channelId, request.user.userId, targetUserId)
   }
 
@@ -162,7 +162,7 @@ export class ChatController {
     @Param('targetUserId') targetUserId: string,
     @Req() request: RequestWithUser,
   ) {
-    await this.chat.assertChannelMember(channelId, request.user.userId)
+    await this.chat.assertChannelMember(channelId, request.user)
     return this.chat.assignAdminRole(channelId, request.user.userId, targetUserId)
   }
 

@@ -356,9 +356,18 @@ export class ChatService {
     })
   }
 
-  async assertChannelMember(channelId: string, userId: string) {
-    const member = await this.members.findOne({ where: { channelId, userId } })
+  async assertChannelMember(channelId: string, user: AuthUser | string, role?: string) {
+    const userId = typeof user === 'string' ? user : user.userId
+    const userRole = typeof user === 'string' ? role : user.role
+
+    let member = await this.members.findOne({ where: { channelId, userId } })
     if (!member) {
+      const channel = await this.channels.findOne({ where: { id: channelId } })
+      if (channel && channel.type === ChatChannelType.PROJECT && userRole === 'admin') {
+        member = this.members.create({ channelId, userId })
+        await this.members.save(member)
+        return member
+      }
       throw new ForbiddenException('Accès refusé au canal')
     }
     return member
@@ -423,6 +432,12 @@ export class ChatService {
     }
 
     const memberIds = await this.fetchProjectMemberIds(project.id, user, token)
+    if (project.createdBy && !memberIds.includes(project.createdBy)) {
+      memberIds.push(project.createdBy)
+    }
+    if (user.role === 'admin' && !memberIds.includes(user.userId)) {
+      memberIds.push(user.userId)
+    }
     const currentIds = new Set(channel.members?.map((member) => member.userId) ?? [])
     const newMembers = memberIds
       .filter((memberId) => !currentIds.has(memberId))
