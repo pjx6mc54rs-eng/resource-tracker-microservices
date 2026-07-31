@@ -13,6 +13,7 @@ import {
   deleteTaskFromProject,
 } from './projectsApi'
 import { listUsers } from '../auth/authApi'
+import { STATUS_LABELS, accentFor, initialsFor, statsFor } from './projectUiHelpers'
 import './ProjectDetail.css'
 
 export default function ProjectDetail() {
@@ -342,6 +343,9 @@ export default function ProjectDetail() {
   const teamList = project.assignments ?? []
   const assignedCollaborators = teamList.filter((a) => a.userId)
 
+  const stats = statsFor(project)
+  const accent = accentFor(project.id ?? project.name ?? '')
+
   return (
     <div className="project-detail">
       <div className="detail-header">
@@ -351,30 +355,81 @@ export default function ProjectDetail() {
         <span className="role-tag">{isAdmin ? 'Admin View' : 'Collaborator View'}</span>
       </div>
 
-      <div className="project-banner">
-        <h1>{project.name}</h1>
+      <div
+        className="project-banner"
+        style={{ '--pj-accent-from': accent.from, '--pj-accent-to': accent.to }}
+      >
+        <div className="banner-head">
+          <span className="pj-monogram banner-monogram" aria-hidden="true">
+            {initialsFor(project.name)}
+          </span>
+          <div className="banner-heading">
+            <h1>{project.name}</h1>
+            <span className={`pj-status pj-status--${stats.status}`}>
+              {STATUS_LABELS[stats.status]}
+            </span>
+          </div>
+        </div>
+
         <p className="project-description">
           {project.description || 'No description provided.'}
         </p>
-        <div className="project-meta">
-          <div className="project-meta-item">
-            <span className="project-meta-label">Created By</span>
-            <span className="project-meta-value">
-              {usersMap[project.createdBy]?.displayName || 'Admin'}
+
+        <div className="banner-progress">
+          <div className="pj-progress-head">
+            <span>{isAdmin ? 'Progress' : 'My tasks'}</span>
+            <strong>
+              {stats.done}/{stats.total} &middot; {stats.percent}%
+            </strong>
+          </div>
+          <div
+            className="pj-progress-track"
+            role="progressbar"
+            aria-valuenow={stats.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${project.name} progress`}
+          >
+            <span className="pj-progress-fill" style={{ width: `${stats.percent}%` }} />
+          </div>
+          <div className="pj-legend">
+            <span className="pj-legend-item">
+              <i className="pj-dot pj-dot--todo" />
+              {stats.todo} to do
+            </span>
+            <span className="pj-legend-item">
+              <i className="pj-dot pj-dot--doing" />
+              {stats.inProgress} in progress
+            </span>
+            <span className="pj-legend-item">
+              <i className="pj-dot pj-dot--done" />
+              {stats.done} done
             </span>
           </div>
-          <div className="project-meta-item">
-            <span className="project-meta-label">Created At</span>
-            <span className="project-meta-value">
-              {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'N/A'}
-            </span>
-          </div>
-          <div className="project-meta-item">
-            <span className="project-meta-label">Last Updated</span>
-            <span className="project-meta-value">
-              {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'N/A'}
-            </span>
-          </div>
+        </div>
+
+        <div className="pj-card-meta banner-meta">
+          <span className="pj-meta-item">
+            <svg className="detail-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M5 20a7 7 0 0 1 14 0" />
+            </svg>
+            Created by {usersMap[project.createdBy]?.displayName || 'Admin'}
+          </span>
+          <span className="pj-meta-item">
+            <svg className="detail-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+              <path d="M3.5 10h17M8 3.5v3M16 3.5v3" />
+            </svg>
+            Created {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'N/A'}
+          </span>
+          <span className="pj-meta-item">
+            <svg className="detail-meta-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="8.5" />
+              <path d="M12 7.5V12l3 2" />
+            </svg>
+            Updated {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'N/A'}
+          </span>
         </div>
       </div>
 
