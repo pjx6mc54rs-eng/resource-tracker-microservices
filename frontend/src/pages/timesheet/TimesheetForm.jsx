@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { getProjects } from '../projects/projectsApi'
@@ -229,6 +229,71 @@ export default function TimesheetForm() {
     })
     return map
   }, [timesheets])
+
+  // Per-weekday derived status (entries, holiday flag, validity) — the single
+  // source of truth for both the desktop grid cards and the mobile day strip.
+  const dayStatusList = useMemo(() => {
+    return monthWeekdays.map((w) => {
+      const dayEntries = entriesByDate[w.dateString] || []
+      const isHoliday = dayEntries.some((x) => x.isHoliday)
+      const hasProjectWork = dayEntries.some(
+        (x) => !x.isHoliday && Number(x.hoursSpent) > 0
+      )
+      const totalDayHours = dayEntries.reduce(
+        (acc, cur) => acc + (Number(cur.hoursSpent) || 0),
+        0
+      )
+      const isValidDayTotal = totalDayHours === 0 || Math.abs(totalDayHours - 8) < 0.01
+      return { ...w, dayEntries, isHoliday, hasProjectWork, totalDayHours, isValidDayTotal }
+    })
+  }, [monthWeekdays, entriesByDate])
+
+  const todayDateString = useMemo(() => {
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = now.getMonth() + 1
+    const d = now.getDate()
+    const mm = m < 10 ? `0${m}` : `${m}`
+    const dd = d < 10 ? `0${d}` : `${d}`
+    return `${y}-${mm}-${dd}`
+  }, [])
+
+  // MOBILE DAY-STRIP NAVIGATION: which single day the compact mobile view shows.
+  // Falls back to "today" (or the 1st weekday) whenever the override doesn't
+  // belong to the currently displayed month — i.e. right after navigating months.
+  const [mobileActiveDateOverride, setMobileActiveDateOverride] = useState(null)
+
+  const mobileActiveDate = useMemo(() => {
+    if (
+      mobileActiveDateOverride &&
+      dayStatusList.some((w) => w.dateString === mobileActiveDateOverride)
+    ) {
+      return mobileActiveDateOverride
+    }
+    const hasToday = dayStatusList.some((w) => w.dateString === todayDateString)
+    return hasToday ? todayDateString : (dayStatusList[0]?.dateString ?? null)
+  }, [mobileActiveDateOverride, dayStatusList, todayDateString])
+
+  const activeDayStatus = dayStatusList.find((w) => w.dateString === mobileActiveDate) || null
+  const activeDayIndex = dayStatusList.findIndex((w) => w.dateString === mobileActiveDate)
+
+  // Callback ref (not a plain useRef + effect): the strip only mounts once
+  // projects/timesheets finish loading, at which point `mobileActiveDate`
+  // itself hasn't changed — a dependency-based effect would never re-fire.
+  // Attaching via callback fires exactly when the active pill's node appears,
+  // whether that's from the initial load or a later day/month change.
+  // Memoized so its identity is stable — otherwise React would detach/reattach
+  // (re-triggering the scroll) on every unrelated re-render of this page.
+  const scrollPillIntoView = useCallback((node) => {
+    node?.scrollIntoView({ behavior: 'instant', inline: 'center', block: 'nearest' })
+  }, [])
+
+  const handleStripStepDay = (direction) => {
+    if (activeDayIndex === -1) return
+    const nextIdx = activeDayIndex + direction
+    if (nextIdx < 0 || nextIdx >= dayStatusList.length) return
+    setMobileActiveDateOverride(dayStatusList[nextIdx].dateString)
+  }
 
   // MULTI-CARD & SERIES RANGE SELECTION HANDLERS
   const handleToggleDateSelection = (dateString, e) => {
@@ -915,6 +980,120 @@ export default function TimesheetForm() {
   const isDayModalValid = Math.abs(activeDayTotalHours - 8) < 0.01
   const isBatchModalValid = Math.abs(batchModalTotalHours - 8) < 0.01
 
+  // Renders one weekday's card. Shared by the desktop grid (one per weekday)
+  // and the mobile single-day detail panel (just the active day) so both stay
+  // in sync automatically.
+  const renderDayCard = (w) => {
+    const {
+      dateString,
+      dayName,
+      dayNumber,
+      dayEntries,
+      isHoliday,
+      hasProjectWork,
+      totalDayHours,
+      isValidDayTotal,
+    } = w
+    const isSelected = selectedDates.has(dateString)
+
+    return (
+      <div
+        key={dateString}
+        className={`calendar-day-card ${isHoliday ? 'is-holiday' : ''} ${
+          dayEntries.length > 0 ? 'has-entries' : 'empty'
+        } ${!isValidDayTotal ? 'invalid-total' : ''} ${isSelected ? 'selected' : ''}`}
+        onClick={(e) => handleCardClick(dateString, e)}
+      >
+        <div className="day-card-header">
+          <div className="day-date-box">
+            <input
+              type="checkbox"
+              className="card-select-checkbox"
+              checked={isSelected}
+              onChange={(e) => handleToggleDateSelection(dateString, e)}
+              onClick={(e) => e.stopPropagation()}
+              title="Select day or Shift-click for range selection"
+            />
+            <span className="day-name">{dayName}</span>
+            <span className="day-number">{dayNumber}</span>
+          </div>
+
+          {(isHoliday || !hasProjectWork) && (
+            <button
+              type="button"
+              className={`holiday-toggle-chip ${isHoliday ? 'active' : ''}`}
+              title={isHoliday ? 'Remove Holiday' : 'Mark as Holiday'}
+              onClick={(e) => handleQuickToggleHoliday(dateString, e)}
+            >
+              🌴 {isHoliday ? 'Holiday' : 'Set Holiday'}
+            </button>
+          )}
+        </div>
+
+        <div className="day-card-body">
+          {isHoliday ? (
+            <div className="holiday-banner">
+              <span className="holiday-icon">🌴</span>
+              <span className="holiday-text">Holiday / Congé</span>
+              <span className="holiday-hours">
+                ({formatValue(totalDayHours || 8)})
+              </span>
+            </div>
+          ) : dayEntries.length === 0 ? (
+            <div className="no-entries-placeholder">
+              <span>+ Log project hours</span>
+            </div>
+          ) : (
+            <div className="entries-list">
+              {dayEntries.map((entry) => {
+                const matchedProj = projects.find((p) => p.id === entry.projectId)
+                return (
+                  <div key={entry.id} className="entry-pill">
+                    <div className="pill-info">
+                      <span className="proj-tag">
+                        {matchedProj ? matchedProj.name : 'Project'}
+                      </span>
+                      {entry.note && (
+                        <span className="entry-note-preview">- {entry.note}</span>
+                      )}
+                    </div>
+                    <div className="pill-meta">
+                      <span className="hours-badge">{formatValue(entry.hoursSpent)}</span>
+                      <button
+                        type="button"
+                        className="delete-entry-btn"
+                        title="Delete entry"
+                        onClick={(e) => handleDeleteEntry(entry.id, e)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="day-card-footer">
+          <span className="day-total-hours">
+            Total:{' '}
+            <strong className={!isValidDayTotal ? 'text-warn' : ''}>
+              {totalDayHours}h ({hoursToDays(totalDayHours)}d)
+            </strong>
+          </span>
+          {!isValidDayTotal ? (
+            <span className="warn-hint">⚠️ Must be 1d (8h)</span>
+          ) : (
+            <span className="edit-hint">
+              {isSelected ? '✓ Selected' : 'Click to edit'}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="timesheet-hub-container">
       {/* HEADER & NAVIGATOR */}
@@ -981,19 +1160,22 @@ export default function TimesheetForm() {
             className={`tab-btn ${viewMode === 'calendar' ? 'active' : ''}`}
             onClick={() => setViewMode('calendar')}
           >
-            📅 Weekday Calendar View
+            📅 <span className="tab-label-full">Weekday Calendar View</span>
+            <span className="tab-label-short">Calendar</span>
           </button>
           <button
             className={`tab-btn ${viewMode === 'matrix' ? 'active' : ''}`}
             onClick={() => setViewMode('matrix')}
           >
-            📊 Monthly Matrix View
+            📊 <span className="tab-label-full">Monthly Matrix View</span>
+            <span className="tab-label-short">Matrix</span>
           </button>
           <button
             className={`tab-btn ${viewMode === 'history' ? 'active' : ''}`}
             onClick={() => setViewMode('history')}
           >
-            📋 Logged History List
+            📋 <span className="tab-label-full">Logged History List</span>
+            <span className="tab-label-short">History</span>
           </button>
         </div>
 
@@ -1117,129 +1299,65 @@ export default function TimesheetForm() {
           {loadingProjects || loadingTimesheets ? (
             <div className="loading-spinner">Loading monthly calendar data...</div>
           ) : (
-            <div className="calendar-grid">
-              {monthWeekdays.map((w) => {
-                const dayEntries = entriesByDate[w.dateString] || []
-                const isHoliday = dayEntries.some((x) => x.isHoliday)
-                const hasProjectWork = dayEntries.some(
-                  (x) => !x.isHoliday && Number(x.hoursSpent) > 0
-                )
-                const totalDayHours = dayEntries.reduce(
-                  (acc, cur) => acc + (Number(cur.hoursSpent) || 0),
-                  0
-                )
-                const isValidDayTotal =
-                  totalDayHours === 0 || Math.abs(totalDayHours - 8) < 0.01
-                const isSelected = selectedDates.has(w.dateString)
+            <>
+              {/* MOBILE: compact day strip + single-day detail, instead of scrolling ~23 cards */}
+              <div className="mobile-day-nav">
+                <button
+                  type="button"
+                  className="strip-arrow"
+                  onClick={() => handleStripStepDay(-1)}
+                  disabled={activeDayIndex <= 0}
+                  aria-label="Previous day"
+                >
+                  ‹
+                </button>
+                <div className="day-strip-nav" role="tablist" aria-label="Select a day to edit">
+                  {dayStatusList.map((w) => {
+                    const isActive = w.dateString === mobileActiveDate
+                    let dotClass = 'strip-dot-empty'
+                    if (w.isHoliday) dotClass = 'strip-dot-holiday'
+                    else if (w.dayEntries.length > 0 && !w.isValidDayTotal) dotClass = 'strip-dot-invalid'
+                    else if (w.dayEntries.length > 0) dotClass = 'strip-dot-done'
 
-                return (
-                  <div
-                    key={w.dateString}
-                    className={`calendar-day-card ${isHoliday ? 'is-holiday' : ''} ${
-                      dayEntries.length > 0 ? 'has-entries' : 'empty'
-                    } ${!isValidDayTotal ? 'invalid-total' : ''} ${
-                      isSelected ? 'selected' : ''
-                    }`}
-                    onClick={(e) => handleCardClick(w.dateString, e)}
-                  >
-                    <div className="day-card-header">
-                      <div className="day-date-box">
-                        {/* MULTI-SELECT CHECKBOX (Supports Shift-Click for series range selection) */}
-                        <input
-                          type="checkbox"
-                          className="card-select-checkbox"
-                          checked={isSelected}
-                          onChange={(e) => handleToggleDateSelection(w.dateString, e)}
-                          onClick={(e) => e.stopPropagation()}
-                          title="Select day or Shift-click for range selection"
-                        />
-                        <span className="day-name">{w.dayName}</span>
-                        <span className="day-number">{w.dayNumber}</span>
-                      </div>
+                    return (
+                      <button
+                        key={w.dateString}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        ref={isActive ? scrollPillIntoView : null}
+                        className={`day-strip-pill ${isActive ? 'active' : ''} ${
+                          w.dateString === todayDateString ? 'is-today' : ''
+                        }`}
+                        onClick={() => setMobileActiveDateOverride(w.dateString)}
+                      >
+                        <span className="strip-day-name">{w.dayName}</span>
+                        <span className="strip-day-number">{w.dayNumber}</span>
+                        <span className={`strip-dot ${dotClass}`} aria-hidden="true" />
+                      </button>
+                    )
+                  })}
+                </div>
+                <button
+                  type="button"
+                  className="strip-arrow"
+                  onClick={() => handleStripStepDay(1)}
+                  disabled={activeDayIndex === -1 || activeDayIndex >= dayStatusList.length - 1}
+                  aria-label="Next day"
+                >
+                  ›
+                </button>
+              </div>
 
-                      {/* HIDE SET HOLIDAY BUTTON IF DAY HAS PROJECT WORK INPUT */}
-                      {(isHoliday || !hasProjectWork) && (
-                        <button
-                          type="button"
-                          className={`holiday-toggle-chip ${isHoliday ? 'active' : ''}`}
-                          title={isHoliday ? 'Remove Holiday' : 'Mark as Holiday'}
-                          onClick={(e) => handleQuickToggleHoliday(w.dateString, e)}
-                        >
-                          🌴 {isHoliday ? 'Holiday' : 'Set Holiday'}
-                        </button>
-                      )}
-                    </div>
+              <div className="mobile-day-detail">
+                {activeDayStatus && renderDayCard(activeDayStatus)}
+              </div>
 
-                    <div className="day-card-body">
-                      {isHoliday ? (
-                        <div className="holiday-banner">
-                          <span className="holiday-icon">🌴</span>
-                          <span className="holiday-text">Holiday / Congé</span>
-                          <span className="holiday-hours">
-                            ({formatValue(totalDayHours || 8)})
-                          </span>
-                        </div>
-                      ) : dayEntries.length === 0 ? (
-                        <div className="no-entries-placeholder">
-                          <span>+ Log project hours</span>
-                        </div>
-                      ) : (
-                        <div className="entries-list">
-                          {dayEntries.map((entry) => {
-                            const matchedProj = projects.find(
-                              (p) => p.id === entry.projectId
-                            )
-                            return (
-                              <div key={entry.id} className="entry-pill">
-                                <div className="pill-info">
-                                  <span className="proj-tag">
-                                    {matchedProj ? matchedProj.name : 'Project'}
-                                  </span>
-                                  {entry.note && (
-                                    <span className="entry-note-preview">
-                                      - {entry.note}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="pill-meta">
-                                  <span className="hours-badge">
-                                    {formatValue(entry.hoursSpent)}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className="delete-entry-btn"
-                                    title="Delete entry"
-                                    onClick={(e) => handleDeleteEntry(entry.id, e)}
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="day-card-footer">
-                      <span className="day-total-hours">
-                        Total:{' '}
-                        <strong className={!isValidDayTotal ? 'text-warn' : ''}>
-                          {totalDayHours}h ({hoursToDays(totalDayHours)}d)
-                        </strong>
-                      </span>
-                      {!isValidDayTotal ? (
-                        <span className="warn-hint">⚠️ Must be 1d (8h)</span>
-                      ) : (
-                        <span className="edit-hint">
-                          {isSelected ? '✓ Selected' : 'Click to edit'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+              {/* DESKTOP / TABLET: full grid of every weekday */}
+              <div className="calendar-grid">
+                {dayStatusList.map((w) => renderDayCard(w))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -1387,8 +1505,10 @@ export default function TimesheetForm() {
                     const hrs = Number(ts.hoursSpent) || 0
                     return (
                       <tr key={ts.id}>
-                        <td>{typeof ts.date === 'string' ? ts.date.split('T')[0] : ts.date}</td>
-                        <td>
+                        <td data-label="Date">
+                          {typeof ts.date === 'string' ? ts.date.split('T')[0] : ts.date}
+                        </td>
+                        <td data-label="Type / Project">
                           {ts.isHoliday ? (
                             <span className="badge badge-holiday">🌴 Holiday / Congé</span>
                           ) : (
@@ -1397,14 +1517,14 @@ export default function TimesheetForm() {
                             </span>
                           )}
                         </td>
-                        <td>
+                        <td data-label="Hours logged">
                           <strong>{hrs} hrs</strong>
                         </td>
-                        <td>
+                        <td data-label="Days fraction">
                           <strong>{hoursToDays(hrs)} day(s)</strong>
                         </td>
-                        <td>{ts.note || '—'}</td>
-                        <td>
+                        <td data-label="Note">{ts.note || '—'}</td>
+                        <td data-label="Action">
                           <button
                             type="button"
                             className="btn btn-danger-sm"

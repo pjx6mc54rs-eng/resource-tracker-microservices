@@ -1168,7 +1168,7 @@ export default function MessagesPage() {
                                 {message.parentMessage && (
                                   <div
                                     style={{
-                                      borderLeft: '3px solid #3b82f6',
+                                      borderLeft: '3px solid var(--pj-primary)',
                                       background: 'rgba(0, 0, 0, 0.06)',
                                       padding: '0.35rem 0.6rem',
                                       borderRadius: '4px',
@@ -1184,7 +1184,7 @@ export default function MessagesPage() {
                                       }
                                     }}
                                   >
-                                    <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: '0.15rem' }}>
+                                    <div style={{ fontWeight: 600, color: 'var(--pj-primary)', marginBottom: '0.15rem' }}>
                                       {message.parentMessage.senderId === user?.id ? 'You' : (channels.colleagues?.find((c) => c.userId === message.parentMessage.senderId)?.name || 'Colleague')}
                                     </div>
                                     <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>
@@ -1280,9 +1280,9 @@ export default function MessagesPage() {
                 )}
 
                 {replyingTo && (
-                  <div className="reply-preview" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1rem', background: 'var(--chat-input-bg, #f3f4f6)', borderBottom: '1px solid var(--chat-input-border, #e5e7eb)', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', borderLeft: '3px solid #3b82f6', marginBottom: '0.25rem' }}>
+                  <div className="reply-preview" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1rem', background: 'var(--chat-input-bg, #f3f4f6)', borderBottom: '1px solid var(--chat-input-border, #e5e7eb)', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', borderLeft: '3px solid var(--pj-primary)', marginBottom: '0.25rem' }}>
                     <div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#3b82f6', display: 'block' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--pj-primary)', display: 'block' }}>
                         Reply to {replyingTo.senderId === user?.id ? 'You' : (channels.colleagues?.find((c) => c.userId === replyingTo.senderId)?.name || 'Colleague')}
                       </span>
                       <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--chat-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }}>
@@ -1480,7 +1480,7 @@ export default function MessagesPage() {
                                   </span>
                                 </div>
                                 {selected && (
-                                  <svg className="member-result-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round">
+                                  <svg className="member-result-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#5c9032" strokeWidth="2.5" strokeLinecap="round">
                                     <polyline points="20 6 9 17 4 12" />
                                   </svg>
                                 )}
@@ -1637,7 +1637,7 @@ export default function MessagesPage() {
                                 </span>
                               </div>
                               {selected && (
-                                <svg className="member-result-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round">
+                                <svg className="member-result-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#5c9032" strokeWidth="2.5" strokeLinecap="round">
                                   <polyline points="20 6 9 17 4 12" />
                                 </svg>
                               )}
@@ -1712,10 +1712,10 @@ export default function MessagesPage() {
                       background: (confirmModal.type === 'delete' || confirmModal.type === 'removeMember')
                         ? '#ef4444'
                         : confirmModal.type === 'leave'
-                          ? '#f97316'
+                          ? '#d97706'
                           : confirmModal.type === 'promoteMember'
-                            ? '#3b82f6'
-                            : '#f59e0b',
+                            ? '#0284c7'
+                            : '#d97706',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '999px',
@@ -1831,7 +1831,7 @@ export default function MessagesPage() {
                         <button
                           type="button"
                           onClick={() => setIsEditingGroupName(true)}
-                          style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--pj-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                         >
                           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M12 20h9" />
@@ -1903,7 +1903,7 @@ export default function MessagesPage() {
                                   {m.online ? 'Online' : 'Offline'}
                                 </span>
                               </div>
-                              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#5c9032" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
                                 <line x1="12" y1="5" x2="12" y2="19" />
                                 <line x1="5" y1="12" x2="19" y2="12" />
                               </svg>
@@ -1940,7 +1940,7 @@ export default function MessagesPage() {
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                               <span className="member-result-name" style={{ fontWeight: 500 }}>{m.name}</span>
                               {m.isCurrentUser && <span style={{ fontSize: '0.8rem', color: 'var(--chat-text-muted)', marginLeft: '0.25rem' }}>(You)</span>}
-                              {m.isAdmin && <span style={{ fontSize: '0.7rem', background: '#3b82f6', color: '#fff', padding: '0.1rem 0.35rem', borderRadius: '4px', marginLeft: '0.4rem', fontWeight: 600 }}>Admin</span>}
+                              {m.isAdmin && <span style={{ fontSize: '0.7rem', background: '#0284c7', color: '#fff', padding: '0.1rem 0.35rem', borderRadius: '4px', marginLeft: '0.4rem', fontWeight: 600 }}>Admin</span>}
                             </div>
                             <span className={`member-result-status ${m.online ? 'member-online' : 'member-offline'}`}>
                               {m.online ? 'Online' : 'Offline'}
@@ -1955,7 +1955,7 @@ export default function MessagesPage() {
                               <button
                                 type="button"
                                 onClick={() => handleMakeAdminGroup(m.userId)}
-                                style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #3b82f6', background: 'transparent', color: '#3b82f6', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                                style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #0284c7', background: 'transparent', color: '#0284c7', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
                               >
                                 Promote
                               </button>
@@ -2002,7 +2002,7 @@ export default function MessagesPage() {
                 </button>
               </header>
               <div className="modal-body" style={{ padding: '1rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ borderLeft: '3px solid #10b981', paddingLeft: '0.75rem', background: 'var(--chat-input-bg, #f3f4f6)', padding: '0.5rem 0.75rem', borderRadius: '4px', fontSize: '0.85rem' }}>
+                <div style={{ borderLeft: '3px solid var(--pj-primary)', paddingLeft: '0.75rem', background: 'var(--chat-input-bg, #f3f4f6)', padding: '0.5rem 0.75rem', borderRadius: '4px', fontSize: '0.85rem' }}>
                   <p style={{ margin: 0, color: 'var(--chat-text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>Message to forward:</p>
                   <p style={{ margin: '0.25rem 0 0 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '350px' }}>
                     {forwardingMessage.message || (forwardingMessage.imageUrl ? '📷 Image' : '')}
