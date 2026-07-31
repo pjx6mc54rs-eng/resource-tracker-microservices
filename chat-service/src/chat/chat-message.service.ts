@@ -8,7 +8,7 @@ import { ChatMessage } from '../entities/chat-message.entity'
 import { ChannelMember } from '../entities/channel-member.entity'
 import { EncryptionService } from './encryption.service'
 
-export type AuthUser = { userId: string; email?: string; role: 'admin' | 'collaborateur' }
+export type AuthUser = { userId: string; email?: string; role: 'admin' | 'responsable' | 'collaborateur' }
 
 @Injectable()
 export class ChatService {

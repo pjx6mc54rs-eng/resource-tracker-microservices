@@ -18,6 +18,7 @@ export function extractUserRole(
   if (!raw) return undefined;
   const normalized = raw.trim().toLowerCase();
   if (normalized === UserRole.ADMIN) return UserRole.ADMIN;
+  if (normalized === UserRole.RESPONSABLE) return UserRole.RESPONSABLE;
   if (normalized === UserRole.COLLABORATEUR) return UserRole.COLLABORATEUR;
   return undefined;
 }

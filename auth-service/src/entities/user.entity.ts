@@ -8,6 +8,7 @@ import {
 
 export enum UserRole {
   ADMIN = 'admin',
+  RESPONSABLE = 'responsable',
   COLLABORATEUR = 'collaborateur',
 }
 
@@ -26,8 +27,23 @@ export class User {
     type: 'enum',
     enum: UserRole,
     default: UserRole.COLLABORATEUR,
+    nullable: true,
   })
   role: UserRole;
+
+  @Column({
+    name: 'roles',
+    type: 'simple-array',
+    nullable: true,
+  })
+  roles: UserRole[];
+
+  @Column({
+    name: 'responsable_ids',
+    type: 'simple-array',
+    nullable: true,
+  })
+  responsableIds: string[];
 
   @Column({ name: 'first_name', type: 'varchar', nullable: true })
   firstName: string | null;

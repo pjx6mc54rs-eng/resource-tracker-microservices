@@ -52,11 +52,13 @@ export class AuthService {
     if (!passwordMatches) {
       throw new UnauthorizedException('Incorrect email or password');
     }
+    const sanitized = this.usersService.sanitize(user);
     const payload = {
       sub: user.id,
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: sanitized.role,
+      roles: sanitized.roles,
       firstName: user.firstName,
       lastName: user.lastName,
     };

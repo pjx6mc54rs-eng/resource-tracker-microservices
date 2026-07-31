@@ -4,7 +4,7 @@ import './Dashboard.css'
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.roles?.includes('admin') || user?.role === 'admin'
 
   return (
     <div className="dashboard">
@@ -37,11 +37,11 @@ export default function Dashboard() {
         </Link>
         
         {isAdmin && (
-          <Link to="/users" className="quick-access-card">
+          <Link to="/users" className="quick-access-card admin-users-card">
             <div className="quick-access-icon">👥</div>
             <div className="quick-access-info">
-              <h4>Users</h4>
-              <p>Manage system users, details and account roles.</p>
+              <h4>User Space & Roles</h4>
+              <p>Manage system users, change account roles (Collaborateur, Responsable, Admin).</p>
             </div>
           </Link>
         )}
