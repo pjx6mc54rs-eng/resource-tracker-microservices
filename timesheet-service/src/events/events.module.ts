@@ -2,8 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
 import { EventsService } from './events.service';
-
-export const NOTIFICATIONS_CLIENT = 'NOTIFICATIONS_CLIENT';
+import { NOTIFICATIONS_CLIENT } from './events.constants';
 
 /**
  * Publication d'evenements vers notification-service via RabbitMQ.

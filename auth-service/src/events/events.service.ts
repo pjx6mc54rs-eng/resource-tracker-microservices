@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 
-import { NOTIFICATIONS_CLIENT } from './events.module';
+import { NOTIFICATIONS_CLIENT } from './events.constants';
 
 /**
  * Emission d'evenements de notification.
