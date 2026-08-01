@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Timesheet } from '../entities/timesheet.entity';
 import { CreateTimesheetDto } from './create-timesheet.dto';
+import { TimesheetPeriodsService } from './periods.service';
+import { periodOfDate } from './month-range';
 
 @Injectable()
 export class TimesheetsService {
   constructor(
     @InjectRepository(Timesheet)
     private readonly timesheetRepository: Repository<Timesheet>,
+    private readonly periodsService: TimesheetPeriodsService,
   ) {}
 
   async findByUser(userId: string, year?: number, month?: number): Promise<Timesheet[]> {
@@ -37,6 +40,11 @@ export class TimesheetsService {
   }
 
   async saveSingle(userId: string, dto: CreateTimesheetDto): Promise<Timesheet | null> {
+    await this.periodsService.assertDateEditable(userId, dto.date);
+    return this.persist(userId, dto);
+  }
+
+  private async persist(userId: string, dto: CreateTimesheetDto): Promise<Timesheet | null> {
     const rawHours = dto.hoursSpent !== undefined && dto.hoursSpent !== null ? Number(dto.hoursSpent) : (dto.isHoliday ? 8 : 0);
 
     let timesheet: Timesheet | null = null;
@@ -86,9 +94,20 @@ export class TimesheetsService {
   }
 
   async bulkSave(userId: string, entries: CreateTimesheetDto[]): Promise<(Timesheet | null)[]> {
+    // One lock check per distinct month rather than per entry — a bulk save
+    // usually covers a single month and this keeps it to a single query.
+    const months = new Map<string, { year: number; month: number }>();
+    for (const entry of entries) {
+      const period = periodOfDate(entry.date);
+      months.set(`${period.year}-${period.month}`, period);
+    }
+    for (const { year, month } of months.values()) {
+      await this.periodsService.assertMonthEditable(userId, year, month);
+    }
+
     const results: (Timesheet | null)[] = [];
     for (const entry of entries) {
-      const saved = await this.saveSingle(userId, entry);
+      const saved = await this.persist(userId, entry);
       results.push(saved);
     }
     return results;
@@ -102,6 +121,7 @@ export class TimesheetsService {
     if (timesheet.userId !== userId) {
       throw new ForbiddenException('Cannot delete timesheet entry of another user');
     }
+    await this.periodsService.assertDateEditable(userId, String(timesheet.date));
     await this.timesheetRepository.remove(timesheet);
     return { success: true };
   }

@@ -2196,3 +2196,175 @@ td.td-error-column .cell-input {
   }
 
 }
+
+/* ==========================================================================
+   MONTHLY VALIDATION WORKFLOW
+   Draft → pending → validated / rejected. Selectors are prefixed `ts-` and
+   scoped to the page container so they can't collide with the other pages'
+   global stylesheets.
+   ========================================================================== */
+.timesheet-hub-container .ts-validation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--pj-surface);
+  border: 1px solid var(--pj-border);
+  border-left: 5px solid var(--pj-border-strong);
+  border-radius: 16px;
+  box-shadow: var(--pj-shadow);
+}
+
+.timesheet-hub-container .ts-validation-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  min-width: 0;
+  flex: 1 1 340px;
+}
+
+.timesheet-hub-container .ts-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  background: var(--pj-track);
+  color: var(--pj-text-soft);
+  border: 1px solid var(--pj-border);
+}
+
+.timesheet-hub-container .ts-status-icon {
+  font-size: 0.9rem;
+}
+
+.timesheet-hub-container .ts-validation-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.timesheet-hub-container .ts-validation-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--pj-text);
+}
+
+.timesheet-hub-container .ts-validation-hint,
+.timesheet-hub-container .ts-validation-meta {
+  font-size: 0.82rem;
+  color: var(--pj-text-soft);
+}
+
+.timesheet-hub-container .ts-validation-comment {
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--pj-text);
+}
+
+.timesheet-hub-container .ts-validation-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* Per-status accents */
+.timesheet-hub-container .ts-status-not_validated {
+  border-left-color: var(--pj-border-strong);
+}
+
+.timesheet-hub-container .ts-status-pending {
+  border-left-color: #d97706;
+}
+.timesheet-hub-container .ts-status-pending .ts-status-pill {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.timesheet-hub-container .ts-status-approved {
+  border-left-color: var(--pj-primary);
+}
+.timesheet-hub-container .ts-status-approved .ts-status-pill {
+  background: #f2f7ec;
+  border-color: #d7e7c6;
+  color: #3e6320;
+}
+
+.timesheet-hub-container .ts-status-rejected {
+  border-left-color: #dc2626;
+}
+.timesheet-hub-container .ts-status-rejected .ts-status-pill {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+[data-theme='dark'] .timesheet-hub-container .ts-status-pending .ts-status-pill {
+  background: rgba(217, 119, 6, 0.16);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #fcd34d;
+}
+
+[data-theme='dark'] .timesheet-hub-container .ts-status-approved .ts-status-pill {
+  background: rgba(92, 144, 50, 0.18);
+  border-color: rgba(92, 144, 50, 0.45);
+  color: #a3d977;
+}
+
+[data-theme='dark'] .timesheet-hub-container .ts-status-rejected .ts-status-pill {
+  background: rgba(220, 38, 38, 0.16);
+  border-color: rgba(220, 38, 38, 0.4);
+  color: #fca5a5;
+}
+
+/* Read-only day cards while the month is pending or validated */
+.timesheet-hub-container .calendar-day-card.ts-card-locked {
+  cursor: default;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 12px,
+    rgba(100, 116, 139, 0.05) 12px,
+    rgba(100, 116, 139, 0.05) 24px
+  );
+}
+
+.timesheet-hub-container .calendar-day-card.ts-card-locked:hover {
+  transform: none;
+  box-shadow: var(--pj-shadow);
+}
+
+.timesheet-hub-container .badge-locked {
+  background: var(--pj-track);
+  color: var(--pj-text-soft);
+  border: 1px solid var(--pj-border);
+}
+
+@media (max-width: 700px) {
+  .timesheet-hub-container .ts-validation-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem 1.1rem;
+  }
+
+  .timesheet-hub-container .ts-validation-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}

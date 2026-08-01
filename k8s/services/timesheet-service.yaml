@@ -58,6 +58,16 @@ spec:
             configMapKeyRef:
               name: app-config
               key: RABBITMQ_URL
+        - name: AUTH_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: AUTH_SERVICE_URL
+        - name: PROJECT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: PROJECT_SERVICE_URL
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:
