@@ -180,7 +180,7 @@ export default function ProfilePage() {
         <form className="profile-card" onSubmit={handleSubmit}>
           <h3>Edit Information</h3>
           <div className="profile-form-grid">
-            <div className="form-group">
+            <div>
               <label htmlFor="firstName">First Name</label>
               <input
                 id="firstName"
@@ -191,7 +191,7 @@ export default function ProfilePage() {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
+            <div>
               <label htmlFor="lastName">Last Name</label>
               <input
                 id="lastName"
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
+            <div>
               <label htmlFor="phone">Phone</label>
               <input
                 id="phone"
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
+            <div>
               <label htmlFor="jobTitle">Job Title</label>
               <input
                 id="jobTitle"
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group profile-form-full">
+            <div className="profile-form-full">
               <label htmlFor="bio">Bio</label>
               <textarea
                 id="bio"

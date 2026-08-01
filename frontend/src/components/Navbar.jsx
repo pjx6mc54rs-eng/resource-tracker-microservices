@@ -6,6 +6,7 @@ import ProfileIcon from './ProfileIcon'
 import NotificationIcon from './NotificationIcon'
 import SunIcon from './SunIcon'
 import MoonIcon from './MoonIcon'
+import KeyIcon from './KeyIcon'
 import './Navbar.css'
 
 export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
@@ -102,11 +103,11 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
               <div className="dropdown-divider"></div>
               <nav className="dropdown-nav">
                 <Link to="/profile" className="dropdown-link">
-                  <span className="dropdown-link-icon">👤</span>
+                  <span className="dropdown-link-icon"><ProfileIcon size="16px" /></span>
                   Profile
                 </Link>
                 <Link to="/change-password" className="dropdown-link">
-                  <span className="dropdown-link-icon">🔑</span>
+                  <span className="dropdown-link-icon"><KeyIcon size="16px" /></span>
                   Change Password
                 </Link>
                 <div className="dropdown-divider"></div>

@@ -845,7 +845,9 @@ td.td-error-column .cell-input {
 }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.35rem 0.85rem;
   border-radius: 20px;
   font-size: 0.825rem;
@@ -1371,6 +1373,7 @@ td.td-error-column .cell-input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.45rem;
 }
 
 .btn:disabled {
@@ -2283,6 +2286,13 @@ td.td-error-column .cell-input {
   flex-wrap: wrap;
 }
 
+.timesheet-hub-container .ts-validation-actions .btn-icon-only {
+  padding: 0.65rem;
+  width: 42px;
+  height: 42px;
+  gap: 0;
+}
+
 /* Per-status accents */
 .timesheet-hub-container .ts-status-not_validated {
   border-left-color: var(--pj-border-strong);
@@ -2366,5 +2376,9 @@ td.td-error-column .cell-input {
   .timesheet-hub-container .ts-validation-actions .btn {
     flex: 1 1 auto;
     justify-content: center;
+  }
+
+  .timesheet-hub-container .ts-validation-actions .btn-icon-only {
+    flex: 0 0 auto;
   }
 }

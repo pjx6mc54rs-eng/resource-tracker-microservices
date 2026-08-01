@@ -1,12 +1,33 @@
 .profile-page {
-  padding: 2rem;
-  max-width: 900px;
+  /* Same token scale as ProjectsList / TimesheetForm / UsersList, so this page
+     shares colors, radii and shadows with the rest of the app. Values are
+     redeclared per-container (rather than reused from Sidebar.css) to match
+     that established convention. */
+  --pj-surface: #ffffff;
+  --pj-surface-soft: #f8fafc;
+  --pj-border: #e6ebf1;
+  --pj-border-strong: #cfd8e3;
+  --pj-text: #0f172a;
+  --pj-text-soft: #64748b;
+  --pj-text-faint: #94a3b8;
+  --pj-primary: #5c9032;
+  --pj-primary-strong: #4a7527;
+  --pj-track: #eef2f6;
+  --pj-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
+  --pj-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 36px rgba(15, 23, 42, 0.1);
+
+  max-width: 880px;
   margin: 0 auto;
+  padding: 2rem;
+  color: var(--pj-text);
 }
 
 .profile-page h1 {
-  color: #2c3e50;
-  margin-bottom: 2rem;
+  margin: 0 0 1.75rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--pj-text);
 }
 
 /* Header card */
@@ -14,12 +35,12 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: var(--pj-surface);
+  border: 1px solid var(--pj-border);
+  border-radius: 18px;
+  padding: 1.75rem 2rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  box-shadow: var(--pj-shadow);
 }
 
 .profile-avatar-block {
@@ -45,20 +66,21 @@
 }
 
 .avatar-action-btn {
-  padding: 0.35rem 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #334155;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--pj-border-strong);
+  border-radius: 999px;
+  background: var(--pj-surface);
+  color: var(--pj-text-soft);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .avatar-action-btn:hover:not(:disabled) {
-  background-color: #f1f5f9;
-  border-color: #5c9032;
+  background-color: rgba(92, 144, 50, 0.06);
+  border-color: var(--pj-primary);
+  color: var(--pj-primary);
 }
 
 .avatar-action-btn:disabled {
@@ -67,20 +89,22 @@
 }
 
 .avatar-action-danger {
-  color: #c00;
+  color: #ef4444;
+  border-color: #fca5a5;
 }
 
 .avatar-action-danger:hover:not(:disabled) {
-  background-color: #ffe6e6;
-  border-color: #c00;
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
 }
 
 .profile-avatar-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--pj-surface-soft);
+  color: var(--pj-text-faint);
 }
 
 .profile-header-info {
@@ -89,14 +113,16 @@
 }
 
 .profile-header-info h2 {
-  margin: 0 0 0.25rem;
-  color: #2c3e50;
+  margin: 0 0 0.4rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--pj-text);
   overflow-wrap: break-word;
 }
 
 .profile-job-title {
-  margin: 0 0 0.5rem;
-  color: #64748b;
+  margin: 0 0 0.6rem;
+  color: var(--pj-text-soft);
 }
 
 .profile-edit-btn {
@@ -111,11 +137,11 @@
 }
 
 .profile-card {
-  background: #ffffff;
-  border: 1px solid #ecf0f1;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  background: var(--pj-surface);
+  border: 1px solid var(--pj-border);
+  border-radius: 18px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--pj-shadow);
 }
 
 .profile-card-full {
@@ -123,22 +149,24 @@
 }
 
 .profile-card h3 {
-  margin-top: 0;
-  color: #2c3e50;
-  border-bottom: 2px solid #5c9032;
-  padding-bottom: 0.5rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--pj-border);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pj-text);
 }
 
 .profile-details {
-  margin: 1rem 0 0;
+  margin: 0;
 }
 
 .profile-detail-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #ecf0f1;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--pj-border);
 }
 
 .profile-detail-row:last-child {
@@ -146,20 +174,20 @@
 }
 
 .profile-detail-row dt {
-  color: #64748b;
+  color: var(--pj-text-soft);
   font-weight: 600;
 }
 
 .profile-detail-row dd {
   margin: 0;
-  color: #34495e;
+  color: var(--pj-text);
   text-align: right;
   overflow-wrap: anywhere;
 }
 
 .profile-bio {
-  margin: 1rem 0 0;
-  color: #34495e;
+  margin: 0;
+  color: var(--pj-text);
   white-space: pre-wrap;
 }
 
@@ -168,7 +196,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 0.25rem;
 }
 
 .profile-form-full {
@@ -178,30 +206,30 @@
 .profile-form-grid label {
   display: block;
   margin-bottom: 0.4rem;
-  color: #34495e;
+  color: var(--pj-text);
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .profile-form-grid input,
 .profile-form-grid textarea {
   width: 100%;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--pj-border-strong);
+  border-radius: 8px;
+  font-size: 0.95rem;
   font-family: inherit;
   box-sizing: border-box;
-  /* Explicit: previously inherited from UsersList.css's global
-     `.form-group input`, which is now scoped to its own page. */
-  background-color: #ffffff;
-  color: #0f172a;
+  background-color: var(--pj-surface);
+  color: var(--pj-text);
+  transition: all 0.2s ease;
 }
 
 .profile-form-grid input:focus,
 .profile-form-grid textarea:focus {
   outline: none;
-  border-color: #5c9032;
-  box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.15);
+  border-color: var(--pj-primary);
+  box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.18);
 }
 
 .profile-form-actions {
@@ -210,52 +238,103 @@
   margin-top: 1.5rem;
 }
 
-.btn-secondary {
-  background-color: #e2e8f0;
-  color: #334155;
+/* Buttons — scoped to .profile-page so they can't collide with (or be
+   overridden by) the same generic .btn/.btn-primary names other pages
+   define globally; see global-css-collisions memory note. */
+.profile-page .btn {
+  padding: 0.65rem 1.4rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
 }
 
-.btn-secondary:hover {
-  background-color: #cbd5e1;
+.profile-page .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
-/* Confirm modal (même style que le reste du projet) */
-.modal-backdrop {
+.profile-page .btn-primary {
+  background: linear-gradient(135deg, #7cb342, var(--pj-primary));
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(92, 144, 50, 0.25);
+}
+
+.profile-page .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--pj-primary), var(--pj-primary-strong));
+  box-shadow: 0 6px 16px rgba(92, 144, 50, 0.35);
+  transform: translateY(-1px);
+}
+
+.profile-page .btn-secondary {
+  background: var(--pj-surface-soft);
+  color: var(--pj-text-soft);
+  border: 1px solid var(--pj-border-strong);
+}
+
+.profile-page .btn-secondary:hover:not(:disabled) {
+  background: var(--pj-track);
+  color: var(--pj-text);
+}
+
+.profile-page .btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.profile-page .btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Confirm modal — same premium modal recipe as Users/Projects, scoped to
+   .profile-page to avoid colliding with the other global .modal-* rules. */
+.profile-page .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
   padding: 1.5rem;
-  animation: fadeInBackdrop 0.2s ease-out;
+  animation: profileFadeInBackdrop 0.2s ease-out;
 }
 
-@keyframes fadeInBackdrop {
+@keyframes profileFadeInBackdrop {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.modal-content {
-  background: white;
+.profile-page .modal-content {
+  background: var(--pj-surface);
   border-radius: 20px;
   width: 100%;
-  max-width: 520px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  max-width: 440px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
   overflow: hidden;
-  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: profileModalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   max-height: 88vh;
   display: flex;
   flex-direction: column;
 }
 
-@keyframes modalPopIn {
+@keyframes profileModalPopIn {
   from {
     opacity: 0;
     transform: scale(0.96) translateY(12px);
@@ -266,36 +345,32 @@
   }
 }
 
-.confirm-modal-card {
-  max-width: 440px !important;
-}
-
-.modal-header {
+.profile-page .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 1.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-bottom: 1px solid var(--pj-border);
+  background: var(--pj-surface-soft);
 }
 
-.modal-header h2 {
+.profile-page .modal-header h2 {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
-.modal-close {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+.profile-page .modal-close {
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   width: 36px;
   height: 36px;
   border-radius: 50%;
   font-size: 1.4rem;
   line-height: 1;
-  color: #64748b;
+  color: var(--pj-text-soft);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -303,9 +378,9 @@
   transition: all 0.2s ease;
 }
 
-.modal-close:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+.profile-page .modal-close:hover {
+  background: var(--pj-track);
+  color: var(--pj-text);
   transform: rotate(90deg);
 }
 
@@ -320,14 +395,14 @@
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--pj-text);
   line-height: 1.5;
 }
 
 .confirm-submessage {
   margin: 0;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   line-height: 1.5;
 }
 
@@ -341,125 +416,30 @@
   flex: 1;
 }
 
-.btn-danger {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
-  transform: translateY(-1px);
-}
-
-/* Dark mode */
-[data-theme='dark'] .profile-page h1,
+/* Dark mode — redefine the token scale, same recipe as ProjectsList /
+   UsersList / TimesheetForm; everything above already reads from these
+   variables so no further overrides are needed for surfaces/text/borders. */
 [data-theme='dark'] .profile-page {
-  color: var(--text-color);
-}
-
-[data-theme='dark'] .profile-header-card,
-[data-theme='dark'] .profile-card {
-  background-color: #1e293b;
-  border-color: #334155;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='dark'] .profile-header-info h2,
-[data-theme='dark'] .profile-card h3 {
-  color: #f1f5f9;
-}
-
-[data-theme='dark'] .profile-detail-row {
-  border-bottom-color: #334155;
-}
-
-[data-theme='dark'] .profile-detail-row dt {
-  color: #94a3b8;
-}
-
-[data-theme='dark'] .profile-detail-row dd,
-[data-theme='dark'] .profile-bio {
-  color: #e2e8f0;
-}
-
-[data-theme='dark'] .profile-avatar-placeholder {
-  background: #334155;
-  color: #94a3b8;
-}
-
-[data-theme='dark'] .profile-form-grid label {
-  color: #e2e8f0;
-}
-
-[data-theme='dark'] .profile-form-grid input,
-[data-theme='dark'] .profile-form-grid textarea {
-  background-color: #0f172a;
-  border-color: #334155;
-  color: #f1f5f9;
-}
-
-[data-theme='dark'] .avatar-action-btn {
-  background-color: #0f172a;
-  border-color: #334155;
-  color: #e2e8f0;
-}
-
-[data-theme='dark'] .avatar-action-btn:hover:not(:disabled) {
-  background-color: #1e293b;
-  border-color: #5c9032;
+  --pj-surface: #1e293b;
+  --pj-surface-soft: #172033;
+  --pj-border: #2f3d51;
+  --pj-border-strong: #46566d;
+  --pj-text: #f1f5f9;
+  --pj-text-soft: #94a3b8;
+  --pj-text-faint: #64748b;
+  --pj-track: #0f172a;
+  --pj-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.18);
+  --pj-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.25), 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
 [data-theme='dark'] .avatar-action-danger {
   color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 [data-theme='dark'] .avatar-action-danger:hover:not(:disabled) {
-  background-color: rgba(248, 113, 113, 0.12);
+  background-color: rgba(239, 68, 68, 0.14);
   border-color: #f87171;
-}
-
-[data-theme='dark'] .btn-secondary {
-  background-color: #334155;
-  color: #e2e8f0;
-}
-
-[data-theme='dark'] .btn-secondary:hover {
-  background-color: #475569;
-}
-
-[data-theme='dark'] .modal-content {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-[data-theme='dark'] .modal-header {
-  background: #0f172a;
-  border-bottom-color: #334155;
-}
-
-[data-theme='dark'] .modal-header h2 {
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .modal-close {
-  background: #1e293b;
-  border-color: #334155;
-  color: #94a3b8;
-}
-
-[data-theme='dark'] .modal-close:hover {
-  background: #334155;
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .confirm-message {
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .confirm-submessage {
-  color: #cbd5e1;
 }
 
 @media (max-width: 600px) {

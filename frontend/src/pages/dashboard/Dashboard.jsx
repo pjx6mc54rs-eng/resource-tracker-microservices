@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import FolderIcon from '../../components/FolderIcon'
+import ClockIcon from '../../components/ClockIcon'
+import ChatBubbleIcon from '../../components/ChatBubbleIcon'
+import UsersIcon from '../../components/UsersIcon'
 import './Dashboard.css'
 
 export default function Dashboard() {
@@ -13,15 +17,15 @@ export default function Dashboard() {
       {/* Quick Access Navigation Cards */}
       <div className={isAdmin ? "quick-access-grid" : "quick-access-grid user-grid"}>
         <Link to="/projects" className="quick-access-card">
-          <div className="quick-access-icon">📁</div>
+          <div className="quick-access-icon"><FolderIcon size="28px" /></div>
           <div className="quick-access-info">
             <h4>Projects</h4>
             <p>{isAdmin ? "Manage corporate projects, details and task assignments." : "View your assigned projects and task details."}</p>
           </div>
         </Link>
-        
+
         <Link to="/timesheet" className="quick-access-card">
-          <div className="quick-access-icon">⏱️</div>
+          <div className="quick-access-icon"><ClockIcon size="28px" /></div>
           <div className="quick-access-info">
             <h4>Timesheets</h4>
             <p>Log work hours, track spent time on tasks.</p>
@@ -29,16 +33,16 @@ export default function Dashboard() {
         </Link>
 
         <Link to="/messages" className="quick-access-card">
-          <div className="quick-access-icon">💬</div>
+          <div className="quick-access-icon"><ChatBubbleIcon size="28px" /></div>
           <div className="quick-access-info">
             <h4>Messages</h4>
             <p>Chat with colleagues, project groups, and teams.</p>
           </div>
         </Link>
-        
+
         {isAdmin && (
           <Link to="/users" className="quick-access-card admin-users-card">
-            <div className="quick-access-icon">👥</div>
+            <div className="quick-access-icon"><UsersIcon size="28px" /></div>
             <div className="quick-access-info">
               <h4>User Space & Roles</h4>
               <p>Manage system users, change account roles (Collaborateur, Responsable, Admin).</p>

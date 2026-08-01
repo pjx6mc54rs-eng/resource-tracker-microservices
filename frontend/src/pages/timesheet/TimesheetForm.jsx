@@ -12,13 +12,29 @@ import {
   recallPeriod,
   downloadMyPeriod,
 } from './timesheetsApi'
+import ExcelIcon from '../../components/ExcelIcon'
+import PdfIcon from '../../components/PdfIcon'
+import PencilIcon from '../../components/PencilIcon'
+import ClockIcon from '../../components/ClockIcon'
+import CheckCircleIcon from '../../components/CheckCircleIcon'
+import XCircleIcon from '../../components/XCircleIcon'
+import CalendarIcon from '../../components/CalendarIcon'
+import ChartBarIcon from '../../components/ChartBarIcon'
+import ClipboardIcon from '../../components/ClipboardIcon'
+import BoltIcon from '../../components/BoltIcon'
+import SaveIcon from '../../components/SaveIcon'
+import WarningIcon from '../../components/WarningIcon'
+import SendIcon from '../../components/SendIcon'
+import UmbrellaIcon from '../../components/UmbrellaIcon'
+import LockIcon from '../../components/LockIcon'
+import FolderIcon from '../../components/FolderIcon'
 import './TimesheetForm.css'
 
 const STATUS_META = {
-  not_validated: { label: 'Not validated', icon: '📝', hint: 'Not sent for validation yet.' },
-  pending: { label: 'Pending validation', icon: '⏳', hint: 'Locked while your responsable reviews it.' },
-  approved: { label: 'Validated', icon: '✅', hint: 'Validated — this month is final and can be downloaded.' },
-  rejected: { label: 'Rejected', icon: '✋', hint: 'Returned by your responsable — fix it and send it again.' },
+  not_validated: { label: 'Not validated', icon: PencilIcon, hint: 'Not sent for validation yet.' },
+  pending: { label: 'Pending validation', icon: ClockIcon, hint: 'Locked while your responsable reviews it.' },
+  approved: { label: 'Validated', icon: CheckCircleIcon, hint: 'Validated — this month is final and can be downloaded.' },
+  rejected: { label: 'Rejected', icon: XCircleIcon, hint: 'Returned by your responsable — fix it and send it again.' },
 }
 
 const formatDateTime = (value) => {
@@ -1233,6 +1249,8 @@ export default function TimesheetForm() {
     )
   }
 
+  const StatusIcon = period ? STATUS_META[period.status]?.icon : null
+
   return (
     <div className="timesheet-hub-container">
       {/* HEADER & NAVIGATOR */}
@@ -1297,7 +1315,9 @@ export default function TimesheetForm() {
         <div className={`ts-validation-bar ts-status-${period.status}`}>
           <div className="ts-validation-main">
             <span className="ts-status-pill">
-              <span className="ts-status-icon">{STATUS_META[period.status]?.icon}</span>
+              <span className="ts-status-icon">
+                {StatusIcon && <StatusIcon size="16px" />}
+              </span>
               {STATUS_META[period.status]?.label ?? period.status}
             </span>
 
@@ -1349,7 +1369,7 @@ export default function TimesheetForm() {
                     : 'Send this month to your responsable'
                 }
               >
-                {periodBusy ? 'Sending...' : '📤 Send for validation'}
+                {periodBusy ? 'Sending...' : <><SendIcon size="16px" /> Send for validation</>}
               </button>
             )}
             {period.status === 'pending' && (
@@ -1366,19 +1386,23 @@ export default function TimesheetForm() {
               <>
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-secondary btn-icon-only"
                   onClick={() => handleDownloadPeriod('xlsx')}
                   disabled={periodBusy}
+                  aria-label="Download Excel"
+                  data-tooltip="Download Excel"
                 >
-                  📊 Download Excel
+                  <ExcelIcon size="16px" />
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-icon-only"
                   onClick={() => handleDownloadPeriod('pdf')}
                   disabled={periodBusy}
+                  aria-label="Download PDF"
+                  data-tooltip="Download PDF"
                 >
-                  📄 Download PDF
+                  <PdfIcon size="16px" />
                 </button>
               </>
             )}
@@ -1393,21 +1417,21 @@ export default function TimesheetForm() {
             className={`tab-btn ${viewMode === 'calendar' ? 'active' : ''}`}
             onClick={() => setViewMode('calendar')}
           >
-            📅 <span className="tab-label-full">Weekday Calendar View</span>
+            <CalendarIcon size="16px" /> <span className="tab-label-full">Weekday Calendar View</span>
             <span className="tab-label-short">Calendar</span>
           </button>
           <button
             className={`tab-btn ${viewMode === 'matrix' ? 'active' : ''}`}
             onClick={() => setViewMode('matrix')}
           >
-            📊 <span className="tab-label-full">Monthly Matrix View</span>
+            <ChartBarIcon size="16px" /> <span className="tab-label-full">Monthly Matrix View</span>
             <span className="tab-label-short">Matrix</span>
           </button>
           <button
             className={`tab-btn ${viewMode === 'history' ? 'active' : ''}`}
             onClick={() => setViewMode('history')}
           >
-            📋 <span className="tab-label-full">Logged History List</span>
+            <ClipboardIcon size="16px" /> <span className="tab-label-full">Logged History List</span>
             <span className="tab-label-short">History</span>
           </button>
         </div>
@@ -1442,14 +1466,14 @@ export default function TimesheetForm() {
               onClick={handleAutoFillMonth}
               disabled={isLocked}
             >
-              ⚡ Fill 8h (1d) Weekdays
+              <BoltIcon size="16px" /> Fill 8h (1d) Weekdays
             </button>
             <button
               className="btn btn-primary"
               onClick={handleSaveMatrix}
               disabled={submitting || isLocked || invalidMatrixDates.size > 0}
             >
-              {submitting ? 'Saving...' : '💾 Save Monthly Matrix'}
+              {submitting ? 'Saving...' : <><SaveIcon size="16px" /> Save Monthly Matrix</>}
             </button>
           </div>
         )}
@@ -1624,7 +1648,7 @@ export default function TimesheetForm() {
                       >
                         <div className="th-day-name">{w.dayName}</div>
                         <div className="th-day-num">{w.dayNumber}</div>
-                        {isInvalid && <span className="col-error-badge">⚠️</span>}
+                        {isInvalid && <span className="col-error-badge"><WarningIcon size="14px" /></span>}
                       </th>
                     )
                   })}
@@ -1634,7 +1658,7 @@ export default function TimesheetForm() {
                 {/* 1. HOLIDAY ROW */}
                 <tr className="holiday-row">
                   <td className="project-cell holiday-cell-title">
-                    <span className="cell-icon">🌴</span> Holiday (Congé)
+                    <span className="cell-icon"><UmbrellaIcon size="14px" /></span> Holiday (Congé)
                   </td>
                   {monthWeekdays.map((w) => {
                     const key = `holiday_${w.dateString}`
@@ -1749,10 +1773,10 @@ export default function TimesheetForm() {
                         </td>
                         <td data-label="Type / Project">
                           {ts.isHoliday ? (
-                            <span className="badge badge-holiday">🌴 Holiday / Congé</span>
+                            <span className="badge badge-holiday"><UmbrellaIcon size="14px" /> Holiday / Congé</span>
                           ) : (
                             <span className="badge badge-project">
-                              📁 {matchedProj ? matchedProj.name : 'Project Work'}
+                              <FolderIcon size="14px" /> {matchedProj ? matchedProj.name : 'Project Work'}
                             </span>
                           )}
                         </td>
@@ -1765,7 +1789,7 @@ export default function TimesheetForm() {
                         <td data-label="Note">{ts.note || '—'}</td>
                         <td data-label="Action">
                           {isLocked ? (
-                            <span className="badge badge-locked">🔒 Locked</span>
+                            <span className="badge badge-locked"><LockIcon size="14px" /> Locked</span>
                           ) : (
                             <button
                               type="button"

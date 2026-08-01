@@ -8,6 +8,11 @@ import {
   rejectPeriod,
   downloadPeriodById,
 } from './timesheetsApi'
+import ExcelIcon from '../../components/ExcelIcon'
+import PdfIcon from '../../components/PdfIcon'
+import ClockIcon from '../../components/ClockIcon'
+import CheckCircleIcon from '../../components/CheckCircleIcon'
+import XCircleIcon from '../../components/XCircleIcon'
 import './TimesheetValidation.css'
 
 const MONTH_NAMES = [
@@ -16,9 +21,9 @@ const MONTH_NAMES = [
 ]
 
 const TABS = [
-  { key: 'pending', label: 'Awaiting validation', icon: '⏳' },
-  { key: 'approved', label: 'Validated', icon: '✅' },
-  { key: 'rejected', label: 'Rejected', icon: '✋' },
+  { key: 'pending', label: 'Awaiting validation', icon: ClockIcon },
+  { key: 'approved', label: 'Validated', icon: CheckCircleIcon },
+  { key: 'rejected', label: 'Rejected', icon: XCircleIcon },
 ]
 
 const ALL_STATUSES = TABS.map((t) => t.key)
@@ -205,7 +210,7 @@ export default function TimesheetValidation() {
             className={`tsv-tab ${activeTab === tab.key ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.key)}
           >
-            <span className="tsv-tab-icon">{tab.icon}</span>
+            <span className="tsv-tab-icon"><tab.icon size="16px" /></span>
             <span className="tsv-tab-label">{tab.label}</span>
             <span className="tsv-tab-count">{counts[tab.key] ?? 0}</span>
           </button>
@@ -286,20 +291,22 @@ export default function TimesheetValidation() {
                       <button
                         type="button"
                         className="tsv-icon-btn"
-                        title="Download Excel"
+                        aria-label="Download Excel"
+                        data-tooltip="Download Excel"
                         onClick={(e) => handleDownload(period, 'xlsx', e)}
                         disabled={busy}
                       >
-                        📊
+                        <ExcelIcon size="16px" />
                       </button>
                       <button
                         type="button"
                         className="tsv-icon-btn"
-                        title="Download PDF"
+                        aria-label="Download PDF"
+                        data-tooltip="Download PDF"
                         onClick={(e) => handleDownload(period, 'pdf', e)}
                         disabled={busy}
                       >
-                        📄
+                        <PdfIcon size="16px" />
                       </button>
                     </>
                   )}
@@ -453,19 +460,23 @@ export default function TimesheetValidation() {
                   </button>
                   <button
                     type="button"
-                    className="tsv-btn tsv-btn-secondary"
+                    className="tsv-btn tsv-btn-secondary tsv-btn-icon-only"
                     onClick={() => handleDownload(detail.period, 'xlsx')}
                     disabled={busy}
+                    aria-label="Download Excel"
+                    data-tooltip="Download Excel"
                   >
-                    📊 Excel
+                    <ExcelIcon size="16px" />
                   </button>
                   <button
                     type="button"
-                    className="tsv-btn tsv-btn-primary"
+                    className="tsv-btn tsv-btn-primary tsv-btn-icon-only"
                     onClick={() => handleDownload(detail.period, 'pdf')}
                     disabled={busy}
+                    aria-label="Download PDF"
+                    data-tooltip="Download PDF"
                   >
-                    📄 PDF
+                    <PdfIcon size="16px" />
                   </button>
                 </>
               )}

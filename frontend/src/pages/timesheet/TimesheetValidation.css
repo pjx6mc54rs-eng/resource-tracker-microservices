@@ -323,17 +323,22 @@
 }
 
 .tsv-container .tsv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.3rem 0.5rem;
   border: 1px solid var(--pj-border);
   border-radius: 8px;
   background: var(--pj-surface-soft);
+  color: var(--pj-text-soft);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .tsv-container .tsv-icon-btn:hover:not(:disabled) {
   border-color: var(--pj-primary);
+  color: var(--pj-primary);
   transform: translateY(-1px);
 }
 
@@ -377,6 +382,15 @@
 .tsv-modal-backdrop .tsv-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.tsv-container .tsv-btn-icon-only,
+.tsv-modal-backdrop .tsv-btn-icon-only {
+  padding: 0.65rem;
+  width: 42px;
+  height: 42px;
+  gap: 0;
+  justify-content: center;
 }
 
 .tsv-container .tsv-btn-primary,
@@ -673,5 +687,9 @@
   .tsv-modal-backdrop .tsv-modal-foot .tsv-btn {
     flex: 1 1 auto;
     justify-content: center;
+  }
+
+  .tsv-modal-backdrop .tsv-modal-foot .tsv-btn-icon-only {
+    flex: 0 0 auto;
   }
 }
