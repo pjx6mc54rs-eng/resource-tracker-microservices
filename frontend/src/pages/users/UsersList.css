@@ -1,7 +1,45 @@
-.users-list {
-  max-width: 1100px;
+/* ==========================================================================
+   Design tokens — same `--pj-*` scale as ProjectsList / ProjectDetail /
+   MessagesPage / TimesheetForm, so the users page shares the app's surfaces,
+   borders, text ramp, brand green and shadows.
+
+   NOTE: the page root used to be `.users-list`, which also matched the
+   `<ul class="users-list">` inside ProjectDetail's team modal and leaked
+   `padding: 2rem; max-width: 1100px` onto it. Renamed to `.users-page`.
+   ========================================================================== */
+.users-page {
+  --pj-surface: #ffffff;
+  --pj-surface-soft: #f8fafc;
+  --pj-border: #e6ebf1;
+  --pj-border-strong: #cfd8e3;
+  --pj-text: #0f172a;
+  --pj-text-soft: #64748b;
+  --pj-text-faint: #94a3b8;
+  --pj-primary: #5c9032;
+  --pj-primary-strong: #4a7527;
+  --pj-track: #eef2f6;
+  --pj-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
+  --pj-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 36px rgba(15, 23, 42, 0.1);
+
+  /* Matches .timesheet-hub-container — the old 1100px cap centred the page
+     and left ~152px of dead space against the sidebar. */
+  max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
+  color: var(--pj-text);
+}
+
+[data-theme='dark'] .users-page {
+  --pj-surface: #1e293b;
+  --pj-surface-soft: #172033;
+  --pj-border: #2f3d51;
+  --pj-border-strong: #46566d;
+  --pj-text: #f1f5f9;
+  --pj-text-soft: #94a3b8;
+  --pj-text-faint: #64748b;
+  --pj-track: #0f172a;
+  --pj-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.18);
+  --pj-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.25), 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
 /* ── Mobile: hide table, show cards ──────────────────────── */
@@ -13,21 +51,21 @@
   margin-bottom: 2rem;
 }
 
-.users-list h1 {
-  color: var(--text, #2c3e50);
+.users-page h1 {
+  color: var(--pj-text);
   margin-bottom: 0.5rem;
   font-weight: 700;
   font-size: 1.75rem;
 }
 
 .users-subtitle {
-  color: var(--text-secondary, #7f8c8d);
+  color: var(--pj-text-soft);
   font-size: 0.95rem;
 }
 
 .users-table-wrapper {
-  background: white;
-  border: 1px solid var(--border, #ecf0f1);
+  background: var(--pj-surface);
+  border: 1px solid var(--pj-border);
   border-radius: 12px;
   overflow: visible;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
@@ -39,30 +77,30 @@
 }
 
 .users-table thead {
-  background-color: #f8fafc;
+  background-color: var(--pj-surface-soft);
 }
 
 .users-table th {
   padding: 1rem 1.25rem;
   text-align: left;
-  color: #334155;
+  color: var(--pj-text);
   font-weight: 600;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--pj-border);
 }
 
 .users-table td {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+  border-bottom: 1px solid var(--pj-surface-soft);
+  color: var(--pj-text);
   vertical-align: middle;
   font-size: 0.9rem;
 }
 
 .users-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--pj-surface-soft);
 }
 
 .user-info-cell {
@@ -76,7 +114,7 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--pj-border);
 }
 
 .user-avatar-small {
@@ -95,13 +133,13 @@
 
 .user-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--pj-text);
   font-size: 0.95rem;
 }
 
 .user-phone {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .roles-badges-wrapper {
@@ -144,16 +182,16 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.6rem;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background-color: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border-strong);
   border-radius: 12px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--pj-text);
 }
 
 .no-responsable-text {
-  color: #94a3b8;
+  color: var(--pj-text-faint);
 }
 
 .btn-edit-user {
@@ -161,9 +199,9 @@
   height: 36px;
   padding: 0;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #475569;
+  border: 1px solid var(--pj-border-strong);
+  background-color: var(--pj-surface);
+  color: var(--pj-text-soft);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +230,7 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%) translateY(8px);
-  background-color: #0f172a;
+  background-color: var(--pj-text);
   color: #ffffff;
   padding: 0.4rem 0.65rem;
   border-radius: 6px;
@@ -208,8 +246,8 @@
 }
 
 [data-theme='dark'] .edit-btn-tooltip-wrapper[data-tooltip]::before {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: var(--pj-surface-soft);
+  color: var(--pj-text);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
@@ -239,7 +277,7 @@
 .users-search-icon {
   position: absolute;
   left: 0.75rem;
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   pointer-events: none;
   flex-shrink: 0;
 }
@@ -248,15 +286,15 @@
   width: 100%;
   box-sizing: border-box;
   padding: 0.6rem 2.4rem 0.6rem 2.4rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pj-border);
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #0f172a;
-  background: #ffffff;
+  color: var(--pj-text);
+  background: var(--pj-surface);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.users-search-input::placeholder { color: #94a3b8; }
+.users-search-input::placeholder { color: var(--pj-text-faint); }
 
 .users-search-input:focus {
   outline: none;
@@ -269,7 +307,7 @@
   right: 0.65rem;
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0.2rem 0.3rem;
@@ -289,9 +327,9 @@
 .role-filter-pill {
   padding: 0.45rem 0.9rem;
   border-radius: 20px;
-  border: 1.5px solid #e2e8f0;
-  background: #ffffff;
-  color: #475569;
+  border: 1.5px solid var(--pj-border);
+  background: var(--pj-surface);
+  color: var(--pj-text-soft);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -328,7 +366,7 @@
 /* ── Results meta ────────────────────────────────────────── */
 .users-results-meta {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   margin-bottom: 0.75rem;
 }
 
@@ -339,7 +377,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 3rem 1rem;
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   text-align: center;
 }
 
@@ -350,19 +388,19 @@
 
 .users-clear-filters-btn {
   padding: 0.5rem 1.25rem;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--pj-text-soft);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .users-clear-filters-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--pj-border);
+  color: var(--pj-text);
 }
 
 /* ── Paginator ───────────────────────────────────────────── */
@@ -387,9 +425,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  border: 1.5px solid #e2e8f0;
-  background: #ffffff;
-  color: #475569;
+  border: 1.5px solid var(--pj-border);
+  background: var(--pj-surface);
+  color: var(--pj-text-soft);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -427,69 +465,17 @@
 }
 
 .paginator-ellipsis {
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   font-size: 0.85rem;
   padding: 0 0.2rem;
   user-select: none;
 }
 
-/* ── Dark mode: filter + paginator ──────────────────────── */
-[data-theme='dark'] .users-search-input {
-  background: #1e293b;
-  border-color: #334155;
-  color: #f1f5f9;
-}
-
-[data-theme='dark'] .users-search-input::placeholder { color: #475569; }
-
-[data-theme='dark'] .users-search-input:focus {
-  border-color: #5c9032;
-  box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.2);
-}
-
-[data-theme='dark'] .users-search-clear { color: #475569; }
-[data-theme='dark'] .users-search-clear:hover { color: #f87171; }
-
-[data-theme='dark'] .role-filter-pill {
-  background: #1e293b;
-  border-color: #334155;
-  color: #94a3b8;
-}
-
-[data-theme='dark'] .role-filter-pill:hover {
-  border-color: #5c9032;
-  color: #5c9032;
-}
-
-[data-theme='dark'] .users-clear-filters-btn {
-  background: #1e293b;
-  border-color: #334155;
-  color: #94a3b8;
-}
-
-[data-theme='dark'] .users-clear-filters-btn:hover {
-  background: #334155;
-  color: #f1f5f9;
-}
-
-[data-theme='dark'] .paginator-btn,
-[data-theme='dark'] .paginator-page-btn {
-  background: #1e293b;
-  border-color: #334155;
-  color: #94a3b8;
-}
-
-[data-theme='dark'] .paginator-btn:hover:not(:disabled),
-[data-theme='dark'] .paginator-page-btn:hover:not(.active) {
-  border-color: #5c9032;
-  color: #5c9032;
-  background: rgba(92, 144, 50, 0.1);
-}
-
-[data-theme='dark'] .paginator-page-btn.active {
-  background: #5c9032;
-  border-color: #5c9032;
-  color: #ffffff;
+/* ── Dark mode: filter + paginator ──────────────────────────
+   Surfaces/borders/text come from the `--pj-*` tokens, so only the
+   red "clear" affordance needs a dark-specific tweak.               */
+[data-theme='dark'] .users-search-clear:hover {
+  color: #f87171;
 }
 
 /* ── Mobile: filter bar stacks ───────────────────────────── */
@@ -528,7 +514,7 @@
 }
 
 /* Modal Overlay & Card Container */
-.modal-backdrop {
+.users-page .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -543,8 +529,8 @@
   padding: 1.5rem;
 }
 
-.modal-content.modal-wide {
-  background: #ffffff;
+.users-page .modal-content.modal-wide {
+  background: var(--pj-surface);
   border-radius: 16px;
   width: 92vw;
   max-width: 960px;
@@ -574,8 +560,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 2rem;
-  border-bottom: 1px solid #f1f5f9;
-  background: #ffffff;
+  border-bottom: 1px solid var(--pj-surface-soft);
+  background: var(--pj-surface);
   flex-shrink: 0;
 }
 
@@ -609,24 +595,24 @@
 .modal-header-premium h2 {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pj-text);
   margin: 0;
 }
 
 .user-email-subtitle {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   font-weight: 500;
 }
 
 .modal-close-btn {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   width: 34px;
   height: 34px;
   border-radius: 50%;
   font-size: 1.1rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -641,14 +627,14 @@
 }
 
 /* Modal Body: 2-Column Grid Layout */
-.modal-form {
+.users-page .modal-form {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   flex: 1;
 }
 
-.modal-body.modal-grid-2col {
+.users-page .modal-body.modal-grid-2col {
   padding: 1.75rem 2rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -673,8 +659,8 @@
   align-items: center;
   gap: 1rem;
   padding: 0.85rem 1rem;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   border-radius: 12px;
 }
 
@@ -683,12 +669,12 @@
   height: 52px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--pj-border);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff;
+  background-color: var(--pj-surface);
 }
 
 .photo-banner-preview img {
@@ -706,12 +692,12 @@
 .photo-banner-title {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .photo-banner-desc {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .photo-banner-actions {
@@ -739,7 +725,7 @@
 
 .btn-remove-avatar {
   padding: 0.4rem 0.75rem;
-  background-color: #ffffff;
+  background-color: var(--pj-surface);
   color: #ef4444;
   border: 1px solid #fca5a5;
   font-size: 0.8rem;
@@ -759,9 +745,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #475569;
+  color: var(--pj-text-soft);
   padding-bottom: 0.4rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--pj-surface-soft);
 }
 
 .flex-between {
@@ -781,26 +767,26 @@
 }
 
 /* Form Controls */
-.form-group {
+.users-page .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 
-.form-group label {
+.users-page .form-group label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--pj-text);
 }
 
-.form-group input,
-.form-group textarea {
+.users-page .form-group input,
+.users-page .form-group textarea {
   padding: 0.6rem 0.85rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pj-border-strong);
   border-radius: 8px;
   font-size: 0.9rem;
-  color: #0f172a;
-  background-color: #ffffff;
+  color: var(--pj-text);
+  background-color: var(--pj-surface);
   transition: all 0.2s ease;
   width: 100%;
   box-sizing: border-box;
@@ -825,7 +811,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #64748b;
+  color: var(--pj-text-soft);
   user-select: none;
   transition: color 0.2s ease;
 }
@@ -834,8 +820,8 @@
   color: #5c9032;
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
+.users-page .form-group input:focus,
+.users-page .form-group textarea:focus {
   border-color: #5c9032;
   box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.18);
   outline: none;
@@ -849,7 +835,7 @@
 
 .field-hint {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 /* Roles Cards Grid */
@@ -861,9 +847,9 @@
 
 .role-toggle-card {
   padding: 0.75rem 0.85rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--pj-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--pj-surface);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -872,7 +858,7 @@
 }
 
 .role-toggle-card:hover {
-  border-color: #cbd5e1;
+  border-color: var(--pj-border-strong);
   transform: translateY(-2px);
 }
 
@@ -901,7 +887,7 @@
 
 .role-toggle-desc {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   line-height: 1.2;
 }
 
@@ -936,11 +922,11 @@
 /* Managers List */
 .no-managers-card {
   padding: 1rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   border-radius: 8px;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   text-align: center;
 }
 
@@ -958,16 +944,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--pj-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--pj-surface);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .manager-card:hover:not(.disabled) {
   border-color: #5c9032;
-  background-color: #f8fafc;
+  background-color: var(--pj-surface-soft);
 }
 
 .manager-card.selected {
@@ -1011,12 +997,12 @@
 .manager-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .manager-email {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .manager-card-right input[type="checkbox"] {
@@ -1029,7 +1015,7 @@
 .manager-card.disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  background-color: #f8fafc;
+  background-color: var(--pj-surface-soft);
 }
 
 .mutual-warning-pill {
@@ -1045,17 +1031,17 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1.1rem 2rem;
-  border-top: 1px solid #f1f5f9;
-  background: #ffffff;
+  border-top: 1px solid var(--pj-surface-soft);
+  background: var(--pj-surface);
   flex-shrink: 0;
 }
 
 .btn-cancel {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: white;
-  color: #475569;
+  border: 1px solid var(--pj-border-strong);
+  background: var(--pj-surface);
+  color: var(--pj-text-soft);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
@@ -1063,7 +1049,7 @@
 }
 
 .btn-cancel:hover {
-  background-color: #f1f5f9;
+  background-color: var(--pj-surface-soft);
 }
 
 .btn-save {
@@ -1104,11 +1090,11 @@
 @media (max-width: 640px) {
 
   /* Page padding */
-  .users-list {
+  .users-page {
     padding: 1rem;
   }
 
-  .users-list h1 {
+  .users-page h1 {
     font-size: 1.35rem;
   }
 
@@ -1129,8 +1115,8 @@
 
   /* Individual user card */
   .user-mobile-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--pj-surface);
+    border: 1px solid var(--pj-border);
     border-radius: 14px;
     padding: 1rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -1160,7 +1146,7 @@
 
   .user-mobile-card-email {
     font-size: 0.78rem;
-    color: #64748b;
+    color: var(--pj-text-soft);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1172,7 +1158,7 @@
     flex-direction: column;
     gap: 0.5rem;
     padding-top: 0.5rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--pj-surface-soft);
   }
 
   .user-mobile-detail-row {
@@ -1184,7 +1170,7 @@
 
   .user-mobile-detail-label {
     font-weight: 700;
-    color: #64748b;
+    color: var(--pj-text-soft);
     text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.4px;
@@ -1195,7 +1181,7 @@
 
   .user-mobile-detail-value {
     flex: 1;
-    color: #334155;
+    color: var(--pj-text);
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
@@ -1240,7 +1226,7 @@
     width: 36px;
     height: 4px;
     border-radius: 2px;
-    background-color: #cbd5e1;
+    background-color: var(--pj-border-strong);
     margin: 10px auto -6px;
   }
 
@@ -1526,161 +1512,96 @@
   }
 }
 
-/* ── Dark mode overrides for mobile cards ─────────────────── */
-[data-theme='dark'] .user-mobile-card {
-  background-color: #1e293b;
-  border-color: #334155;
-}
+/* ==========================================================================
+   DARK MODE — surfaces/borders/text all come from the `--pj-*` tokens at the
+   top, so only the semantic tints (role badges, brand green, danger red) and
+   a couple of genuinely dark-only touches need overrides here.
+   ========================================================================== */
 
-/* Drag handle pill — dark variant */
+/* Bottom-sheet drag handle */
 @media (max-width: 640px) {
-  [data-theme='dark'] .modal-content.modal-wide::before {
-    background-color: #475569;
+  [data-theme='dark'] .users-page .modal-content.modal-wide::before {
+    background-color: var(--pj-border-strong);
   }
 }
 
-[data-theme='dark'] .user-mobile-card-body {
-  border-top-color: #334155;
-}
-
-[data-theme='dark'] .user-mobile-detail-label {
-  color: #64748b;
-}
-
-[data-theme='dark'] .user-mobile-detail-value {
-  color: #cbd5e1;
-}
-
-[data-theme='dark'] .user-mobile-card-email {
-  color: #64748b;
-}
-
-/* Dark Theme Overrides */
-[data-theme='dark'] .users-table-wrapper {
-  background-color: #1e293b;
-  border-color: #334155;
-}
-
-[data-theme='dark'] .users-table thead {
-  background-color: #0f172a;
-}
-
-[data-theme='dark'] .users-table th {
-  color: #f1f5f9;
-  border-bottom-color: #334155;
-}
-
-[data-theme='dark'] .users-table td {
-  color: #cbd5e1;
-  border-bottom-color: #334155;
-}
-
 [data-theme='dark'] .users-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-[data-theme='dark'] .user-name {
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .btn-edit-user {
-  background-color: #334155;
-  border-color: #475569;
-  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 [data-theme='dark'] .btn-edit-user:hover {
   background-color: rgba(92, 144, 50, 0.2);
-  border-color: #5c9032;
+  border-color: var(--pj-primary);
   color: #ffffff;
 }
 
-[data-theme='dark'] .modal-content.modal-wide {
-  background-color: #1e293b;
-  border: 1px solid #334155;
+/* Role badges — light tints need a dark counterpart */
+[data-theme='dark'] .role-admin {
+  background-color: rgba(239, 68, 68, 0.16);
+  color: #f87171;
 }
 
-[data-theme='dark'] .modal-header-premium {
-  background-color: #0f172a;
-  border-bottom-color: #334155;
+[data-theme='dark'] .role-responsable {
+  background-color: rgba(217, 119, 6, 0.16);
+  color: #fbbf24;
 }
 
-[data-theme='dark'] .modal-header-premium h2 {
-  color: #f8fafc;
+[data-theme='dark'] .role-collaborateur {
+  background-color: rgba(2, 132, 199, 0.18);
+  color: #7dd3fc;
 }
 
-[data-theme='dark'] .user-email-subtitle {
-  color: #94a3b8;
+/* Role toggle cards, selected state */
+[data-theme='dark'] .active-collaborateur {
+  background-color: rgba(2, 132, 199, 0.14) !important;
+  border-color: #0284c7 !important;
 }
 
-[data-theme='dark'] .modal-close-btn {
-  background-color: #1e293b;
-  border-color: #334155;
-  color: #94a3b8;
+[data-theme='dark'] .active-collaborateur .role-toggle-title {
+  color: #7dd3fc;
+}
+
+[data-theme='dark'] .active-responsable {
+  background-color: rgba(217, 119, 6, 0.14) !important;
+  border-color: #d97706 !important;
+}
+
+[data-theme='dark'] .active-responsable .role-toggle-title {
+  color: #fbbf24;
+}
+
+[data-theme='dark'] .active-admin {
+  background-color: rgba(239, 68, 68, 0.14) !important;
+  border-color: #dc2626 !important;
+}
+
+[data-theme='dark'] .active-admin .role-toggle-title {
+  color: #f87171;
+}
+
+/* Danger / required accents */
+[data-theme='dark'] .badge-required,
+[data-theme='dark'] .mutual-warning-pill {
+  background-color: rgba(239, 68, 68, 0.16);
+  color: #f87171;
+}
+
+[data-theme='dark'] .mutual-warning-pill {
+  background-color: transparent;
+}
+
+[data-theme='dark'] .btn-remove-avatar {
+  background-color: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+[data-theme='dark'] .btn-remove-avatar:hover {
+  background-color: rgba(239, 68, 68, 0.24);
 }
 
 [data-theme='dark'] .modal-close-btn:hover {
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .photo-banner-card {
-  background-color: #0f172a;
-  border-color: #334155;
-}
-
-[data-theme='dark'] .photo-banner-title {
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .form-section-title {
-  color: #94a3b8;
-  border-bottom-color: #334155;
-}
-
-[data-theme='dark'] .form-group label {
-  color: #e2e8f0;
-}
-
-[data-theme='dark'] .form-group input,
-[data-theme='dark'] .form-group textarea {
-  background-color: #0f172a;
-  color: #f1f5f9;
-  border-color: #334155;
-}
-
-[data-theme='dark'] .role-toggle-card {
-  background-color: #0f172a;
-  border-color: #334155;
-}
-
-[data-theme='dark'] .role-toggle-card:hover {
-  border-color: #475569;
-}
-
-[data-theme='dark'] .manager-card {
-  background-color: #0f172a;
-  border-color: #334155;
-}
-
-[data-theme='dark'] .manager-name {
-  color: #f8fafc;
-}
-
-[data-theme='dark'] .manager-card:hover:not(.disabled) {
-  background-color: #1e293b;
-}
-
-[data-theme='dark'] .modal-footer {
-  background-color: #0f172a;
-  border-top-color: #334155;
-}
-
-[data-theme='dark'] .btn-cancel {
-  background-color: #334155;
-  border-color: #475569;
-  color: #f1f5f9;
-}
-
-[data-theme='dark'] .btn-cancel:hover {
-  background-color: #475569;
+  background-color: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
 }

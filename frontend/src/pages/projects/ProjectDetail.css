@@ -18,9 +18,10 @@
   --pj-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
   --pj-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 36px rgba(15, 23, 42, 0.1);
 
-  max-width: 1280px;
+  /* Matches .projects-page / .timesheet-hub-container — see note there. */
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2.25rem 1.5rem 3.5rem;
+  padding: 2rem;
   color: var(--pj-text);
 }
 
@@ -239,11 +240,11 @@
   box-shadow: none !important;
 }
 
-.form-group {
+.project-detail .form-group {
   margin-bottom: 1.25rem;
 }
 
-.form-group label {
+.project-detail .form-group label {
   display: block;
   margin-bottom: 0.5rem;
   color: var(--pj-text-soft);
@@ -253,8 +254,8 @@
   letter-spacing: 0.05em;
 }
 
-.form-group input,
-.form-group select {
+.project-detail .form-group input,
+.project-detail .form-group select {
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--pj-border-strong);
@@ -265,8 +266,8 @@
   transition: all 0.2s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.project-detail .form-group input:focus,
+.project-detail .form-group select:focus {
   outline: none;
   border-color: var(--pj-primary);
   box-shadow: 0 0 0 3px rgba(92, 144, 50, 0.15);

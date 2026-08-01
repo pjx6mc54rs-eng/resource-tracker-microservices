@@ -1,10 +1,40 @@
-/* TIMESHEET HUB CONTAINER */
+/* ==========================================================================
+   Design tokens — same `--pj-*` scale as ProjectsList.css / ProjectDetail.css
+   / MessagesPage.css, so the timesheet shares the app's surfaces, borders,
+   text ramp, brand green and shadows instead of its own hardcoded palette.
+   ========================================================================== */
 .timesheet-hub-container {
+  --pj-surface: #ffffff;
+  --pj-surface-soft: #f8fafc;
+  --pj-border: #e6ebf1;
+  --pj-border-strong: #cfd8e3;
+  --pj-text: #0f172a;
+  --pj-text-soft: #64748b;
+  --pj-text-faint: #94a3b8;
+  --pj-primary: #5c9032;
+  --pj-primary-strong: #4a7527;
+  --pj-track: #eef2f6;
+  --pj-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
+  --pj-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 36px rgba(15, 23, 42, 0.1);
+
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: #1e293b;
+  color: var(--pj-text);
+}
+
+[data-theme='dark'] .timesheet-hub-container {
+  --pj-surface: #1e293b;
+  --pj-surface-soft: #172033;
+  --pj-border: #2f3d51;
+  --pj-border-strong: #46566d;
+  --pj-text: #f1f5f9;
+  --pj-text-soft: #94a3b8;
+  --pj-text-faint: #64748b;
+  --pj-track: #0f172a;
+  --pj-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.18);
+  --pj-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.25), 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
 /* HEADER & NAVIGATOR */
@@ -15,11 +45,11 @@
   flex-wrap: wrap;
   gap: 1.5rem;
   margin-bottom: 1.75rem;
-  background: white;
+  background: var(--pj-surface);
   padding: 1.75rem 2rem;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+  border: 1px solid var(--pj-border);
+  box-shadow: var(--pj-shadow);
 }
 
 .header-title-group h1 {
@@ -27,12 +57,12 @@
   font-size: 1.85rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .header-title-group .subtitle {
   margin: 0;
-  color: #64748b;
+  color: var(--pj-text-soft);
   font-size: 0.95rem;
 }
 
@@ -47,28 +77,28 @@
   align-items: baseline;
   gap: 0.5rem;
   padding: 0.55rem 1.35rem;
-  background: #f8fafc;
+  background: var(--pj-surface-soft);
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pj-border-strong);
 }
 
 .month-name {
   font-weight: 700;
   font-size: 1.25rem;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .year-number {
   font-weight: 600;
   font-size: 1.05rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .nav-btn {
   padding: 0.55rem 1.1rem;
-  border: 1px solid #cbd5e1;
-  background: white;
-  color: #334155;
+  border: 1px solid var(--pj-border-strong);
+  background: var(--pj-surface);
+  color: var(--pj-text);
   border-radius: 10px;
   font-weight: 600;
   font-size: 0.9rem;
@@ -77,9 +107,9 @@
 }
 
 .nav-btn:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-  color: #0f172a;
+  background: var(--pj-surface-soft);
+  border-color: var(--pj-text-faint);
+  color: var(--pj-text);
   transform: translateY(-1px);
 }
 
@@ -130,11 +160,11 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--pj-surface);
   padding: 1.35rem;
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--pj-border);
+  box-shadow: var(--pj-shadow);
   display: flex;
   flex-direction: column;
 }
@@ -144,26 +174,26 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
+  color: var(--pj-text-soft);
   margin-bottom: 0.5rem;
 }
 
 .stat-value {
   font-size: 1.9rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pj-text);
   margin-bottom: 0.25rem;
 }
 
 .stat-value small {
   font-size: 1rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .stat-desc {
   font-size: 0.825rem;
-  color: #94a3b8;
+  color: var(--pj-text-faint);
 }
 
 .stat-card.highlight-green .stat-value {
@@ -181,7 +211,7 @@
 .progress-bar-bg {
   width: 100%;
   height: 6px;
-  background: #e2e8f0;
+  background: var(--pj-track);
   border-radius: 3px;
   margin-top: 0.6rem;
   overflow: hidden;
@@ -206,7 +236,7 @@
 
 .mode-tabs {
   display: flex;
-  background: #e2e8f0;
+  background: var(--pj-track);
   padding: 0.3rem;
   border-radius: 12px;
   gap: 0.3rem;
@@ -216,7 +246,7 @@
   padding: 0.65rem 1.3rem;
   border: none;
   background: transparent;
-  color: #475569;
+  color: var(--pj-text-soft);
   font-weight: 600;
   border-radius: 9px;
   cursor: pointer;
@@ -225,11 +255,11 @@
 }
 
 .tab-btn:hover {
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .tab-btn.active {
-  background: white;
+  background: var(--pj-surface);
   color: #5c9032;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -243,13 +273,13 @@
 .unit-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .unit-switch {
   display: flex;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border-strong);
   border-radius: 10px;
   padding: 0.25rem;
 }
@@ -260,7 +290,7 @@
   padding: 0.4rem 0.85rem;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--pj-text-soft);
   border-radius: 7px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -283,18 +313,18 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.85rem;
-  background: white;
+  background: var(--pj-surface);
   padding: 0.85rem 1.35rem;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  border: 1px solid var(--pj-border);
   margin-bottom: 1.35rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--pj-shadow);
 }
 
 .series-label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--pj-text-soft);
 }
 
 .week-preset-list {
@@ -306,9 +336,9 @@
 .week-preset-btn {
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: #334155;
+  border: 1px solid var(--pj-border-strong);
+  background: var(--pj-surface-soft);
+  color: var(--pj-text);
   font-size: 0.825rem;
   font-weight: 700;
   cursor: pointer;
@@ -324,7 +354,7 @@
 
 .shift-hint {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   margin-left: auto;
 }
 
@@ -341,7 +371,7 @@
   gap: 1rem;
   background: #f2f7ec;
   border: 1.5px solid #c5dfab;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 1rem 1.5rem;
   margin-bottom: 1.75rem;
   box-shadow: 0 10px 25px -4px rgba(92, 144, 50, 0.15);
@@ -408,9 +438,9 @@
 }
 
 .calendar-day-card {
-  background: white;
+  background: var(--pj-surface);
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pj-border);
   padding: 1.1rem;
   min-height: 185px;
   display: flex;
@@ -424,8 +454,8 @@
 
 .calendar-day-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.08);
-  border-color: #cbd5e1;
+  box-shadow: var(--pj-shadow-hover);
+  border-color: var(--pj-border-strong);
 }
 
 .calendar-day-card.selected {
@@ -477,22 +507,22 @@
 .day-name {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--pj-text-soft);
   text-transform: uppercase;
 }
 
 .day-number {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .holiday-toggle-chip {
   padding: 0.25rem 0.65rem;
   border-radius: 20px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
+  border: 1px solid var(--pj-border);
+  background: var(--pj-surface-soft);
+  color: var(--pj-text-soft);
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -539,7 +569,7 @@
 }
 
 .no-entries-placeholder {
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   font-size: 0.85rem;
   font-style: italic;
   text-align: center;
@@ -582,7 +612,7 @@
 
 .entry-note-preview {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -606,7 +636,7 @@
 .delete-entry-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--pj-text-faint);
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0 0.2rem;
@@ -621,10 +651,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px dashed #e2e8f0;
+  border-top: 1px dashed var(--pj-border);
   padding-top: 0.6rem;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .text-warn {
@@ -645,10 +675,10 @@
 /* 2. MATRIX VIEW STYLING (WITH STICKY FIRST COLUMN) */
 .matrix-table-wrapper {
   overflow-x: auto;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+  background: var(--pj-surface);
+  border-radius: 18px;
+  border: 1px solid var(--pj-border);
+  box-shadow: var(--pj-shadow);
   position: relative;
 }
 
@@ -662,15 +692,15 @@
 .matrix-table th,
 .matrix-table td {
   padding: 0.85rem 0.6rem;
-  border-bottom: 1px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--pj-border);
+  border-right: 1px solid var(--pj-border);
   text-align: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .matrix-table th {
-  background: #f8fafc;
-  color: #334155;
+  background: var(--pj-surface-soft);
+  color: var(--pj-text);
 }
 
 /* STICKY FIRST COLUMN (Project / Type Column) */
@@ -679,7 +709,7 @@
   position: sticky;
   left: 0;
   z-index: 10;
-  background: white;
+  background: var(--pj-surface);
   width: 240px;
   min-width: 220px;
   text-align: left !important;
@@ -689,7 +719,7 @@
 
 .project-col {
   z-index: 15;
-  background: #f8fafc;
+  background: var(--pj-surface-soft);
 }
 
 .holiday-row .project-cell {
@@ -699,14 +729,14 @@
 .th-day-name {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--pj-text-soft);
   text-transform: uppercase;
 }
 
 .th-day-num {
   font-size: 1rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .holiday-row {
@@ -725,19 +755,19 @@
 
 .proj-name {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .proj-code {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .cell-input {
   width: 58px;
   text-align: center;
   padding: 0.45rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pj-border-strong);
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.9rem;
@@ -788,9 +818,9 @@ td.td-error-column .cell-input {
 
 /* 3. HISTORY TABLE */
 .timesheets-table-wrapper {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  background: var(--pj-surface);
+  border-radius: 18px;
+  border: 1px solid var(--pj-border);
   overflow-x: auto;
 }
 
@@ -803,12 +833,12 @@ td.td-error-column .cell-input {
 .timesheets-table td {
   padding: 1rem 1.35rem;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--pj-border);
 }
 
 .timesheets-table th {
-  background: #f8fafc;
-  color: #475569;
+  background: var(--pj-surface-soft);
+  color: var(--pj-text-soft);
   font-weight: 700;
   font-size: 0.85rem;
   text-transform: uppercase;
@@ -850,7 +880,7 @@ td.td-error-column .cell-input {
 }
 
 /* MODAL DIALOG */
-.modal-backdrop {
+.timesheet-hub-container .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -872,12 +902,13 @@ td.td-error-column .cell-input {
   to { opacity: 1; }
 }
 
-.modal-content {
-  background: white;
-  border-radius: 20px;
+.timesheet-hub-container .modal-content {
+  background: var(--pj-surface);
+  border: 1px solid var(--pj-border);
+  border-radius: 18px;
   width: 100%;
   max-width: 520px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
   overflow: hidden;
   animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   max-height: 88vh;
@@ -885,43 +916,43 @@ td.td-error-column .cell-input {
   flex-direction: column;
 }
 
-.modal-content.modal-large {
+.timesheet-hub-container .modal-content.modal-large {
   max-width: 680px;
 }
 
-.confirm-modal-card {
+.timesheet-hub-container .confirm-modal-card {
   max-width: 440px !important;
 }
 
-.confirm-modal-body {
+.timesheet-hub-container .confirm-modal-body {
   padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.confirm-message {
+.timesheet-hub-container .confirm-message {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--pj-text);
   line-height: 1.5;
 }
 
-.confirm-submessage {
+.timesheet-hub-container .confirm-submessage {
   margin: 0;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   line-height: 1.5;
 }
 
-.confirm-actions {
+.timesheet-hub-container .confirm-actions {
   display: flex;
   gap: 0.85rem;
   margin-top: 1rem;
 }
 
-.confirm-actions .btn {
+.timesheet-hub-container .confirm-actions .btn {
   flex: 1;
 }
 
@@ -948,40 +979,40 @@ td.td-error-column .cell-input {
   }
 }
 
-.modal-header {
+.timesheet-hub-container .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 1.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-bottom: 1px solid var(--pj-border);
+  background: var(--pj-surface-soft);
 }
 
-.modal-header h2 {
+.timesheet-hub-container .modal-header h2 {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
-.modal-subtitle {
+.timesheet-hub-container .modal-subtitle {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--pj-text-soft);
   display: block;
   margin-top: 0.25rem;
   font-weight: 500;
 }
 
-.modal-close {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+.timesheet-hub-container .modal-close {
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   width: 36px;
   height: 36px;
   border-radius: 50%;
   font-size: 1.4rem;
   line-height: 1;
-  color: #64748b;
+  color: var(--pj-text-soft);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -989,13 +1020,13 @@ td.td-error-column .cell-input {
   transition: all 0.2s ease;
 }
 
-.modal-close:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+.timesheet-hub-container .modal-close:hover {
+  background: var(--pj-border);
+  color: var(--pj-text);
   transform: rotate(90deg);
 }
 
-.modal-form {
+.timesheet-hub-container .modal-form {
   padding: 1.75rem;
   display: flex;
   flex-direction: column;
@@ -1003,10 +1034,10 @@ td.td-error-column .cell-input {
   overflow-y: auto;
 }
 
-.form-group label {
+.timesheet-hub-container .form-group label {
   font-weight: 700;
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--pj-text);
   margin-bottom: 0.45rem;
   display: block;
 }
@@ -1016,17 +1047,17 @@ td.td-error-column .cell-input {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
-  background: #f1f5f9;
+  background: var(--pj-surface-soft);
   padding: 0.35rem;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pj-border);
 }
 
 .toggle-btn {
   padding: 0.75rem;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: var(--pj-text-soft);
   border-radius: 9px;
   font-weight: 700;
   font-size: 0.9rem;
@@ -1039,7 +1070,7 @@ td.td-error-column .cell-input {
 }
 
 .toggle-btn.selected {
-  background: white;
+  background: var(--pj-surface);
   color: #5c9032;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
@@ -1073,7 +1104,7 @@ td.td-error-column .cell-input {
   padding: 0.65rem 1.25rem;
   border-radius: 12px;
   border: 1.5px solid #fde68a;
-  background: white;
+  background: var(--pj-surface);
   color: #b45309;
   font-weight: 700;
   font-size: 0.9rem;
@@ -1114,7 +1145,7 @@ td.td-error-column .cell-input {
 .block-header label {
   font-weight: 700;
   font-size: 0.95rem;
-  color: #0f172a;
+  color: var(--pj-text);
 }
 
 .project-rows-list {
@@ -1124,20 +1155,20 @@ td.td-error-column .cell-input {
 }
 
 .project-row-item {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--pj-surface-soft);
+  border: 1px solid var(--pj-border);
   border-left: 4px solid #5c9032;
   border-radius: 12px;
   padding: 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--pj-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .project-row-item:hover {
-  border-color: #cbd5e1;
+  border-color: var(--pj-border-strong);
   border-left-color: #4a7527;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
@@ -1167,7 +1198,7 @@ td.td-error-column .cell-input {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: var(--pj-text-soft);
 }
 
 .hours-input-wrapper {
@@ -1185,7 +1216,7 @@ td.td-error-column .cell-input {
   right: 10px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--pj-text-soft);
   pointer-events: none;
 }
 
@@ -1220,16 +1251,16 @@ td.td-error-column .cell-input {
 .preset-title {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--pj-text-soft);
   margin-right: 0.2rem;
 }
 
 .preset-btn {
   padding: 0.3rem 0.65rem;
   border-radius: 20px;
-  border: 1px solid #cbd5e1;
-  background: white;
-  color: #334155;
+  border: 1px solid var(--pj-border-strong);
+  background: var(--pj-surface);
+  color: var(--pj-text);
   font-size: 0.775rem;
   font-weight: 700;
   cursor: pointer;
@@ -1250,7 +1281,7 @@ td.td-error-column .cell-input {
 }
 
 .row-note .note-input {
-  background: white;
+  background: var(--pj-surface);
   font-size: 0.9rem;
 }
 
@@ -1310,14 +1341,14 @@ td.td-error-column .cell-input {
 .form-input,
 .form-select {
   padding: 0.75rem 0.95rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pj-border-strong);
   border-radius: 10px;
   font-size: 0.95rem;
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;
-  background: white;
-  color: #0f172a;
+  background: var(--pj-surface);
+  color: var(--pj-text);
   transition: all 0.15s ease;
 }
 
@@ -1407,216 +1438,162 @@ td.td-error-column .cell-input {
   transform: translateY(-1px);
 }
 
-/* DARK MODE INTEGRATION */
-:root[data-theme='dark'] .timesheet-hub-container {
-  color: #f8fafc;
+/* ==========================================================================
+   DARK MODE — surfaces/borders/text all come from the `--pj-*` tokens above,
+   so only the semantic tints (brand green, holiday amber, error red) need a
+   dark counterpart here. Replaces ~200 lines of `!important` overrides.
+   ========================================================================== */
+
+/* Brand-green tinted surfaces */
+[data-theme='dark'] .today-btn,
+[data-theme='dark'] .alert-success,
+[data-theme='dark'] .entry-pill,
+[data-theme='dark'] .badge-project,
+[data-theme='dark'] .btn-secondary-sm,
+[data-theme='dark'] .batch-action-bar {
+  background: rgba(92, 144, 50, 0.16);
+  border-color: rgba(124, 179, 66, 0.35);
+  color: #a3d977;
 }
 
-:root[data-theme='dark'] .timesheet-header,
-:root[data-theme='dark'] .stat-card,
-:root[data-theme='dark'] .calendar-day-card,
-:root[data-theme='dark'] .matrix-table-wrapper,
-:root[data-theme='dark'] .timesheets-table-wrapper,
-:root[data-theme='dark'] .modal-content,
-:root[data-theme='dark'] .series-range-bar {
-  background: #1e293b !important;
-  border-color: #334155 !important;
+[data-theme='dark'] .today-btn:hover,
+[data-theme='dark'] .btn-secondary-sm:hover,
+[data-theme='dark'] .week-preset-btn:hover,
+[data-theme='dark'] .preset-btn:hover {
+  background: rgba(92, 144, 50, 0.26);
+  border-color: rgba(124, 179, 66, 0.5);
+  color: #b9e38f;
 }
 
-:root[data-theme='dark'] .confirm-message {
-  color: #f8fafc !important;
+[data-theme='dark'] .proj-tag,
+[data-theme='dark'] .batch-link-btn,
+[data-theme='dark'] .edit-hint,
+[data-theme='dark'] .shift-hint strong,
+[data-theme='dark'] .tab-btn.active,
+[data-theme='dark'] .toggle-btn.selected {
+  color: #a3d977;
 }
 
-:root[data-theme='dark'] .confirm-submessage {
-  color: #cbd5e1 !important;
-}
-
-:root[data-theme='dark'] .series-label {
-  color: #cbd5e1 !important;
-}
-
-:root[data-theme='dark'] .week-preset-btn {
-  background: #0f172a !important;
-  border-color: #334155 !important;
-  color: #cbd5e1 !important;
-}
-
-:root[data-theme='dark'] .week-preset-btn:hover {
-  background: #0f291e !important;
-  color: #7cb342 !important;
-  border-color: #5c9032 !important;
-}
-
-:root[data-theme='dark'] .calendar-day-card.selected {
-  background: #0f291e !important;
+[data-theme='dark'] .calendar-day-card.selected {
+  background: rgba(92, 144, 50, 0.18) !important;
   border-color: #7cb342 !important;
 }
 
-:root[data-theme='dark'] .batch-action-bar {
-  background: #0f291e !important;
-  border-color: #3e6320 !important;
+/* Mobile day-strip active pill (green tint, only rendered <=600px) */
+[data-theme='dark'] .day-strip-pill.active {
+  background: rgba(92, 144, 50, 0.18);
+  border-color: #7cb342;
 }
 
-:root[data-theme='dark'] .batch-link-btn {
-  color: #7cb342 !important;
+[data-theme='dark'] .day-strip-pill.active .strip-day-name,
+[data-theme='dark'] .day-strip-pill.active .strip-day-number {
+  color: #a3d977;
 }
 
-:root[data-theme='dark'] .project-col {
-  background: #0f172a !important;
-  box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.4);
+/* Holiday / warning amber */
+[data-theme='dark'] .calendar-day-card.is-holiday,
+[data-theme='dark'] .holiday-row,
+[data-theme='dark'] .holiday-row .project-cell,
+[data-theme='dark'] .holiday-form-block,
+[data-theme='dark'] .holiday-banner,
+[data-theme='dark'] .badge-holiday,
+[data-theme='dark'] .chip {
+  background: rgba(217, 119, 6, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
 }
 
-:root[data-theme='dark'] .project-cell {
-  background: #1e293b !important;
-  box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.4);
+[data-theme='dark'] .calendar-day-card.is-holiday {
+  background: rgba(217, 119, 6, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
 }
 
-:root[data-theme='dark'] .holiday-row .project-cell {
-  background: #451a03 !important;
-}
-
-:root[data-theme='dark'] th.th-error-column {
-  background: #451a03 !important;
-  border-color: #d97706 !important;
-  color: #fbbf24 !important;
-}
-
-:root[data-theme='dark'] th.th-error-column .th-day-name,
-:root[data-theme='dark'] th.th-error-column .th-day-num {
-  color: #fbbf24 !important;
-}
-
-:root[data-theme='dark'] td.td-error-column {
-  background: rgba(146, 64, 14, 0.15) !important;
-  border-color: #d97706 !important;
-}
-
-:root[data-theme='dark'] td.td-error-column .cell-input {
+[data-theme='dark'] .calendar-day-card.invalid-total {
+  background: rgba(217, 119, 6, 0.1) !important;
   border-color: #f59e0b !important;
-  background: #1e1b4b !important;
+}
+
+[data-theme='dark'] .holiday-form-block label,
+[data-theme='dark'] .holiday-cell-title,
+[data-theme='dark'] .text-warn,
+[data-theme='dark'] .warn-hint,
+[data-theme='dark'] .holiday-toggle-chip:hover {
   color: #fbbf24 !important;
 }
 
-:root[data-theme='dark'] .header-title-group h1,
-:root[data-theme='dark'] .month-name,
-:root[data-theme='dark'] .stat-value,
-:root[data-theme='dark'] .day-number,
-:root[data-theme='dark'] .modal-header h2,
-:root[data-theme='dark'] .proj-name,
-:root[data-theme='dark'] .block-header label,
-:root[data-theme='dark'] .form-group label {
-  color: #f8fafc !important;
+[data-theme='dark'] .chip:hover {
+  background: rgba(217, 119, 6, 0.26);
+  border-color: #f59e0b;
 }
 
-:root[data-theme='dark'] .current-month-display,
-:root[data-theme='dark'] .matrix-table th,
-:root[data-theme='dark'] .timesheets-table th,
-:root[data-theme='dark'] .modal-header {
-  background: #0f172a !important;
-  border-color: #334155 !important;
+[data-theme='dark'] .modal-total-bar.under {
+  background: rgba(217, 119, 6, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
 }
 
-:root[data-theme='dark'] .project-row-item {
-  background: #0f172a !important;
-  border-color: #334155 !important;
+[data-theme='dark'] .modal-total-bar.under strong {
+  color: #fbbf24;
 }
 
-:root[data-theme='dark'] .holiday-form-block {
-  background: #451a03 !important;
-  border-color: #78350f !important;
+/* Error red */
+[data-theme='dark'] .alert-error,
+[data-theme='dark'] .btn-danger-sm,
+[data-theme='dark'] .remove-row-btn,
+[data-theme='dark'] .modal-total-bar.over {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #f87171;
 }
 
-:root[data-theme='dark'] .holiday-form-block label {
-  color: #fde68a !important;
+[data-theme='dark'] .btn-danger-sm:hover,
+[data-theme='dark'] .remove-row-btn:hover {
+  background: rgba(239, 68, 68, 0.26);
 }
 
-:root[data-theme='dark'] .chip {
-  background: #0f172a !important;
-  border-color: #78350f !important;
-  color: #fde68a !important;
+[data-theme='dark'] .modal-total-bar.over strong {
+  color: #f87171;
 }
 
-:root[data-theme='dark'] .chip.active {
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-  color: white !important;
-  border-color: #d97706 !important;
-}
-
-:root[data-theme='dark'] .nav-btn,
-:root[data-theme='dark'] .form-input,
-:root[data-theme='dark'] .form-select,
-:root[data-theme='dark'] .cell-input,
-:root[data-theme='dark'] .row-note .note-input {
-  background: #0f172a !important;
-  border-color: #334155 !important;
-  color: #f8fafc !important;
-}
-
-:root[data-theme='dark'] .type-toggle-group,
-:root[data-theme='dark'] .unit-switch {
-  background: #0f172a !important;
-  border-color: #334155 !important;
-}
-
-:root[data-theme='dark'] .toggle-btn.selected {
-  background: #1e293b !important;
-  color: #7cb342 !important;
-}
-
-:root[data-theme='dark'] .preset-btn {
-  background: #0f172a !important;
-  border-color: #334155 !important;
-  color: #cbd5e1 !important;
-}
-
-:root[data-theme='dark'] .preset-btn.selected {
-  background: #5c9032 !important;
-  color: white !important;
-}
-
-:root[data-theme='dark'] .modal-total-bar.valid {
-  background: rgba(22, 101, 52, 0.2) !important;
-  border-color: #15803d !important;
-  color: #4ade80 !important;
-}
-
-:root[data-theme='dark'] .modal-total-bar.valid strong {
-  color: #4ade80 !important;
-}
-
-:root[data-theme='dark'] .modal-total-bar.under {
-  background: rgba(146, 64, 14, 0.2) !important;
-  border-color: #d97706 !important;
-  color: #fbbf24 !important;
-}
-
-:root[data-theme='dark'] .modal-total-bar.under strong {
-  color: #fbbf24 !important;
-}
-
-:root[data-theme='dark'] .modal-total-bar.over {
-  background: rgba(153, 27, 27, 0.2) !important;
-  border-color: #dc2626 !important;
+[data-theme='dark'] th.th-error-column {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-left-color: rgba(239, 68, 68, 0.5) !important;
+  border-right-color: rgba(239, 68, 68, 0.5) !important;
   color: #f87171 !important;
 }
 
-:root[data-theme='dark'] .modal-total-bar.over strong {
+[data-theme='dark'] th.th-error-column .th-day-name,
+[data-theme='dark'] th.th-error-column .th-day-num {
   color: #f87171 !important;
 }
 
-:root[data-theme='dark'] .modal-close {
-  background: #0f172a !important;
-  border-color: #334155 !important;
-  color: #cbd5e1 !important;
+[data-theme='dark'] td.td-error-column {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-left-color: rgba(239, 68, 68, 0.35) !important;
+  border-right-color: rgba(239, 68, 68, 0.35) !important;
 }
 
-:root[data-theme='dark'] .calendar-day-card.is-holiday {
-  background: #451a03 !important;
-  border-color: #78350f !important;
+[data-theme='dark'] td.td-error-column .cell-input {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #f87171 !important;
 }
 
-:root[data-theme='dark'] .holiday-row {
-  background: #451a03 !important;
+/* Valid-total green */
+[data-theme='dark'] .modal-total-bar.valid {
+  background: rgba(92, 144, 50, 0.18);
+  border-color: rgba(124, 179, 66, 0.4);
+  color: #a3d977;
+}
+
+[data-theme='dark'] .modal-total-bar.valid strong {
+  color: #a3d977;
+}
+
+/* Sticky matrix column needs a stronger shadow to read against dark rows */
+[data-theme='dark'] .project-col,
+[data-theme='dark'] .project-cell {
+  box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.45);
 }
 
 /* ==========================================================================
@@ -1859,10 +1836,10 @@ td.td-error-column .cell-input {
     place-items: center;
     width: 34px;
     height: 34px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--pj-border-strong);
     border-radius: 10px;
-    background: white;
-    color: #334155;
+    background: var(--pj-surface);
+    color: var(--pj-text);
     font-size: 1.15rem;
     line-height: 1;
     cursor: pointer;
@@ -1870,8 +1847,8 @@ td.td-error-column .cell-input {
   }
 
   .strip-arrow:hover:not(:disabled) {
-    background: #f8fafc;
-    border-color: #94a3b8;
+    background: var(--pj-surface-soft);
+    border-color: var(--pj-text-faint);
   }
 
   .strip-arrow:disabled {
@@ -1899,15 +1876,15 @@ td.td-error-column .cell-input {
     gap: 0.3rem;
     width: 50px;
     padding: 0.5rem 0.25rem 0.45rem;
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid var(--pj-border);
     border-radius: 12px;
-    background: white;
+    background: var(--pj-surface);
     cursor: pointer;
     transition: all 0.18s ease;
   }
 
   .day-strip-pill.is-today {
-    border-color: #94a3b8;
+    border-color: var(--pj-text-faint);
   }
 
   .day-strip-pill.active {
@@ -1921,13 +1898,13 @@ td.td-error-column .cell-input {
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--pj-text-soft);
   }
 
   .strip-day-number {
     font-size: 1rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--pj-text);
   }
 
   .day-strip-pill.active .strip-day-name,
@@ -1939,7 +1916,7 @@ td.td-error-column .cell-input {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #cbd5e1;
+    background: var(--pj-border-strong);
   }
 
   .strip-dot-done {
@@ -1960,7 +1937,7 @@ td.td-error-column .cell-input {
   }
 
   .mobile-day-detail .calendar-day-card {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--pj-shadow);
   }
 
   /* MATRIX: keep the horizontal scroll (23 day columns) but slim the sticky
@@ -2006,12 +1983,12 @@ td.td-error-column .cell-input {
   }
 
   .timesheets-table tr {
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: var(--pj-surface);
+    border: 1px solid var(--pj-border);
     border-radius: 14px;
     padding: 0.35rem 0;
     margin-bottom: 0.75rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--pj-shadow);
   }
 
   .timesheets-table td {
@@ -2031,7 +2008,7 @@ td.td-error-column .cell-input {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #64748b;
+    color: var(--pj-text-soft);
     text-align: left;
   }
 
@@ -2218,46 +2195,4 @@ td.td-error-column .cell-input {
     border: none !important;
   }
 
-  :root[data-theme='dark'] .timesheets-table tr {
-    background: #1e293b;
-    border-color: #334155;
-  }
-
-  :root[data-theme='dark'] .timesheets-table td::before {
-    color: #94a3b8;
-  }
-
-  /* Dark mode: mobile day-strip */
-  :root[data-theme='dark'] .strip-arrow {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-    color: #cbd5e1 !important;
-  }
-
-  :root[data-theme='dark'] .day-strip-pill {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-  }
-
-  :root[data-theme='dark'] .day-strip-pill.is-today {
-    border-color: #475569 !important;
-  }
-
-  :root[data-theme='dark'] .day-strip-pill.active {
-    background: rgba(92, 144, 50, 0.18) !important;
-    border-color: #5c9032 !important;
-  }
-
-  :root[data-theme='dark'] .strip-day-name {
-    color: #94a3b8 !important;
-  }
-
-  :root[data-theme='dark'] .strip-day-number {
-    color: #f1f5f9 !important;
-  }
-
-  :root[data-theme='dark'] .day-strip-pill.active .strip-day-name,
-  :root[data-theme='dark'] .day-strip-pill.active .strip-day-number {
-    color: #a3d977 !important;
-  }
 }

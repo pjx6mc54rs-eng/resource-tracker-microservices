@@ -255,7 +255,7 @@ export default function UsersList() {
   }
 
   if (loading) {
-    return <div className="users-list"><p>Loading users...</p></div>
+    return <div className="users-page"><p>Loading users...</p></div>
   }
 
   // Filter potential managers: Users with 'responsable' or 'admin' role
@@ -297,7 +297,7 @@ export default function UsersList() {
   }
 
   return (
-    <div className="users-list">
+    <div className="users-page">
       <div className="users-header-row">
         <div>
           <h1>User Space & Management</h1>

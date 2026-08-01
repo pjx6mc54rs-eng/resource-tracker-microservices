@@ -118,9 +118,12 @@
   --pj-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
   --pj-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.05), 0 18px 36px rgba(15, 23, 42, 0.1);
 
-  max-width: 1280px;
+  /* Same gutter as Dashboard / Messages / Timesheet: the old 1280px cap was
+     narrower than the content area, so `margin: 0 auto` centred the page and
+     left a wide gap against the sidebar. */
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2.25rem 1.5rem 3.5rem;
+  padding: 2rem;
   color: var(--pj-text);
 }
 

@@ -191,6 +191,10 @@
   font-size: 1rem;
   font-family: inherit;
   box-sizing: border-box;
+  /* Explicit: previously inherited from UsersList.css's global
+     `.form-group input`, which is now scoped to its own page. */
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .profile-form-grid input:focus,
