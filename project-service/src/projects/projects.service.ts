@@ -1,3 +1,4 @@
+import { EventsService } from '../events/events.service';
 import {
   Injectable,
   NotFoundException,
@@ -25,7 +26,14 @@ export class ProjectsService {
     private readonly assignmentRepo: Repository<Assignment>,
     @InjectRepository(TaskAssignment)
     private readonly taskAssignmentRepo: Repository<TaskAssignment>,
+    private readonly events: EventsService,
   ) {}
+
+  /** Nom du projet, pour le texte des notifications. */
+  private async projectName(projectId: string): Promise<string> {
+    const p = await this.projectRepo.findOne({ where: { id: projectId } });
+    return p?.name ?? 'un projet';
+  }
 
   // ── Admin ──────────────────────────────────────────────────────────────
 
@@ -74,7 +82,15 @@ export class ProjectsService {
       ],
     });
 
-    return this.taskRepo.save(task);
+    const savedTask = await this.taskRepo.save(task);
+
+    this.events.emit('task.assigned', {
+      recipientIds: [data.assignedUserId],
+      taskTitle: savedTask.title,
+      projectId,
+    });
+
+    return savedTask;
   }
 
   async assignUser(projectId: string, userId: string): Promise<Assignment> {
@@ -90,7 +106,15 @@ export class ProjectsService {
     }
 
     const assignment = this.assignmentRepo.create({ projectId, userId });
-    return this.assignmentRepo.save(assignment);
+    const saved = await this.assignmentRepo.save(assignment);
+
+    this.events.emit('project.assigned', {
+      recipientIds: [userId],
+      projectName: await this.projectName(projectId),
+      projectId,
+    });
+
+    return saved;
   }
 
   async unassignUser(projectId: string, userId: string): Promise<void> {
@@ -122,7 +146,16 @@ export class ProjectsService {
       }
     }
 
+    // Le nom est lu avant la suppression : apres, plus rien ne relie
+    // l'utilisateur au projet.
+    const name = await this.projectName(projectId);
     await this.assignmentRepo.delete({ projectId, userId });
+
+    this.events.emit('project.unassigned', {
+      recipientIds: [userId],
+      projectName: name,
+      projectId,
+    });
   }
 
   async deleteTask(projectId: string, taskId: string): Promise<void> {

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useNotifications } from '../context/NotificationContext'
 import { useAuth } from '../context/AuthContext'
 import API_URL from '../config/api'
 import LogoutIcon from './LogoutIcon'
@@ -9,8 +10,23 @@ import MoonIcon from './MoonIcon'
 import KeyIcon from './KeyIcon'
 import './Navbar.css'
 
+/** Ancienneté en clair : "il y a 3 h" est plus lisible qu'une date complète. */
+function formatRelative(value) {
+  if (!value) return ''
+  const diff = Date.now() - new Date(value).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return "à l'instant"
+  if (min < 60) return `il y a ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `il y a ${h} h`
+  const d = Math.floor(h / 24)
+  if (d < 7) return `il y a ${d} j`
+  return new Date(value).toLocaleDateString('fr-FR')
+}
+
 export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
   const { user, logout } = useAuth()
+  const { items, unread, markAsRead, markAllAsRead } = useNotifications()
 
   const handleLogout = () => {
     logout()
@@ -45,36 +61,50 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
           <div className="notification-dropdown-container">
             <button className="notification-btn" aria-label="Notifications" data-tooltip="Notifications">
               <NotificationIcon size="22px" />
-              <span className="notification-badge-dot"></span>
+              {unread > 0 && <span className="notification-badge-dot"></span>}
             </button>
             <div className="notification-dropdown">
               <div className="notification-header">
                 <h3>Notifications</h3>
-                <span className="notification-count">3 new</span>
+                {unread > 0 ? (
+                  <button
+                    type="button"
+                    className="notification-count"
+                    onClick={markAllAsRead}
+                    title="Tout marquer comme lu"
+                  >
+                    {unread} non lue{unread > 1 ? 's' : ''}
+                  </button>
+                ) : (
+                  <span className="notification-count">À jour</span>
+                )}
               </div>
               <div className="dropdown-divider"></div>
               <div className="notification-list">
-                <div className="notification-item">
-                  <div className="notification-item-dot"></div>
-                  <div className="notification-item-content">
-                    <p className="notification-text">New project assigned: <strong>Website Redesign</strong></p>
-                    <span className="notification-time">2 hours ago</span>
+                {items.length === 0 && (
+                  <div className="notification-item">
+                    <div className="notification-item-content">
+                      <p className="notification-text">Aucune notification.</p>
+                    </div>
                   </div>
-                </div>
-                <div className="notification-item">
-                  <div className="notification-item-dot"></div>
-                  <div className="notification-item-content">
-                    <p className="notification-text">Timesheet approved by admin</p>
-                    <span className="notification-time">5 hours ago</span>
-                  </div>
-                </div>
-                <div className="notification-item">
-                  <div className="notification-item-dot"></div>
-                  <div className="notification-item-content">
-                    <p className="notification-text">Welcome to <strong>Norsys Ressource Tracker</strong>!</p>
-                    <span className="notification-time">1 day ago</span>
-                  </div>
-                </div>
+                )}
+                {items.map((n) => (
+                  <Link
+                    key={n.id}
+                    to={n.link || '#'}
+                    className="notification-item"
+                    onClick={() => { if (!n.read) markAsRead(n.id) }}
+                  >
+                    {!n.read && <div className="notification-item-dot"></div>}
+                    <div className="notification-item-content">
+                      <p className="notification-text">
+                        <strong>{n.title}</strong>
+                        {n.body ? <> — {n.body}</> : null}
+                      </p>
+                      <span className="notification-time">{formatRelative(n.createdAt)}</span>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

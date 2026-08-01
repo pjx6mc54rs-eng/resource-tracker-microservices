@@ -1,3 +1,4 @@
+import { EventsService } from '../events/events.service';
 import {
   BadRequestException,
   ConflictException,
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly events: EventsService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -39,6 +41,11 @@ export class AuthService {
       bio: dto.bio ?? null,
       avatarUrl: dto.avatarUrl ?? null,
     });
+    this.events.emit('account.created', {
+      recipientIds: [user.id],
+      email: user.email,
+    });
+
     return this.usersService.sanitize(user);
   }
 

@@ -28,6 +28,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { UserRole } from '../entities/user.entity';
+import { EventsService } from '../events/events.service';
 
 interface AuthenticatedRequest {
   user: { userId: string; email: string; role: UserRole };
@@ -64,6 +65,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly events: EventsService,
   ) {}
 
   private saveAvatarFile(file: any): string {
@@ -183,6 +185,12 @@ export class AuthController {
       throw new BadRequestException('Au moins un rôle valide est requis');
     }
     const updated = await this.usersService.update(userId, { roles });
+
+    this.events.emit('account.role_changed', {
+      recipientIds: [userId],
+      newRole: this.usersService.sanitize(updated).role,
+    });
+
     return this.usersService.sanitize(updated);
   }
 

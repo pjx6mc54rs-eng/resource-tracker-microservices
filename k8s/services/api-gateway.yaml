@@ -58,6 +58,11 @@ spec:
             configMapKeyRef:
               name: app-config
               key: CHAT_SERVICE_URL
+        - name: NOTIFICATION_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: NOTIFICATION_SERVICE_URL
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:

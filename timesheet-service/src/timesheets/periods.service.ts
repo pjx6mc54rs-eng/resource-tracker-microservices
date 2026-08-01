@@ -12,6 +12,7 @@ import {
   TimesheetPeriodStatus,
 } from '../entities/timesheet-period.entity';
 import { RequestUser, UserRole } from '../common/request-user';
+import { EventsService } from '../events/events.service';
 import { DirectoryService, DirectoryUser } from './directory.service';
 import { isValidPeriod, monthRange, periodOfDate } from './month-range';
 
@@ -60,7 +61,29 @@ export class TimesheetPeriodsService {
     @InjectRepository(Timesheet)
     private readonly timesheetRepository: Repository<Timesheet>,
     private readonly directory: DirectoryService,
+    private readonly events: EventsService,
   ) {}
+
+  /** Libelle lisible du mois, pour le texte des notifications. */
+  private static periodLabel(year: number, month: number): string {
+    const mois = [
+      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    ];
+    return `${mois[month - 1] ?? month} ${year}`;
+  }
+
+  /** Nom affichable d'un utilisateur, avec repli sur son email. */
+  private async actorName(userId: string, token: string): Promise<string> {
+    try {
+      const u = await this.directory.getUser(userId, token);
+      if (!u) return 'Un utilisateur';
+      const name = [u.firstName, u.lastName].filter(Boolean).join(' ').trim();
+      return name || u.email;
+    } catch {
+      return 'Un utilisateur';
+    }
+  }
 
   // ── Status helpers ───────────────────────────────────────────────────────
 
@@ -267,6 +290,13 @@ export class TimesheetPeriodsService {
     period.reviewComment = null;
 
     const saved = await this.periodRepository.save(period);
+
+    this.events.emit('timesheet.submitted', {
+      recipientIds: reviewerIds,
+      actorName: await this.actorName(user.userId, user.token),
+      periodLabel: TimesheetPeriodsService.periodLabel(year, month),
+    });
+
     return this.buildView(user.userId, year, month, saved, user.token);
   }
 
@@ -281,10 +311,22 @@ export class TimesheetPeriodsService {
       );
     }
 
+    // reviewerIds est efface juste apres : on garde les destinataires avant.
+    const previousReviewers = Array.isArray(period.reviewerIds)
+      ? [...period.reviewerIds]
+      : [];
+
     period.status = TimesheetPeriodStatus.NOT_VALIDATED;
     period.submittedAt = null;
     period.reviewerIds = null;
     const saved = await this.periodRepository.save(period);
+
+    this.events.emit('timesheet.recalled', {
+      recipientIds: previousReviewers,
+      actorName: await this.actorName(user.userId, user.token),
+      periodLabel: TimesheetPeriodsService.periodLabel(year, month),
+    });
+
     return this.buildView(user.userId, year, month, saved, user.token);
   }
 
@@ -391,6 +433,17 @@ export class TimesheetPeriodsService {
     period.reviewComment = trimmed;
 
     const saved = await this.periodRepository.save(period);
+
+    this.events.emit(
+      decision === 'approve' ? 'timesheet.approved' : 'timesheet.rejected',
+      {
+        recipientIds: [period.userId],
+        actorName: await this.actorName(user.userId, user.token),
+        periodLabel: TimesheetPeriodsService.periodLabel(period.year, period.month),
+        ...(decision === 'reject' && trimmed ? { reason: trimmed } : {}),
+      },
+    );
+
     return this.buildView(period.userId, period.year, period.month, saved, user.token);
   }
 

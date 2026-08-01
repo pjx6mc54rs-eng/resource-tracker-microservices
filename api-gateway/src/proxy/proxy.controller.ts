@@ -10,6 +10,7 @@ export class ProxyController {
   private readonly timesheetProxy: RequestHandler;
   private readonly reportingProxy: RequestHandler
   public readonly chatProxy: RequestHandler
+  private readonly notificationProxy: RequestHandler;
 
   constructor() {
     const commonOptions = {
@@ -72,6 +73,11 @@ export class ProxyController {
     this.reportingProxy = createProxyMiddleware({
       ...commonOptions,
       target: process.env.REPORTING_SERVICE_URL || 'http://localhost:3003',
+    })
+
+    this.notificationProxy = createProxyMiddleware({
+      ...commonOptions,
+      target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005',
     })
 
     this.chatProxy = createProxyMiddleware({
@@ -145,6 +151,18 @@ export class ProxyController {
   @UseGuards(JwtAuthGuard)
   handleTasksProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
     this.projectProxy(req, res, next);
+  }
+
+  @All('notifications')
+  @UseGuards(JwtAuthGuard)
+  handleNotificationsRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.notificationProxy(req, res, next);
+  }
+
+  @All('notifications/*')
+  @UseGuards(JwtAuthGuard)
+  handleNotificationsProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.notificationProxy(req, res, next);
   }
 
   @All('timesheets')
