@@ -101,6 +101,8 @@ services:
       DATABASE_PASSWORD: admin
       DATABASE_NAME: timesheet_db
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      AUTH_SERVICE_URL: http://auth-service:3000
+      PROJECT_SERVICE_URL: http://project-service:3000
     depends_on:
       postgres:
         condition: service_healthy

@@ -93,6 +93,15 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
           <span className="sidebar-icon">⏱️</span>
           <span className="sidebar-label">Timesheet</span>
         </NavLink>
+        {(user?.roles?.includes('responsable') ||
+          user?.role === 'responsable' ||
+          user?.roles?.includes('admin') ||
+          user?.role === 'admin') && (
+          <NavLink to="/timesheet-validation" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <span className="sidebar-icon">✅</span>
+            <span className="sidebar-label">Timesheet Validation</span>
+          </NavLink>
+        )}
         {(user?.roles?.includes('admin') || user?.role === 'admin') && (
           <NavLink to="/users" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <span className="sidebar-icon">👥</span>

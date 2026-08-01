@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { PrivateRoute } from './components/PrivateRoute'
 import { AdminRoute } from './components/AdminRoute'
+import { ManagerRoute } from './components/ManagerRoute'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import SunIcon from './components/SunIcon'
@@ -13,6 +14,7 @@ import Dashboard from './pages/dashboard/Dashboard'
 import ProjectsList from './pages/projects/ProjectsList'
 import ProjectDetail from './pages/projects/ProjectDetail'
 import TimesheetForm from './pages/timesheet/TimesheetForm'
+import TimesheetValidation from './pages/timesheet/TimesheetValidation'
 import UsersList from './pages/users/UsersList'
 import MessagesPage from './pages/messages/MessagesPage'
 import ProfilePage from './pages/profile/ProfilePage'
@@ -127,6 +129,18 @@ function App() {
               element={
                 <PrivateRoute>
                   <TimesheetForm />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Responsable / admin: validation queue */}
+            <Route
+              path="/timesheet-validation"
+              element={
+                <PrivateRoute>
+                  <ManagerRoute>
+                    <TimesheetValidation />
+                  </ManagerRoute>
                 </PrivateRoute>
               }
             />

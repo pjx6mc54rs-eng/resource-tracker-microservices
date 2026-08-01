@@ -7,8 +7,25 @@ import {
   submitTimesheet,
   bulkSubmitTimesheets,
   deleteTimesheetEntry,
+  getMyPeriod,
+  submitPeriodForValidation,
+  recallPeriod,
+  downloadMyPeriod,
 } from './timesheetsApi'
 import './TimesheetForm.css'
+
+const STATUS_META = {
+  not_validated: { label: 'Not validated', icon: '📝', hint: 'Not sent for validation yet.' },
+  pending: { label: 'Pending validation', icon: '⏳', hint: 'Locked while your responsable reviews it.' },
+  approved: { label: 'Validated', icon: '✅', hint: 'Validated — this month is final and can be downloaded.' },
+  rejected: { label: 'Rejected', icon: '✋', hint: 'Returned by your responsable — fix it and send it again.' },
+}
+
+const formatDateTime = (value) => {
+  if (!value) return '—'
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString()
+}
 
 export default function TimesheetForm() {
   const { token } = useAuth()
@@ -36,6 +53,11 @@ export default function TimesheetForm() {
 
   // Submitting status
   const [submitting, setSubmitting] = useState(false)
+
+  // Monthly validation workflow (not validated → pending → approved / rejected)
+  const [period, setPeriod] = useState(null)
+  const [periodBusy, setPeriodBusy] = useState(false)
+  const isLocked = !!period?.locked
 
   // Multi-Card Selection state: Set of date strings 'YYYY-MM-DD'
   const [selectedDates, setSelectedDates] = useState(new Set())
@@ -136,6 +158,17 @@ export default function TimesheetForm() {
     }
   }
 
+  // Fetch the validation state of the displayed month
+  const fetchPeriod = async () => {
+    try {
+      const data = await getMyPeriod(token, selectedYear, selectedMonth)
+      setPeriod(data)
+    } catch (err) {
+      console.error('Failed to fetch timesheet validation status:', err)
+      setPeriod(null)
+    }
+  }
+
   useEffect(() => {
     if (token) {
       fetchAssignedProjects()
@@ -145,10 +178,97 @@ export default function TimesheetForm() {
   useEffect(() => {
     if (token) {
       fetchTimesheets()
+      fetchPeriod()
       setSelectedDates(new Set())
       setLastSelectedDate(null)
     }
   }, [token, selectedYear, selectedMonth])
+
+  // Any edit attempt on a submitted / validated month is refused up-front, so
+  // the user gets an explanation instead of a 403 from the API.
+  const blockIfLocked = () => {
+    if (!isLocked) return false
+    showToast(
+      period?.status === 'approved'
+        ? 'This timesheet has been validated and can no longer be modified.'
+        : 'This timesheet is pending validation. Cancel the submission to edit it again.',
+      'warning'
+    )
+    return true
+  }
+
+  const handleSubmitForValidation = () => {
+    if (!period || period.entriesCount === 0) {
+      showToast('Log at least one day before requesting validation.', 'warning')
+      return
+    }
+
+    setConfirmModal({
+      isOpen: true,
+      title: 'Send for validation',
+      message: `Send ${monthNames[selectedMonth - 1]} ${selectedYear} to your responsable for validation?`,
+      subMessage:
+        'The month will be locked while it is being reviewed. Once validated it can no longer be modified.',
+      confirmText: 'Send for validation',
+      cancelText: 'Cancel',
+      isDanger: false,
+      onConfirm: async () => {
+        setPeriodBusy(true)
+        try {
+          const updated = await submitPeriodForValidation(token, selectedYear, selectedMonth)
+          setPeriod(updated)
+          const reviewers = (updated.reviewers || []).map((r) => r.name).join(', ')
+          showToast(
+            reviewers
+              ? `Timesheet sent for validation to ${reviewers}.`
+              : 'Timesheet sent for validation.',
+            'success'
+          )
+          await fetchTimesheets()
+        } catch (err) {
+          showToast(err.message || 'Failed to send the timesheet for validation', 'error')
+        } finally {
+          setPeriodBusy(false)
+        }
+      },
+    })
+  }
+
+  const handleRecallSubmission = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Cancel submission',
+      message: 'Take this timesheet back so you can edit it again?',
+      subMessage: 'Your responsable will no longer see it in their validation queue.',
+      confirmText: 'Cancel submission',
+      cancelText: 'Keep it submitted',
+      isDanger: true,
+      onConfirm: async () => {
+        setPeriodBusy(true)
+        try {
+          const updated = await recallPeriod(token, selectedYear, selectedMonth)
+          setPeriod(updated)
+          showToast('Submission cancelled — the month is editable again.', 'info')
+        } catch (err) {
+          showToast(err.message || 'Failed to cancel the submission', 'error')
+        } finally {
+          setPeriodBusy(false)
+        }
+      },
+    })
+  }
+
+  const handleDownloadPeriod = async (format) => {
+    setPeriodBusy(true)
+    try {
+      const name = await downloadMyPeriod(token, selectedYear, selectedMonth, format)
+      showToast(`Downloaded ${name}`, 'success')
+    } catch (err) {
+      showToast(err.message || 'Failed to download the timesheet', 'error')
+    } finally {
+      setPeriodBusy(false)
+    }
+  }
 
   // Navigation handlers
   const handlePrevMonth = () => {
@@ -373,6 +493,7 @@ export default function TimesheetForm() {
   // BATCH ACTIONS ON SELECTED DATES
   const handleBatchSetHoliday = async () => {
     if (selectedDates.size === 0) return
+    if (blockIfLocked()) return
 
     const payload = Array.from(selectedDates).map((dateStr) => ({
       date: dateStr,
@@ -397,6 +518,7 @@ export default function TimesheetForm() {
 
   const handleBatchClearSelected = () => {
     if (selectedDates.size === 0) return
+    if (blockIfLocked()) return
 
     setConfirmModal({
       isOpen: true,
@@ -448,6 +570,7 @@ export default function TimesheetForm() {
 
   const handleOpenBatchModal = () => {
     if (selectedDates.size === 0) return
+    if (blockIfLocked()) return
     if (projects.length === 0) {
       showToast('No project assigned to apply hours.', 'error')
       return
@@ -616,6 +739,7 @@ export default function TimesheetForm() {
 
   // Open Edit Modal for specific weekday (Single Day Multi-Project Support)
   const handleOpenDayModal = (dateString) => {
+    if (blockIfLocked()) return
     setActiveDay(dateString)
 
     const existing = entriesByDate[dateString] || []
@@ -691,6 +815,7 @@ export default function TimesheetForm() {
   const handleSaveDayEntries = async (e) => {
     e.preventDefault()
     if (!activeDay) return
+    if (blockIfLocked()) return
 
     if (modalIsHoliday) {
       const hNum = Number(modalHolidayHours)
@@ -775,6 +900,7 @@ export default function TimesheetForm() {
   // Quick Toggle Holiday on Day Card
   const handleQuickToggleHoliday = async (dateString, e) => {
     e.stopPropagation()
+    if (blockIfLocked()) return
 
     const existing = entriesByDate[dateString] || []
     const isCurrentlyHoliday = existing.some((x) => x.isHoliday)
@@ -810,6 +936,7 @@ export default function TimesheetForm() {
   // Delete an entry with custom confirmation modal
   const handleDeleteEntry = (id, e) => {
     e.stopPropagation()
+    if (blockIfLocked()) return
 
     setConfirmModal({
       isOpen: true,
@@ -871,6 +998,8 @@ export default function TimesheetForm() {
 
   // Save full monthly matrix including 0-hour cleanups
   const handleSaveMatrix = async () => {
+    if (blockIfLocked()) return
+
     const entriesToSave = []
     const allKeysToProcess = new Set(Object.keys(matrixData))
 
@@ -944,6 +1073,7 @@ export default function TimesheetForm() {
 
   // Quick Auto-fill 8h (1d) weekdays for first project
   const handleAutoFillMonth = () => {
+    if (blockIfLocked()) return
     if (projects.length === 0) {
       showToast('No project assigned to auto-fill.', 'error')
       return
@@ -1001,7 +1131,9 @@ export default function TimesheetForm() {
         key={dateString}
         className={`calendar-day-card ${isHoliday ? 'is-holiday' : ''} ${
           dayEntries.length > 0 ? 'has-entries' : 'empty'
-        } ${!isValidDayTotal ? 'invalid-total' : ''} ${isSelected ? 'selected' : ''}`}
+        } ${!isValidDayTotal ? 'invalid-total' : ''} ${isSelected ? 'selected' : ''} ${
+          isLocked ? 'ts-card-locked' : ''
+        }`}
         onClick={(e) => handleCardClick(dateString, e)}
       >
         <div className="day-card-header">
@@ -1010,6 +1142,7 @@ export default function TimesheetForm() {
               type="checkbox"
               className="card-select-checkbox"
               checked={isSelected}
+              disabled={isLocked}
               onChange={(e) => handleToggleDateSelection(dateString, e)}
               onClick={(e) => e.stopPropagation()}
               title="Select day or Shift-click for range selection"
@@ -1018,7 +1151,7 @@ export default function TimesheetForm() {
             <span className="day-number">{dayNumber}</span>
           </div>
 
-          {(isHoliday || !hasProjectWork) && (
+          {!isLocked && (isHoliday || !hasProjectWork) && (
             <button
               type="button"
               className={`holiday-toggle-chip ${isHoliday ? 'active' : ''}`}
@@ -1059,14 +1192,16 @@ export default function TimesheetForm() {
                     </div>
                     <div className="pill-meta">
                       <span className="hours-badge">{formatValue(entry.hoursSpent)}</span>
-                      <button
-                        type="button"
-                        className="delete-entry-btn"
-                        title="Delete entry"
-                        onClick={(e) => handleDeleteEntry(entry.id, e)}
-                      >
-                        ×
-                      </button>
+                      {!isLocked && (
+                        <button
+                          type="button"
+                          className="delete-entry-btn"
+                          title="Delete entry"
+                          onClick={(e) => handleDeleteEntry(entry.id, e)}
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                   </div>
                 )
@@ -1082,7 +1217,11 @@ export default function TimesheetForm() {
               {totalDayHours}h ({hoursToDays(totalDayHours)}d)
             </strong>
           </span>
-          {!isValidDayTotal ? (
+          {isLocked ? (
+            <span className="edit-hint">
+              {period?.status === 'approved' ? '🔒 Validated' : '🔒 Pending validation'}
+            </span>
+          ) : !isValidDayTotal ? (
             <span className="warn-hint">⚠️ Must be 1d (8h)</span>
           ) : (
             <span className="edit-hint">
@@ -1153,6 +1292,100 @@ export default function TimesheetForm() {
         </div>
       </div>
 
+      {/* MONTHLY VALIDATION WORKFLOW BAR */}
+      {period && (
+        <div className={`ts-validation-bar ts-status-${period.status}`}>
+          <div className="ts-validation-main">
+            <span className="ts-status-pill">
+              <span className="ts-status-icon">{STATUS_META[period.status]?.icon}</span>
+              {STATUS_META[period.status]?.label ?? period.status}
+            </span>
+
+            <div className="ts-validation-text">
+              <strong className="ts-validation-title">
+                {monthNames[selectedMonth - 1]} {selectedYear} — {period.totalDays}d ({period.totalHours}h)
+                {' '}on {period.filledDays} day{period.filledDays > 1 ? 's' : ''}
+              </strong>
+              <span className="ts-validation-hint">{STATUS_META[period.status]?.hint}</span>
+
+              {period.status === 'not_validated' && period.reviewers.length > 0 && (
+                <span className="ts-validation-meta">
+                  Will be sent to {period.reviewers.map((r) => r.name).join(', ')}
+                </span>
+              )}
+              {period.status === 'pending' && (
+                <span className="ts-validation-meta">
+                  Sent {formatDateTime(period.submittedAt)}
+                  {period.reviewers.length > 0 &&
+                    ` · waiting for ${period.reviewers.map((r) => r.name).join(', ')}`}
+                </span>
+              )}
+              {period.status === 'approved' && (
+                <span className="ts-validation-meta">
+                  Validated by {period.reviewer?.name ?? '—'} on {formatDateTime(period.reviewedAt)}
+                </span>
+              )}
+              {period.status === 'rejected' && (
+                <span className="ts-validation-meta">
+                  Rejected by {period.reviewer?.name ?? '—'} on {formatDateTime(period.reviewedAt)}
+                </span>
+              )}
+              {period.reviewComment && (
+                <span className="ts-validation-comment">💬 “{period.reviewComment}”</span>
+              )}
+            </div>
+          </div>
+
+          <div className="ts-validation-actions">
+            {(period.status === 'not_validated' || period.status === 'rejected') && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSubmitForValidation}
+                disabled={periodBusy || period.entriesCount === 0}
+                title={
+                  period.entriesCount === 0
+                    ? 'Log at least one day first'
+                    : 'Send this month to your responsable'
+                }
+              >
+                {periodBusy ? 'Sending...' : '📤 Send for validation'}
+              </button>
+            )}
+            {period.status === 'pending' && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleRecallSubmission}
+                disabled={periodBusy}
+              >
+                ↩️ Cancel submission
+              </button>
+            )}
+            {period.status === 'approved' && (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => handleDownloadPeriod('xlsx')}
+                  disabled={periodBusy}
+                >
+                  📊 Download Excel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleDownloadPeriod('pdf')}
+                  disabled={periodBusy}
+                >
+                  📄 Download PDF
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* VIEW MODE TOGGLE & UNIT MODE SWITCH */}
       <div className="view-mode-bar">
         <div className="mode-tabs">
@@ -1204,13 +1437,17 @@ export default function TimesheetForm() {
 
         {viewMode === 'matrix' && (
           <div className="matrix-actions">
-            <button className="btn btn-secondary" onClick={handleAutoFillMonth}>
+            <button
+              className="btn btn-secondary"
+              onClick={handleAutoFillMonth}
+              disabled={isLocked}
+            >
               ⚡ Fill 8h (1d) Weekdays
             </button>
             <button
               className="btn btn-primary"
               onClick={handleSaveMatrix}
-              disabled={submitting || invalidMatrixDates.size > 0}
+              disabled={submitting || isLocked || invalidMatrixDates.size > 0}
             >
               {submitting ? 'Saving...' : '💾 Save Monthly Matrix'}
             </button>
@@ -1272,7 +1509,7 @@ export default function TimesheetForm() {
                   type="button"
                   className="btn btn-secondary-sm batch-btn-item"
                   onClick={handleBatchSetHoliday}
-                  disabled={submitting}
+                  disabled={submitting || isLocked}
                 >
                   🌴 Set as Holiday (1d)
                 </button>
@@ -1280,7 +1517,7 @@ export default function TimesheetForm() {
                   type="button"
                   className="btn btn-primary-sm batch-btn-item"
                   onClick={handleOpenBatchModal}
-                  disabled={submitting || projects.length === 0}
+                  disabled={submitting || isLocked || projects.length === 0}
                 >
                   📁 Apply Project Hours...
                 </button>
@@ -1288,7 +1525,7 @@ export default function TimesheetForm() {
                   type="button"
                   className="btn btn-danger-sm batch-btn-item"
                   onClick={handleBatchClearSelected}
-                  disabled={submitting}
+                  disabled={submitting || isLocked}
                 >
                   🗑️ Clear Selected ({selectedDates.size})
                 </button>
@@ -1418,6 +1655,7 @@ export default function TimesheetForm() {
                           className="cell-input holiday-input"
                           placeholder="0"
                           value={displayVal}
+                          disabled={isLocked}
                           onChange={(e) => handleMatrixInputChange(key, e.target.value)}
                           onBlur={() => handleMatrixCellBlur(w.dateString)}
                         />
@@ -1462,6 +1700,7 @@ export default function TimesheetForm() {
                               className="cell-input"
                               placeholder="0"
                               value={displayVal}
+                              disabled={isLocked}
                               onChange={(e) =>
                                 handleMatrixInputChange(key, e.target.value)
                               }
@@ -1525,13 +1764,17 @@ export default function TimesheetForm() {
                         </td>
                         <td data-label="Note">{ts.note || '—'}</td>
                         <td data-label="Action">
-                          <button
-                            type="button"
-                            className="btn btn-danger-sm"
-                            onClick={(e) => handleDeleteEntry(ts.id, e)}
-                          >
-                            Delete
-                          </button>
+                          {isLocked ? (
+                            <span className="badge badge-locked">🔒 Locked</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-danger-sm"
+                              onClick={(e) => handleDeleteEntry(ts.id, e)}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </td>
                       </tr>
                     )

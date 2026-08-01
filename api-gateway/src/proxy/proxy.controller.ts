@@ -29,9 +29,19 @@ export class ProxyController {
 
           fixRequestBody(proxyReq, req)
         },
-        error: (err: any, req: any, res: any) => {
-          if (!res.headersSent && !res.writableEnded) {
-            res.status(503).json({
+        // On a websocket upgrade failure http-proxy hands us the raw socket
+        // here instead of an express Response, so branch before answering.
+        error: (err: any, req: any, resOrSocket: any) => {
+          if (typeof resOrSocket?.status !== 'function') {
+            if (resOrSocket?.writable) {
+              resOrSocket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n')
+            }
+            resOrSocket?.destroy?.()
+            return
+          }
+
+          if (!resOrSocket.headersSent && !resOrSocket.writableEnded) {
+            resOrSocket.status(503).json({
               statusCode: 503,
               message: 'Service Temporarily Unavailable',
               error: 'Service Unavailable',
