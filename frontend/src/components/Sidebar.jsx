@@ -5,6 +5,16 @@ import { useChat } from '../context/ChatContext'
 import API_URL from '../config/api'
 import LogoutIcon from './LogoutIcon'
 import ProfileIcon from './ProfileIcon'
+import NotificationIcon from './NotificationIcon'
+import MoonIcon from './MoonIcon'
+import SunIcon from './SunIcon'
+import DashboardIcon from './DashboardIcon'
+import FolderIcon from './FolderIcon'
+import ChatBubbleIcon from './ChatBubbleIcon'
+import ClockIcon from './ClockIcon'
+import CheckCircleIcon from './CheckCircleIcon'
+import UsersIcon from './UsersIcon'
+import KeyIcon from './KeyIcon'
 import './Sidebar.css'
 
 export default function Sidebar({ isOpen, theme, toggleTheme }) {
@@ -75,22 +85,22 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
         </button>
 
         <NavLink to="/dashboard" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-          <span className="sidebar-icon">📊</span>
+          <span className="sidebar-icon"><DashboardIcon size="20px" /></span>
           <span className="sidebar-label">Dashboard</span>
         </NavLink>
         <NavLink to="/projects" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-          <span className="sidebar-icon">📁</span>
+          <span className="sidebar-icon"><FolderIcon size="20px" /></span>
           <span className="sidebar-label">Projects</span>
         </NavLink>
         <NavLink to="/messages" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-          <span className="sidebar-icon">💬</span>
+          <span className="sidebar-icon"><ChatBubbleIcon size="20px" /></span>
           <span className="sidebar-label">Messages</span>
           {globalUnreadCount > 0 && (
             <span className="sidebar-badge unread-badge-global">{globalUnreadCount}</span>
           )}
         </NavLink>
         <NavLink to="/timesheet" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-          <span className="sidebar-icon">⏱️</span>
+          <span className="sidebar-icon"><ClockIcon size="20px" /></span>
           <span className="sidebar-label">Timesheet</span>
         </NavLink>
         {(user?.roles?.includes('responsable') ||
@@ -98,13 +108,13 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
           user?.roles?.includes('admin') ||
           user?.role === 'admin') && (
           <NavLink to="/timesheet-validation" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <span className="sidebar-icon">✅</span>
+            <span className="sidebar-icon"><CheckCircleIcon size="20px" /></span>
             <span className="sidebar-label">Timesheet Validation</span>
           </NavLink>
         )}
         {(user?.roles?.includes('admin') || user?.role === 'admin') && (
           <NavLink to="/users" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <span className="sidebar-icon">👥</span>
+            <span className="sidebar-icon"><UsersIcon size="20px" /></span>
             <span className="sidebar-label">User Space & Roles</span>
           </NavLink>
         )}
@@ -112,19 +122,19 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
         {/* Mobile-only Nav Links */}
         <div className="sidebar-mobile-only-nav">
           <NavLink to="/profile" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <span className="sidebar-icon">👤</span>
+            <span className="sidebar-icon"><ProfileIcon size="20px" /></span>
             <span className="sidebar-label">Profile</span>
           </NavLink>
           <NavLink to="/change-password" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <span className="sidebar-icon">🔑</span>
+            <span className="sidebar-icon"><KeyIcon size="20px" /></span>
             <span className="sidebar-label">Change Password</span>
           </NavLink>
           <NavLink to="/notifications" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <span className="sidebar-icon">🔔</span>
+            <span className="sidebar-icon"><NotificationIcon size="20px" /></span>
             <span className="sidebar-label">Notifications</span>
           </NavLink>
           <button onClick={toggleTheme} className="sidebar-link sidebar-theme-toggle-btn-link">
-            <span className="sidebar-icon">{theme === 'light' ? '🌙' : '☀️'}</span>
+            <span className="sidebar-icon">{theme === 'light' ? <MoonIcon size="20px" /> : <SunIcon size="20px" />}</span>
             <span className="sidebar-label">{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
           </button>
           <button onClick={handleLogout} className="sidebar-link sidebar-logout-btn-link">

@@ -94,7 +94,7 @@ export default function ChangePassword() {
         </p>
 
         {FIELDS.map(({ name, label, autoComplete }) => (
-          <div className="form-group change-password-group" key={name}>
+          <div className="change-password-group" key={name}>
             <label htmlFor={name}>{label}</label>
             <div className="password-input-wrapper">
               <input

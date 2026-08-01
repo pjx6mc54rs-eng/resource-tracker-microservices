@@ -121,7 +121,7 @@
 }
 
 .quick-access-icon {
-  font-size: 2rem;
+  color: var(--primary, #5c9032);
   background-color: rgba(92, 144, 50, 0.06);
   width: 60px;
   height: 60px;
@@ -129,10 +129,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   transition: var(--transition, all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1));
 }
 
 .quick-access-card:hover .quick-access-icon {
+  color: #ffffff;
   background-color: var(--primary, #5c9032);
   transform: scale(1.05);
 }
