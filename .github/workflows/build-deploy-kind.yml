@@ -38,12 +38,17 @@ jobs:
             ROOT_DIR="$HOME/resource-tracker-microservices"
             cd "$ROOT_DIR"
 
-            echo "🧹 Nettoyage des modifications locales sur la VM..."
-            git reset --hard HEAD
+            # "git pull" echoue des qu'un force-push a eu lieu sur origin :
+            # l'historique de la VM diverge et git refuse de trancher
+            # ("Need to specify how to reconcile divergent branches").
+            # fetch + reset --hard aligne la VM sur origin quoi qu'il arrive,
+            # ce qui est deja l'intention : la VM ne doit rien contenir de local.
+            echo "📥 Récupération et alignement strict sur origin/master..."
+            git fetch origin master
+            git reset --hard origin/master
             git clean -fd
 
-            echo "📥 Récupération des derniers commits..."
-            git pull origin master
+            echo "→ Commit déployé : $(git log --oneline -1)"
 
             echo "🔎 Vérification du cluster kind..."
             kind get clusters | grep -q "^${KIND_CLUSTER_NAME}$" || {
