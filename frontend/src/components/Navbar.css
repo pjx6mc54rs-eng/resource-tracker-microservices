@@ -187,6 +187,28 @@
   border: 1.5px solid #ffffff;
 }
 
+/* Pastille chiffree : remplace le point pour indiquer combien de notifications
+   attendent. min-width + padding laissent la pastille s'elargir a deux ou trois
+   chiffres sans deformer l'icone. */
+.notification-badge-count {
+  position: absolute;
+  top: 2px;
+  right: 0px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  background-color: #ef4444;
+  color: #ffffff;
+  border-radius: 9px;
+  border: 1.5px solid #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
 .notification-dropdown {
   display: none;
   position: absolute;
@@ -472,6 +494,7 @@
   background-color: rgba(255, 255, 255, 0.02);
 }
 
+[data-theme='dark'] .notification-badge-count,
 [data-theme='dark'] .notification-badge-dot {
   border-color: #1e293b;
 }

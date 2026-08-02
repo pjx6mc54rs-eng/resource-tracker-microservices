@@ -11,10 +11,10 @@ import { useAuth } from './AuthContext'
 
 const NotificationContext = createContext()
 
-// Intervalle de rafraîchissement. Volontairement long : les notifications
-// tolèrent une minute de retard, et interroger plus souvent chargerait le
-// serveur sans bénéfice perceptible.
-const POLL_INTERVAL_MS = 60_000
+// Intervalle de rafraîchissement. 20 s est un compromis : assez court pour que
+// le compteur bouge peu après une action, assez long pour ne pas marteler le
+// serveur. Le rafraîchissement au retour sur l'onglet couvre le reste.
+const POLL_INTERVAL_MS = 20_000
 
 export function NotificationProvider({ children }) {
   const { token } = useAuth()
@@ -73,7 +73,18 @@ export function NotificationProvider({ children }) {
     }
     refresh()
     const id = setInterval(refresh, POLL_INTERVAL_MS)
-    return () => clearInterval(id)
+
+    // Revenir sur l'onglet est le moment où l'utilisateur regarde la cloche :
+    // on récupère l'état frais immédiatement plutôt que d'attendre le tick.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [token, refresh])
 
   const markAsRead = useCallback(

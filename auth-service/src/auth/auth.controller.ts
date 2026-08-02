@@ -266,6 +266,39 @@ export class AuthController {
       ...(responsableIds !== undefined && { responsableIds }),
       ...(passwordHash !== undefined && { passwordHash }),
     });
+
+    // Notifier uniquement les responsables reellement ajoutes : une mise a jour
+    // de profil qui laisse la hierarchie inchangee ne doit rien declencher.
+    const before = existing.responsableIds || [];
+    const after = updated.responsableIds || [];
+    const added = after.filter((id) => !before.includes(id));
+
+    if (added.length > 0) {
+      const managers = await Promise.all(
+        added.map((id) => this.usersService.findById(id)),
+      );
+      const managerNames = managers
+        .filter(Boolean)
+        .map((m) =>
+          [m!.firstName, m!.lastName].filter(Boolean).join(' ').trim() || m!.email,
+        );
+
+      // Le collaborateur apprend qui est son nouveau responsable.
+      this.events.emit('responsable.assigned', {
+        recipientIds: [userId],
+        managerNames,
+      });
+
+      // Et chaque responsable apprend qui lui est rattache.
+      const collaboratorName =
+        [updated.firstName, updated.lastName].filter(Boolean).join(' ').trim() ||
+        updated.email;
+      this.events.emit('collaborator.attached', {
+        recipientIds: added,
+        collaboratorName,
+      });
+    }
+
     return this.usersService.sanitize(updated);
   }
 

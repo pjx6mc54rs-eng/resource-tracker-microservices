@@ -61,7 +61,11 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
           <div className="notification-dropdown-container">
             <button className="notification-btn" aria-label="Notifications" data-tooltip="Notifications">
               <NotificationIcon size="22px" />
-              {unread > 0 && <span className="notification-badge-dot"></span>}
+              {unread > 0 && (
+                <span className="notification-badge-count" aria-label={`${unread} notification(s) non lue(s)`}>
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
             </button>
             <div className="notification-dropdown">
               <div className="notification-header">

@@ -20,6 +20,9 @@ export enum NotificationType {
   PROJECT_ASSIGNED = 'project_assigned',
   PROJECT_UNASSIGNED = 'project_unassigned',
   TASK_ASSIGNED = 'task_assigned',
+  // Hierarchie
+  RESPONSABLE_ASSIGNED = 'responsable_assigned',
+  COLLABORATOR_ATTACHED = 'collaborator_attached',
   // Administration
   ACCOUNT_CREATED = 'account_created',
   ROLE_CHANGED = 'role_changed',

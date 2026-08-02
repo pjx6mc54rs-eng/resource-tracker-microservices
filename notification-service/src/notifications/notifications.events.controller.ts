@@ -38,6 +38,14 @@ interface TaskAssignedEvent {
   projectId: string;
 }
 
+interface ResponsableEvent {
+  recipientIds: string[];
+  /** Noms des responsables nouvellement rattaches au collaborateur. */
+  managerNames?: string[];
+  /** Nom du collaborateur, pour la notification envoyee au responsable. */
+  collaboratorName?: string;
+}
+
 interface AccountEvent {
   recipientIds: string[];
   actorName?: string;
@@ -154,6 +162,38 @@ export class NotificationsEventsController {
         body: `Une tâche vous a été assignée : « ${e.taskTitle} ».`,
         link: `/projects/${e.projectId}`,
         actorName: e.actorName ?? null,
+      }),
+    );
+  }
+
+  // ---------------------------------------------------------------- Hierarchie
+
+  @EventPattern('responsable.assigned')
+  async onResponsableAssigned(@Payload() e: ResponsableEvent) {
+    const names = (e.managerNames ?? []).filter(Boolean);
+    await this.safely('responsable.assigned', () =>
+      this.notifications.createMany(e.recipientIds, {
+        type: NotificationType.RESPONSABLE_ASSIGNED,
+        title: names.length > 1 ? 'Nouveaux responsables' : 'Nouveau responsable',
+        body:
+          names.length > 0
+            ? `${names.join(', ')} ${names.length > 1 ? 'sont désormais vos responsables' : 'est désormais votre responsable'}.`
+            : 'Votre hiérarchie a été mise à jour.',
+        link: '/profile',
+        actorName: null,
+      }),
+    );
+  }
+
+  @EventPattern('collaborator.attached')
+  async onCollaboratorAttached(@Payload() e: ResponsableEvent) {
+    await this.safely('collaborator.attached', () =>
+      this.notifications.createMany(e.recipientIds, {
+        type: NotificationType.COLLABORATOR_ATTACHED,
+        title: 'Nouveau collaborateur',
+        body: `${e.collaboratorName ?? 'Un collaborateur'} vous est désormais rattaché.`,
+        link: '/users',
+        actorName: null,
       }),
     );
   }
