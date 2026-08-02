@@ -7,6 +7,8 @@ import { TimesheetsService } from './timesheets.service';
 import { TimesheetsController } from './timesheets.controller';
 import { TimesheetPeriodsService } from './periods.service';
 import { TimesheetPeriodsController } from './periods.controller';
+import { TimesheetStatsService } from './stats.service';
+import { TimesheetStatsController } from './stats.controller';
 import { TimesheetExportService } from './export.service';
 import { DirectoryService } from './directory.service';
 
@@ -15,10 +17,15 @@ import { DirectoryService } from './directory.service';
     TypeOrmModule.forFeature([Timesheet, TimesheetPeriod]),
     HttpModule.register({ timeout: 5000, maxRedirects: 2 }),
   ],
-  controllers: [TimesheetPeriodsController, TimesheetsController],
+  controllers: [
+    TimesheetPeriodsController,
+    TimesheetStatsController,
+    TimesheetsController,
+  ],
   providers: [
     TimesheetsService,
     TimesheetPeriodsService,
+    TimesheetStatsService,
     TimesheetExportService,
     DirectoryService,
   ],

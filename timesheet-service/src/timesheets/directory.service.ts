@@ -24,6 +24,15 @@ export interface DirectoryProject {
 const USERS_CACHE_TTL_MS = 30_000;
 
 /**
+ * Âge maximal d'un annuaire servi en mode dégradé. Au-delà on préfère échouer
+ * franchement : un cache sans borne fait vivre indéfiniment une photo périmée
+ * (rôle retiré, responsable changé, compte supprimé) sur la foi d'un seul appel
+ * réussi, longtemps après. Même borne que `USERS_STALE_MAX_MS` côté
+ * reporting-service, pour que les deux services dégradent au même rythme.
+ */
+const USERS_STALE_MAX_MS = 3 * 60_000;
+
+/**
  * Read-only view of the data owned by auth-service and project-service:
  * who reports to whom (validation rights) and human-readable project names
  * (exports). Everything is fetched with the caller's own bearer token, so this
@@ -62,9 +71,29 @@ export class DirectoryService {
       return users;
     } catch (error: any) {
       this.logger.error(`auth-service directory lookup failed: ${error?.message}`);
-      // A stale directory still answers "who may validate this?" correctly in
-      // the common case, and beats failing the whole request.
-      if (cached) return cached.users;
+
+      // Un annuaire un peu ancien répond encore correctement à « qui peut
+      // valider cette feuille ? » : on le sert plutôt que de casser la requête,
+      // mais dans une fenêtre BORNÉE et jamais en silence. Le signal de
+      // fraîcheur passe ici par le journal : la signature publique reste
+      // `DirectoryUser[]`, et les appelants (isAdmin, getManagedUserIds,
+      // getResponsableIds) n'ont pas de canal pour porter un drapeau `stale`.
+      const age = cached
+        ? Date.now() - cached.fetchedAt
+        : Number.POSITIVE_INFINITY;
+      if (cached && age < USERS_STALE_MAX_MS) {
+        this.logger.warn(
+          `annuaire servi depuis le cache périmé (${Math.round(age / 1000)} s) — réponse dégradée`,
+        );
+        return cached.users;
+      }
+
+      // Hors fenêtre : la photo ne vaut plus rien, on la jette pour ne pas la
+      // ressusciter au prochain échec. Les appelants qui en dépendent (file de
+      // validation, périmètre des stats) doivent alors échouer franchement en
+      // 5xx plutôt que retomber en silence sur « soi-même » ou perdre le rôle
+      // admin — c'est le comportement voulu.
+      this.usersCache = null;
       throw new ServiceUnavailableException(
         "Service d'authentification indisponible : impossible de vérifier les responsables.",
       );

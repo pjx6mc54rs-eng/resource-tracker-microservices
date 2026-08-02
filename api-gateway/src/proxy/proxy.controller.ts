@@ -22,6 +22,28 @@ export class ProxyController {
       proxyTimeout: 15_000,
       on: {
         proxyReq: (proxyReq: any, req: any) => {
+          // SECURITY - privilege escalation guard. http-proxy has already copied
+          // every client header verbatim onto `proxyReq`, so any identity header
+          // the caller sent is currently sitting on the outgoing request. The
+          // services accept BOTH the gateway spelling (`x-user-id`) and the bare
+          // contract alias (`user-id`), so a client that sends its own pair would
+          // be trusted downstream as whatever identity it claims. The gateway is
+          // the ONLY source of caller identity: drop every inbound spelling here,
+          // then re-inject below from the verified JWT.
+          //
+          // This runs BEFORE the `if (req.user)` block on purpose. Public routes
+          // (auth/login, auth/register, chat/uploads, chat/socket.io) have no
+          // `req.user`, so nothing would overwrite a forged header there - they
+          // need the strip even more than the authenticated ones do.
+          for (const header of [
+            'user-id',
+            'user-role',
+            'x-user-id',
+            'x-user-role',
+          ]) {
+            proxyReq.removeHeader(header)
+          }
+
           if (req.user) {
             // Downstream header injection: pass authenticated user's info to microservices
             proxyReq.setHeader('x-user-id', req.user.id || req.user.sub || '')

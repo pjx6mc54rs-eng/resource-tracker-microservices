@@ -11,6 +11,7 @@ data:
     CREATE DATABASE timesheet_db;
     CREATE DATABASE reporting_db;
     CREATE DATABASE chat_db;
+    CREATE DATABASE notification_db;
 
     -- Vous pouvez ajouter ici les scripts d'initialisation spécifiques
     -- par exemple, créer des tables, des index, etc.

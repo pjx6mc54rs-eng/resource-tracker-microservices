@@ -13,7 +13,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
     })
   } catch (err) {
     console.error('[reportingApi] fetch error:', err)
-    throw new Error('Unable to reach the server. Please try again.')
+    throw new Error('Unable to reach the server. Please try again.', { cause: err })
   }
 
   let data = null
@@ -33,6 +33,21 @@ async function request(path, { method = 'GET', body, token } = {}) {
   return data
 }
 
-export function getDashboard(token) {
-  return request('/api/reporting/dashboard', { token })
+/**
+ * Single consolidated payload backing the whole dashboard page: my month, my
+ * projects/tasks, the manager block and the admin block. The server decides
+ * which sections are populated — `manager` and `admin` come back as null when
+ * the caller is not entitled to them.
+ *
+ * `year` / `month` are optional: omitting them lets the server fall back to
+ * its own current month.
+ */
+export function getDashboard(token, year, month) {
+  const queryParams = new URLSearchParams()
+  if (year) queryParams.append('year', year)
+  if (month) queryParams.append('month', month)
+
+  const queryString = queryParams.toString()
+  const path = `/api/reporting/dashboard${queryString ? `?${queryString}` : ''}`
+  return request(path, { token })
 }

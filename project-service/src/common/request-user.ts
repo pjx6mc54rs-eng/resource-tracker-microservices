@@ -10,11 +10,18 @@ function firstHeaderValue(
   return value;
 }
 
-/** Accepts both contract headers (`user-role` / `user-id`) and gateway (`x-user-role` / `x-user-id`). */
+/**
+ * Accepts both the gateway headers (`x-user-role` / `x-user-id`) and the bare
+ * contract aliases (`user-role` / `user-id`). The gateway spelling MUST win:
+ * the api-gateway strips every inbound identity header and re-injects the
+ * `x-user-*` pair from the verified JWT, so those are the only values known to
+ * be authenticated. Reading the bare aliases first would let caller-supplied
+ * `user-role` / `user-id` headers shadow them and escalate privilege.
+ */
 export function extractUserRole(
   headers: IncomingHeaders,
 ): UserRole | undefined {
-  const raw = firstHeaderValue(headers['user-role'] ?? headers['x-user-role']);
+  const raw = firstHeaderValue(headers['x-user-role'] ?? headers['user-role']);
   if (!raw) return undefined;
   const normalized = raw.trim().toLowerCase();
   if (normalized === UserRole.ADMIN) return UserRole.ADMIN;
@@ -24,7 +31,7 @@ export function extractUserRole(
 }
 
 export function extractUserId(headers: IncomingHeaders): string | undefined {
-  const raw = firstHeaderValue(headers['user-id'] ?? headers['x-user-id']);
+  const raw = firstHeaderValue(headers['x-user-id'] ?? headers['user-id']);
   const trimmed = raw?.trim();
   return trimmed || undefined;
 }

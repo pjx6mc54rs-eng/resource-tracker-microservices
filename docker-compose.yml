@@ -112,9 +112,19 @@ services:
   notification-service:
     build: ./notification-service
     container_name: notification-service
+    expose:
+      - "3000"
     environment:
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: admin
+      DATABASE_PASSWORD: admin
+      DATABASE_NAME: notification_db
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
+      postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
@@ -131,6 +141,18 @@ services:
       DATABASE_PASSWORD: admin
       DATABASE_NAME: reporting_db
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      # /reporting/dashboard verifie lui-meme la signature du jeton porteur :
+      # il est joignable en direct sur le reseau compose et sert des agregats
+      # couvrant toute l'entreprise. Meme secret qu'auth-service (qui signe) et
+      # qu'api-gateway (qui verifie) ; sans lui le service repond 503.
+      JWT_SECRET: change_this_secret
+      # Le tableau de bord agrège les données amont a la volee : tous les
+      # services ecoutent sur 3000 a l'interieur du reseau compose.
+      AUTH_SERVICE_URL: http://auth-service:3000
+      PROJECT_SERVICE_URL: http://project-service:3000
+      TIMESHEET_SERVICE_URL: http://timesheet-service:3000
+      CHAT_SERVICE_URL: http://chat-service:3000
+      NOTIFICATION_SERVICE_URL: http://notification-service:3000
     depends_on:
       postgres:
         condition: service_healthy
@@ -178,11 +200,13 @@ services:
       TIMESHEET_SERVICE_URL: http://timesheet-service:3000
       REPORTING_SERVICE_URL: http://reporting-service:3000
       CHAT_SERVICE_URL: http://chat-service:3000
+      NOTIFICATION_SERVICE_URL: http://notification-service:3000
     depends_on:
       - auth-service
       - project-service
       - timesheet-service
       - reporting-service
+      - notification-service
 
   frontend:
     build:

@@ -58,11 +58,45 @@ spec:
             configMapKeyRef:
               name: app-config
               key: RABBITMQ_URL
+        # /reporting/dashboard verifie lui-meme la signature du jeton porteur
+        # (meme secret que api-gateway et auth-service). Absent = 503 sur toutes
+        # les requetes du tableau de bord, jamais un repli sur les en-tetes.
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:
               name: app-config
               key: NODE_ENV
+        # Services amont interroges par /reporting/dashboard
+        - name: AUTH_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: AUTH_SERVICE_URL
+        - name: PROJECT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: PROJECT_SERVICE_URL
+        - name: TIMESHEET_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: TIMESHEET_SERVICE_URL
+        - name: CHAT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: CHAT_SERVICE_URL
+        - name: NOTIFICATION_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: NOTIFICATION_SERVICE_URL
         livenessProbe:
           httpGet:
             path: /health
