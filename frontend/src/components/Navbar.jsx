@@ -5,6 +5,7 @@ import API_URL from '../config/api'
 import LogoutIcon from './LogoutIcon'
 import ProfileIcon from './ProfileIcon'
 import NotificationIcon from './NotificationIcon'
+import NotificationTypeIcon from './NotificationTypeIcon'
 import SunIcon from './SunIcon'
 import MoonIcon from './MoonIcon'
 import KeyIcon from './KeyIcon'
@@ -96,17 +97,18 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
                   <Link
                     key={n.id}
                     to={n.link || '#'}
-                    className="notification-item"
+                    className={`notification-item${n.read ? ' is-read' : ''}`}
                     onClick={() => { if (!n.read) markAsRead(n.id) }}
                   >
-                    {!n.read && <div className="notification-item-dot"></div>}
+                    <NotificationTypeIcon type={n.type} />
                     <div className="notification-item-content">
                       <p className="notification-text">
                         <strong>{n.title}</strong>
-                        {n.body ? <> — {n.body}</> : null}
                       </p>
+                      {n.body && <p className="notification-body">{n.body}</p>}
                       <span className="notification-time">{formatRelative(n.createdAt)}</span>
                     </div>
+                    {!n.read && <span className="notification-item-dot" aria-label="Non lue"></span>}
                   </Link>
                 ))}
               </div>

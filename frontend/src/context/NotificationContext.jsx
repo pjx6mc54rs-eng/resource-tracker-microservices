@@ -8,6 +8,10 @@ import {
 } from 'react'
 import API_URL from '../config/api'
 import { useAuth } from './AuthContext'
+import {
+  playNotificationSound,
+  primeNotificationSound,
+} from '../utils/notificationSound'
 
 const NotificationContext = createContext()
 
@@ -27,6 +31,14 @@ export function NotificationProvider({ children }) {
   // Évite de déclencher deux requêtes simultanées si le rafraîchissement
   // périodique tombe pendant un chargement manuel.
   const inFlight = useRef(false)
+
+  // Identifiants déjà vus. Sert à distinguer « une notification vient
+  // d'arriver » de « le serveur me renvoie la même liste », ce que le simple
+  // compteur de non-lues ne permet pas : il baisse aussi quand on marque lu.
+  const knownIds = useRef(new Set())
+  // Le premier chargement ne doit jamais sonner : il rapporte l'historique,
+  // pas des nouveautés.
+  const primed = useRef(false)
 
   const request = useCallback(
     async (path, options = {}) => {
@@ -52,7 +64,28 @@ export function NotificationProvider({ children }) {
     setLoading(true)
     try {
       const data = await request('/api/notifications?limit=30')
-      setItems(Array.isArray(data.items) ? data.items : [])
+      const list = Array.isArray(data.items) ? data.items : []
+
+      if (!primed.current) {
+        // Premier chargement : on mémorise sans rien jouer.
+        primed.current = true
+      } else {
+        const arrived = list.filter(
+          (n) => !knownIds.current.has(n.id) && !n.read,
+        )
+        // Un seul son par cycle, même si plusieurs notifications arrivent
+        // ensemble : les rejouer en rafale sur une instance partagée les
+        // couperait les unes les autres, pour un résultat inaudible.
+        if (arrived.length > 0) {
+          playNotificationSound()
+        }
+      }
+
+      // Reconstruit l'ensemble à partir de la liste courante : il reste ainsi
+      // borné à la taille de la page renvoyée par l'API.
+      knownIds.current = new Set(list.map((n) => n.id))
+
+      setItems(list)
       setUnread(Number(data.unread) || 0)
       setError('')
     } catch (err) {
@@ -69,8 +102,14 @@ export function NotificationProvider({ children }) {
     if (!token) {
       setItems([])
       setUnread(0)
+      // Déconnexion : la prochaine session repart d'un historique vierge et ne
+      // doit pas sonner en le chargeant.
+      knownIds.current = new Set()
+      primed.current = false
       return undefined
     }
+
+    primeNotificationSound()
     refresh()
     const id = setInterval(refresh, POLL_INTERVAL_MS)
 

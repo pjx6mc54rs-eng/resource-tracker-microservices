@@ -278,6 +278,35 @@
   border-radius: 50%;
   margin-top: 6px;
   flex-shrink: 0;
+  /* Aligne la pastille a droite : l'icone de type occupe desormais la gauche. */
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+/* Pastille de type : la couleur vient de --accent, defini en ligne par
+   NotificationTypeIcon selon le type d'evenement. */
+.notification-type-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  margin-top: 1px;
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* Une notification lue s'efface visuellement sans disparaitre. */
+.notification-item.is-read {
+  opacity: 0.62;
+}
+
+.notification-body {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary, #64748b);
 }
 
 .notification-item-content {
