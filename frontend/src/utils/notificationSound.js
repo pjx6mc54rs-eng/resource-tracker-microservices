@@ -44,7 +44,18 @@ export function playNotificationSound() {
     // Remise à zéro avant lecture : sans elle, un appel pendant que le son
     // joue encore est ignoré par le navigateur. C'est ce qui permet à des
     // notifications rapprochées de déclencher le son à chaque fois.
-    el.currentTime = 0
+    //
+    // Le garde sur readyState est indispensable : écrire currentTime sur un
+    // média encore non chargé lève InvalidStateError sur plusieurs
+    // navigateurs. Sans lui, l'exception nous faisait sortir avant même
+    // d'appeler play() — donc aucun son, jamais, au premier déclenchement.
+    if (el.readyState > 0) {
+      try {
+        el.currentTime = 0
+      } catch {
+        // Média pas encore prêt : on joue depuis sa position actuelle.
+      }
+    }
 
     const result = el.play()
     // play() ne renvoie une promesse que sur les navigateurs récents.
@@ -80,4 +91,52 @@ export function primeNotificationSound() {
   } catch {
     // Un préchargement raté n'empêche pas la lecture ultérieure.
   }
+  unlockOnFirstGesture()
+}
+
+// Déverrouillage audio : les navigateurs n'autorisent la lecture qu'après une
+// interaction de l'utilisateur. On profite du tout premier clic ou appui
+// clavier pour lancer puis stopper immédiatement le son — inaudible, mais le
+// média est dès lors considéré comme « débloqué » et les lectures suivantes,
+// déclenchées par du code, passent sans être refusées.
+let unlockBound = false
+
+function unlockOnFirstGesture() {
+  if (unlockBound || typeof document === 'undefined') return
+  unlockBound = true
+
+  const unlock = () => {
+    const el = getAudio()
+    if (!el) return
+    const previousVolume = el.volume
+    try {
+      el.volume = 0
+      const result = el.play()
+      if (result && typeof result.then === 'function') {
+        result
+          .then(() => {
+            el.pause()
+            try {
+              el.currentTime = 0
+            } catch {
+              // sans importance : le média est déjà débloqué
+            }
+            el.volume = previousVolume
+          })
+          .catch(() => {
+            el.volume = previousVolume
+          })
+      } else {
+        el.pause()
+        el.volume = previousVolume
+      }
+    } catch {
+      el.volume = previousVolume
+    }
+    document.removeEventListener('pointerdown', unlock)
+    document.removeEventListener('keydown', unlock)
+  }
+
+  document.addEventListener('pointerdown', unlock, { once: true })
+  document.addEventListener('keydown', unlock, { once: true })
 }
