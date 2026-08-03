@@ -14,9 +14,10 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [
-        process.env.RABBITMQ_URL || 'amqp://admin:admin@rabbitmq-service:5672',
-      ],
+      // Le repli vise localhost : c'est le cas du developpement hors conteneur,
+      // ou RabbitMQ est joignable via le port publie par docker compose.
+      // Docker compose et Kubernetes fournissent tous les deux RABBITMQ_URL.
+      urls: [process.env.RABBITMQ_URL || 'amqp://admin:admin@localhost:5672'],
       queue: process.env.RABBITMQ_QUEUE || 'notifications',
       // durable : la file survit au redemarrage du broker. Les evenements emis
       // pendant une panne du service sont donc conserves, pas perdus.
@@ -27,6 +28,9 @@ async function bootstrap() {
   app.enableCors();
 
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 3000);
+  // 3006 = l'emplacement de ce service dans la carte des ports du mode hote
+  // (3000 auth, 3001 project, 3002 timesheet, 3003 reporting, 3004 chat,
+  // 3005 api-gateway). Docker compose et Kubernetes imposent PORT=3000.
+  await app.listen(process.env.PORT ?? 3006);
 }
 bootstrap();

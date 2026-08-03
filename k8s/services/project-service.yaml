@@ -53,6 +53,11 @@ spec:
             configMapKeyRef:
               name: app-config
               key: DATABASE_NAME_PROJECT
+        - name: RABBITMQ_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: RABBITMQ_URL
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:

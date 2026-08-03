@@ -304,7 +304,18 @@ export class ProjectsService {
     }
   }
 
-  async updateTask(projectId: string, taskId: string, data: UpdateTaskDto): Promise<Task> {
+  /**
+   * `actorId` est l'auteur du changement (undefined pour un admin, qui n'est pas
+   * forcement membre du projet). Il sert uniquement a ne pas se notifier
+   * soi-meme : un collaborateur qui deplace sa propre tache sait deja qu'il l'a
+   * deplacee.
+   */
+  async updateTask(
+    projectId: string,
+    taskId: string,
+    data: UpdateTaskDto,
+    actorId?: string,
+  ): Promise<Task> {
     const task = await this.taskRepo.findOne({
       where: { id: taskId, projectId },
       relations: ['assignees'],
@@ -312,6 +323,13 @@ export class ProjectsService {
     if (!task) {
       throw new NotFoundException('Tâche introuvable');
     }
+
+    // Etat d'origine, capture avant toute mutation : c'est la comparaison
+    // avant/apres qui decide qui est notifie, et de quoi. Le formulaire
+    // d'edition renvoie toujours `status` et `assignedUserId`, meme inchanges ;
+    // sans cette comparaison chaque enregistrement notifierait pour rien.
+    const previousStatus = task.status;
+    const previousAssigneeIds = (task.assignees ?? []).map((a) => a.userId);
 
     if (data.status) {
       task.status = data.status;
@@ -339,6 +357,59 @@ export class ProjectsService {
       ];
     }
 
-    return this.taskRepo.save(task);
+    const saved = await this.taskRepo.save(task);
+
+    const nextAssigneeIds = data.assignedUserId
+      ? [data.assignedUserId]
+      : previousAssigneeIds;
+    const gainedIds = nextAssigneeIds.filter(
+      (id) => !previousAssigneeIds.includes(id),
+    );
+    const lostIds = previousAssigneeIds.filter(
+      (id) => !nextAssigneeIds.includes(id),
+    );
+    const statusChanged = Boolean(data.status) && data.status !== previousStatus;
+
+    /** Destinataires reels : dedoublonnes, et jamais l'auteur du changement. */
+    const recipients = (ids: string[]) =>
+      Array.from(new Set(ids)).filter((id) => id && id !== actorId);
+
+    const gained = recipients(gainedIds);
+    if (gained.length > 0) {
+      this.events.emit('task.assigned', {
+        recipientIds: gained,
+        taskTitle: saved.title,
+        projectId,
+      });
+    }
+
+    const lost = recipients(lostIds);
+    if (lost.length > 0) {
+      this.events.emit('task.reassigned', {
+        recipientIds: lost,
+        taskTitle: saved.title,
+        projectId,
+      });
+    }
+
+    if (statusChanged) {
+      // Celui qui vient de recevoir la tache a deja "task.assigned" : lui
+      // envoyer en plus un changement de statut ferait deux notifications
+      // pour un seul evenement.
+      const informed = recipients(
+        nextAssigneeIds.filter((id) => !gainedIds.includes(id)),
+      );
+      if (informed.length > 0) {
+        this.events.emit('task.status_changed', {
+          recipientIds: informed,
+          taskTitle: saved.title,
+          projectId,
+          status: saved.status,
+          previousStatus,
+        });
+      }
+    }
+
+    return saved;
   }
 }

@@ -99,7 +99,9 @@ export class ProxyController {
 
     this.notificationProxy = createProxyMiddleware({
       ...commonOptions,
-      target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3005',
+      // 3006, pas 3005 : en mode hote 3005 est l'api-gateway lui-meme, donc
+      // ce repli renvoyait les requetes de notification vers la gateway.
+      target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3006',
     })
 
     this.chatProxy = createProxyMiddleware({

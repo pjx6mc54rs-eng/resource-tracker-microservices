@@ -184,14 +184,31 @@ export class AuthController {
     if (roles.length === 0) {
       throw new BadRequestException('Au moins un rôle valide est requis');
     }
+
+    const existing = await this.usersService.findById(userId);
+    if (!existing) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+    const rolesBefore = this.usersService.sanitize(existing).roles;
+
     const updated = await this.usersService.update(userId, { roles });
+    const safe = this.usersService.sanitize(updated);
 
-    this.events.emit('account.role_changed', {
-      recipientIds: [userId],
-      newRole: this.usersService.sanitize(updated).role,
-    });
+    // Meme regle que sur PATCH users/:id : on ne notifie que si les roles ont
+    // reellement change, pour qu'un renvoi du role deja en place reste muet.
+    const rolesChanged =
+      rolesBefore.length !== safe.roles.length ||
+      safe.roles.some((r) => !rolesBefore.includes(r));
 
-    return this.usersService.sanitize(updated);
+    if (rolesChanged) {
+      this.events.emit('account.role_changed', {
+        recipientIds: [userId],
+        newRole: safe.role,
+        newRoles: safe.roles,
+      });
+    }
+
+    return safe;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -215,6 +232,11 @@ export class AuthController {
     if (!existing) {
       throw new NotFoundException('Utilisateur introuvable');
     }
+
+    // Roles d'origine, normalises comme ceux renvoyes par l'API, et lus avant
+    // toute ecriture : c'est la reference pour savoir si les roles ont
+    // reellement change.
+    const rolesBefore = this.usersService.sanitize(existing).roles;
 
     let roles: UserRole[] = existing.roles && existing.roles.length > 0
       ? existing.roles
@@ -266,6 +288,23 @@ export class AuthController {
       ...(responsableIds !== undefined && { responsableIds }),
       ...(passwordHash !== undefined && { passwordHash }),
     });
+
+    // Le titulaire du compte est prevenu des que ses roles changent. Ce
+    // formulaire renvoie toujours `roles`, meme inchange : sans la comparaison
+    // avant/apres, une simple correction de numero de telephone notifierait un
+    // changement de role qui n'a pas eu lieu.
+    const rolesAfter = this.usersService.sanitize(updated).roles;
+    const rolesChanged =
+      rolesBefore.length !== rolesAfter.length ||
+      rolesAfter.some((r) => !rolesBefore.includes(r));
+
+    if (rolesChanged) {
+      this.events.emit('account.role_changed', {
+        recipientIds: [userId],
+        newRole: this.usersService.sanitize(updated).role,
+        newRoles: rolesAfter,
+      });
+    }
 
     // Notifier uniquement les responsables reellement ajoutes : une mise a jour
     // de profil qui laisse la hierarchie inchangee ne doit rien declencher.

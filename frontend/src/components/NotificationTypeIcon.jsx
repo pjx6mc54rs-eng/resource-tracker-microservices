@@ -32,6 +32,12 @@ const FolderMinus = () => (
 const Checklist = () => (
   <><path d="M4 7l1.6 1.6L8.6 5.6" {...P} /><path d="M4 16l1.6 1.6L8.6 14.6" {...P} /><path d="M11.5 7.5H20M11.5 16.5H20" {...P} /></>
 )
+const ArrowRightCircle = () => (
+  <><circle cx="12" cy="12" r="9" {...P} /><path d="M8.2 12h6M12.1 9.3l2.9 2.7-2.9 2.7" {...P} /></>
+)
+const UserHandoff = () => (
+  <><circle cx="8.5" cy="8" r="3" {...P} /><path d="M3.5 18.5c0-2.9 2.2-4.8 5-4.8.8 0 1.6.15 2.3.45" {...P} /><path d="M13.5 17.5H20M17.5 15l2.5 2.5-2.5 2.5" {...P} /></>
+)
 const UserUp = () => (
   <><circle cx="10" cy="8" r="3.2" {...P} /><path d="M4.2 19c0-3.2 2.6-5.2 5.8-5.2 1.1 0 2.1.2 3 .7" {...P} /><path d="M17.5 19.5v-6M15 16l2.5-2.5L20 16" {...P} /></>
 )
@@ -50,20 +56,22 @@ const Bell = () => (
 
 /** type → { Icon, couleur d'accent, libellé accessible } */
 const TYPES = {
-  timesheet_submitted: { Icon: ClockDoc, color: '#2563eb', label: 'Feuille de temps soumise' },
-  timesheet_approved: { Icon: CheckCircle, color: '#16a34a', label: 'Feuille de temps validée' },
-  timesheet_rejected: { Icon: XCircle, color: '#dc2626', label: 'Feuille de temps refusée' },
-  timesheet_recalled: { Icon: Undo, color: '#d97706', label: 'Soumission retirée' },
+  timesheet_submitted: { Icon: ClockDoc, color: '#2563eb', label: 'Timesheet submitted' },
+  timesheet_approved: { Icon: CheckCircle, color: '#16a34a', label: 'Timesheet approved' },
+  timesheet_rejected: { Icon: XCircle, color: '#dc2626', label: 'Timesheet rejected' },
+  timesheet_recalled: { Icon: Undo, color: '#d97706', label: 'Submission withdrawn' },
 
-  project_assigned: { Icon: FolderPlus, color: '#2563eb', label: 'Affectation à un projet' },
-  project_unassigned: { Icon: FolderMinus, color: '#64748b', label: 'Retrait d’un projet' },
-  task_assigned: { Icon: Checklist, color: '#7c3aed', label: 'Tâche assignée' },
+  project_assigned: { Icon: FolderPlus, color: '#2563eb', label: 'Project assignment' },
+  project_unassigned: { Icon: FolderMinus, color: '#64748b', label: 'Removed from a project' },
+  task_assigned: { Icon: Checklist, color: '#7c3aed', label: 'Task assigned' },
+  task_reassigned: { Icon: UserHandoff, color: '#64748b', label: 'Task reassigned' },
+  task_status_changed: { Icon: ArrowRightCircle, color: '#0ea5e9', label: 'Task status updated' },
 
-  responsable_assigned: { Icon: UserUp, color: '#0d9488', label: 'Nouveau responsable' },
-  collaborator_attached: { Icon: Users, color: '#0d9488', label: 'Nouveau collaborateur' },
+  responsable_assigned: { Icon: UserUp, color: '#0d9488', label: 'New manager' },
+  collaborator_attached: { Icon: Users, color: '#0d9488', label: 'New collaborator' },
 
-  account_created: { Icon: Sparkle, color: '#16a34a', label: 'Compte créé' },
-  role_changed: { Icon: Shield, color: '#d97706', label: 'Rôle modifié' },
+  account_created: { Icon: Sparkle, color: '#16a34a', label: 'Account created' },
+  role_changed: { Icon: Shield, color: '#d97706', label: 'Role updated' },
 }
 
 // Repli pour un type inconnu : le frontend ne doit pas casser si le backend

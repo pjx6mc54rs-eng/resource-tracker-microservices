@@ -133,8 +133,10 @@ export class ProjectsController {
     @Body() body: UpdateTaskDto,
     @Headers() headers: IncomingHeaders,
   ) {
-    return this.accessProjectThen(projectId, headers, async () => {
-      return this.projectsService.updateTask(projectId, taskId, body);
+    // `userId` est undefined pour un admin : dans ce cas personne n'est exclu
+    // des notifications emises par updateTask.
+    return this.accessProjectThen(projectId, headers, async (userId) => {
+      return this.projectsService.updateTask(projectId, taskId, body, userId);
     });
   }
 

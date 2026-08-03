@@ -66,11 +66,11 @@ export class TimesheetPeriodsService {
 
   /** Libelle lisible du mois, pour le texte des notifications. */
   private static periodLabel(year: number, month: number): string {
-    const mois = [
-      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
-    return `${mois[month - 1] ?? month} ${year}`;
+    return `${months[month - 1] ?? month} ${year}`;
   }
 
   /** Nom affichable d'un utilisateur, avec repli sur son email. */

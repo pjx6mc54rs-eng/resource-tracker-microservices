@@ -11,18 +11,18 @@ import MoonIcon from './MoonIcon'
 import KeyIcon from './KeyIcon'
 import './Navbar.css'
 
-/** Ancienneté en clair : "il y a 3 h" est plus lisible qu'une date complète. */
+/** Ancienneté en clair : "3 h ago" est plus lisible qu'une date complète. */
 function formatRelative(value) {
   if (!value) return ''
   const diff = Date.now() - new Date(value).getTime()
   const min = Math.floor(diff / 60000)
-  if (min < 1) return "à l'instant"
-  if (min < 60) return `il y a ${min} min`
+  if (min < 1) return 'just now'
+  if (min < 60) return `${min} min ago`
   const h = Math.floor(min / 60)
-  if (h < 24) return `il y a ${h} h`
+  if (h < 24) return `${h} h ago`
   const d = Math.floor(h / 24)
-  if (d < 7) return `il y a ${d} j`
-  return new Date(value).toLocaleDateString('fr-FR')
+  if (d < 7) return `${d} d ago`
+  return new Date(value).toLocaleDateString()
 }
 
 export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
@@ -63,7 +63,7 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
             <button className="notification-btn" aria-label="Notifications" data-tooltip="Notifications">
               <NotificationIcon size="22px" />
               {unread > 0 && (
-                <span className="notification-badge-count" aria-label={`${unread} notification(s) non lue(s)`}>
+                <span className="notification-badge-count" aria-label={`${unread} unread notification(s)`}>
                   {unread > 99 ? '99+' : unread}
                 </span>
               )}
@@ -76,12 +76,12 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
                     type="button"
                     className="notification-count"
                     onClick={markAllAsRead}
-                    title="Tout marquer comme lu"
+                    title="Mark all as read"
                   >
-                    {unread} non lue{unread > 1 ? 's' : ''}
+                    {unread} unread
                   </button>
                 ) : (
-                  <span className="notification-count">À jour</span>
+                  <span className="notification-count">All caught up</span>
                 )}
               </div>
               <div className="dropdown-divider"></div>
@@ -89,7 +89,7 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
                 {items.length === 0 && (
                   <div className="notification-item">
                     <div className="notification-item-content">
-                      <p className="notification-text">Aucune notification.</p>
+                      <p className="notification-text">No notification yet.</p>
                     </div>
                   </div>
                 )}
@@ -108,7 +108,7 @@ export default function Navbar({ toggleSidebar, theme, toggleTheme }) {
                       {n.body && <p className="notification-body">{n.body}</p>}
                       <span className="notification-time">{formatRelative(n.createdAt)}</span>
                     </div>
-                    {!n.read && <span className="notification-item-dot" aria-label="Non lue"></span>}
+                    {!n.read && <span className="notification-item-dot" aria-label="Unread"></span>}
                   </Link>
                 ))}
               </div>

@@ -41,7 +41,7 @@ export class NotificationService {
 
       to: data.userEmail,
 
-      subject: `Nouvelle tâche assignée : ${data.taskTitle}`,
+      subject: `New task assigned: ${data.taskTitle}`,
 
       html: this.buildTaskAssignedTemplate(data.userName, data.taskTitle, deepLink),
 
@@ -83,11 +83,11 @@ export class NotificationService {
 
                     <td style="padding:32px;">
 
-                      <p style="font-size:16px; color:#1a1a1a; margin:0 0 16px;">Bonjour ${userName},</p>
+                      <p style="font-size:16px; color:#1a1a1a; margin:0 0 16px;">Hi ${userName},</p>
 
                       <p style="font-size:15px; color:#3d3d3a; line-height:1.6; margin:0 0 24px;">
 
-                        Une nouvelle tâche vient de vous être assignée :
+                        A new task has just been assigned to you:
 
                       </p>
 
@@ -105,7 +105,7 @@ export class NotificationService {
 
                             <a href="${deepLink}" target="_blank" style="display:inline-block; padding:12px 28px; color:#ffffff; text-decoration:none; font-size:15px; font-weight:bold;">
 
-                              Voir la tâche
+                              View the task
 
                             </a>
 
@@ -117,7 +117,7 @@ export class NotificationService {
 
                       <p style="font-size:13px; color:#888780; margin:24px 0 0;">
 
-                        Si le bouton ne fonctionne pas, copiez ce lien : <br/>
+                        If the button does not work, copy this link: <br/>
 
                         <a href="${deepLink}" style="color:#185fa5;">${deepLink}</a>
 

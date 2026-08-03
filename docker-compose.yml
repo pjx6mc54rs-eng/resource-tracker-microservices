@@ -66,8 +66,11 @@ services:
       DATABASE_PASSWORD: admin
       DATABASE_NAME: auth_db
       JWT_SECRET: change_this_secret
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     volumes:
       - ./auth-service/uploads:/app/uploads
@@ -84,8 +87,11 @@ services:
       DATABASE_USER: admin
       DATABASE_PASSWORD: admin
       DATABASE_NAME: project_db
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   timesheet-service:

@@ -19,9 +19,10 @@ import { NOTIFICATIONS_CLIENT } from './events.constants';
         name: NOTIFICATIONS_CLIENT,
         transport: Transport.RMQ,
         options: {
+          // Repli sur localhost pour le developpement hors conteneur ;
+          // docker compose et Kubernetes fournissent RABBITMQ_URL.
           urls: [
-            process.env.RABBITMQ_URL ||
-              'amqp://admin:admin@rabbitmq-service:5672',
+            process.env.RABBITMQ_URL || 'amqp://admin:admin@localhost:5672',
           ],
           queue: process.env.RABBITMQ_QUEUE || 'notifications',
           queueOptions: { durable: true },
