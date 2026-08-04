@@ -35,12 +35,17 @@ spec:
             - name: pgadmin-storage
               mountPath: /var/lib/pgadmin
           resources:
+            # pgAdmin 4 est une application Python/Flask : elle depasse
+            # regulierement 400 Mo. Le plafond de 256Mi la faisait tuer par le
+            # noyau (OOMKilled, exit 137) — 22 redemarrages constates, et un
+            # 504 sur le port 5050 a chaque fois. La VM dispose de 11 Go
+            # libres, ce plafond n'avait aucune raison d'etre si bas.
             requests:
-              memory: "128Mi"
+              memory: "256Mi"
               cpu: "100m"
             limits:
-              memory: "256Mi"
-              cpu: "250m"
+              memory: "768Mi"
+              cpu: "500m"
       volumes:
         - name: pgadmin-storage
           persistentVolumeClaim:
