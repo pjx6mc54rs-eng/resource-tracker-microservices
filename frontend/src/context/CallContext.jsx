@@ -43,6 +43,25 @@ export function CallProvider({ children }) {
   const [startedAt, setStartedAt] = useState(null)
   const statusRef = useRef(status)
 
+  /**
+   * Raison pour laquelle les appels sont indisponibles, ou null s'ils le sont.
+   *
+   * Les navigateurs reservent l'acces au micro et a la camera aux origines
+   * sures : en HTTP simple (hors localhost) `navigator.mediaDevices` n'existe
+   * meme pas. On expose le motif plutot qu'un simple booleen, afin que
+   * l'interface puisse l'afficher au lieu de masquer la fonction sans un mot.
+   */
+  const callUnavailableReason = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    if (!window.isSecureContext) {
+      return 'Les appels nécessitent une connexion sécurisée (HTTPS).'
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return 'Ce navigateur ne prend pas en charge les appels audio et vidéo.'
+    }
+    return null
+  }, [])
+
   const pcRef = useRef(null)
   const localStreamRef = useRef(null)
   const cameraTrackRef = useRef(null)             // piste camera mise de cote pendant un partage d'ecran
@@ -176,6 +195,7 @@ export function CallProvider({ children }) {
 
   // ------------------------------------------------------------ appel sortant
   const startCall = useCallback(async (channel, type = 'AUDIO') => {
+    if (callUnavailableReason) return showToast(callUnavailableReason, 'error')
     if (!socket || !isConnected) return showToast('Service de messagerie indisponible.', 'error')
     if (status !== IDLE) return showToast('Un appel est déjà en cours.', 'error')
     if (channel?.type !== 'DIRECT') {
@@ -224,7 +244,8 @@ export function CallProvider({ children }) {
         'error',
       )
     }
-  }, [socket, isConnected, status, showToast, getLocalStream, createPeerConnection, startRingtone])
+  }, [socket, isConnected, status, showToast, getLocalStream, createPeerConnection, startRingtone,
+      callUnavailableReason])
 
   // ------------------------------------------------------------ appel entrant
   const acceptCall = useCallback(async () => {
@@ -421,11 +442,13 @@ export function CallProvider({ children }) {
     localStreamRef, remoteStreamRef,
     startCall, acceptCall, declineCall, endCall,
     toggleMute, toggleCamera, toggleScreenShare,
-    isCallSupported: typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia,
+    isCallSupported: !callUnavailableReason,
+    callUnavailableReason,
     currentUserId: user?.id,
   }), [
     status, call, muted, cameraOff, sharingScreen, remoteMediaState, startedAt,
     startCall, acceptCall, declineCall, endCall, toggleMute, toggleCamera, toggleScreenShare, user?.id,
+    callUnavailableReason,
   ])
 
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>

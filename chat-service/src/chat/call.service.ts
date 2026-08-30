@@ -10,6 +10,14 @@ import { ChannelMember } from '../entities/channel-member.entity'
 /** Duree au-dela de laquelle un appel qui sonne est considere comme manque. */
 export const RINGING_TIMEOUT_MS = 45_000
 
+/**
+ * Duree au-dela de laquelle une conversation encore marquee « en cours » est
+ * tenue pour abandonnee. Sert de filet : une coupure reseau brutale des deux
+ * cotes empeche le raccrochage, et la ligne resterait active indefiniment,
+ * bloquant tout nouvel appel sur le canal.
+ */
+export const MAX_CALL_DURATION_MS = 4 * 60 * 60 * 1000
+
 @Injectable()
 export class CallService {
   private readonly logger = new Logger(CallService.name)
@@ -97,7 +105,20 @@ export class CallService {
         { channelId, status: CallStatus.ONGOING },
       ],
     })
-    if (active) throw new BadRequestException('Un appel est deja en cours sur ce canal')
+    if (active) {
+      // Une ligne restee active alors que plus personne n'est en communication
+      // bloquerait le canal pour toujours. On la clot puis on poursuit, plutot
+      // que de renvoyer une erreur que l'utilisateur ne peut pas resoudre.
+      if (this.isStale(active)) {
+        this.logger.warn(`Appel ${active.id} perime (${active.status}) : cloture automatique`)
+        await this.close(
+          active,
+          active.status === CallStatus.ONGOING ? CallStatus.ENDED : CallStatus.MISSED,
+        )
+      } else {
+        throw new BadRequestException('Un appel est deja en cours sur ce canal')
+      }
+    }
 
     const call = await this.calls.save(
       this.calls.create({ channelId, initiatorId, type, status: CallStatus.RINGING }),
@@ -108,6 +129,33 @@ export class CallService {
     ])
 
     return { call, peerIds }
+  }
+
+  /** Un appel encore actif bien au-dela des delais attendus est abandonne. */
+  private isStale(call: Call) {
+    const now = Date.now()
+    if (call.status === CallStatus.RINGING) {
+      return now - call.createdAt.getTime() > RINGING_TIMEOUT_MS * 2
+    }
+    if (call.status === CallStatus.ONGOING) {
+      const since = (call.answeredAt ?? call.createdAt).getTime()
+      return now - since > MAX_CALL_DURATION_MS
+    }
+    return false
+  }
+
+  /**
+   * Appels encore actifs auxquels participe un utilisateur. Utilise a la
+   * deconnexion pour liberer le correspondant.
+   */
+  async findActiveForUser(userId: string): Promise<Call[]> {
+    return this.calls
+      .createQueryBuilder('call')
+      .innerJoin(CallParticipant, 'p', 'p.call_id = call.id AND p.user_id = :userId', { userId })
+      .where('call.status IN (:...statuses)', {
+        statuses: [CallStatus.RINGING, CallStatus.ONGOING],
+      })
+      .getMany()
   }
 
   async accept(callId: string, userId: string) {

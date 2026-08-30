@@ -61,7 +61,7 @@ export default function MessagesPage() {
     markChannelAsRead
   } = useChat()
   const { showToast } = useToast()
-  const { startCall, status: callStatus, isCallSupported } = useCall()
+  const { startCall, status: callStatus, callUnavailableReason } = useCall()
   const [text, setText] = useState('')
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
@@ -964,14 +964,14 @@ export default function MessagesPage() {
                   <div className="chat-header-actions">
                     {/* Appels limites aux conversations directes : le face-a-face
                         est en pair a pair, le groupe demanderait un SFU. */}
-                    {activeChannel.type === 'DIRECT' && isCallSupported && (
+                    {activeChannel.type === 'DIRECT' && (
                       <>
                         <button
                           type="button"
                           className="chat-action-btn"
                           onClick={() => startCall(activeChannel, 'AUDIO')}
-                          disabled={callStatus !== 'idle'}
-                          title="Appel audio"
+                          disabled={callStatus !== 'idle' || !!callUnavailableReason}
+                          title={callUnavailableReason ?? 'Appel audio'}
                           aria-label="Démarrer un appel audio"
                           style={{ padding: '0.5rem', borderRadius: '50%', minWidth: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
@@ -981,8 +981,8 @@ export default function MessagesPage() {
                           type="button"
                           className="chat-action-btn"
                           onClick={() => startCall(activeChannel, 'VIDEO')}
-                          disabled={callStatus !== 'idle'}
-                          title="Appel vidéo"
+                          disabled={callStatus !== 'idle' || !!callUnavailableReason}
+                          title={callUnavailableReason ?? 'Appel vidéo'}
                           aria-label="Démarrer un appel vidéo"
                           style={{ padding: '0.5rem', borderRadius: '50%', minWidth: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >

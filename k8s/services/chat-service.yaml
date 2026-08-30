@@ -6,7 +6,17 @@ metadata:
   labels:
     app: chat-service
 spec:
-  replicas: 2
+  # Un seul replica, volontairement.
+  #
+  # Socket.IO conserve ses rooms en memoire de processus : « server.to(room)
+  # .emit() » ne touche que les sockets connectes AU MEME pod. Avec deux
+  # replicas et sans session persistante, un appelant et un appele repartis sur
+  # des pods differents ne se voient jamais - l'invitation d'appel n'arrive pas
+  # et le canal reste bloque sur une sonnerie sans fin.
+  #
+  # Passer a plusieurs replicas suppose un adaptateur partage (@socket.io/redis-adapter)
+  # et un Redis dans le cluster.
+  replicas: 1
   selector:
     matchLabels:
       app: chat-service
@@ -78,6 +88,26 @@ spec:
             configMapKeyRef:
               name: app-config
               key: NODE_ENV
+        - name: STUN_URLS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: STUN_URLS
+        - name: TURN_URLS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: TURN_URLS
+        - name: TURN_TTL_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: TURN_TTL_SECONDS
+        - name: TURN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: TURN_SECRET
         livenessProbe:
           httpGet:
             path: /health

@@ -7,7 +7,13 @@ metadata:
   name: resource-tracker-main-ingress
   namespace: resource-tracker
   annotations:
+    # Le TLS est termine par le nginx installe sur la VM, qui relaie ensuite en
+    # clair vers le NodePort de cet ingress : rien a chiffrer ici.
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # La messagerie et la signalisation des appels reposent sur une connexion
+    # WebSocket longue ; sans ces delais, nginx la coupe au bout de 60 s.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   ingressClassName: nginx
   rules:

@@ -424,15 +424,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  /** Clot les appels en cours d'un utilisateur qui vient de se deconnecter. */
+  /**
+   * Clot les appels d'un utilisateur qui vient de se deconnecter.
+   *
+   * La recherche passe par la base et non par la table des minuteries : une
+   * minuterie est supprimee des que l'appel est accepte, si bien qu'une
+   * conversation en cours ne s'y trouve plus et resterait ouverte a jamais.
+   */
   private async endCallsForUser(userId: string) {
-    for (const callId of Array.from(this.ringingTimers.keys())) {
+    let active: Awaited<ReturnType<typeof this.callService.findActiveForUser>> = []
+    try {
+      active = await this.callService.findActiveForUser(userId)
+    } catch (err) {
+      this.logger.warn(`Recherche des appels actifs impossible: ${(err as Error)?.message}`)
+      return
+    }
+    for (const call of active) {
+      this.clearRingingTimer(call.id)
       try {
-        const call = await this.callService.getActiveCall(callId)
-        if (!(call.participants ?? []).some((p) => p.userId === userId)) continue
-        await this.expireCall(callId)
-      } catch {
-        this.clearRingingTimer(callId)
+        const closed = await this.callService.end(call.id)
+        await this.broadcastToCall(call.id, 'call:ended', {
+          callId: call.id,
+          status: closed.status,
+          durationSeconds: closed.durationSeconds,
+        })
+      } catch (err) {
+        this.logger.warn(`Cloture de l'appel ${call.id} impossible: ${(err as Error)?.message}`)
       }
     }
   }

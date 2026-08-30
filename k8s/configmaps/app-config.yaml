@@ -25,3 +25,11 @@ data:
   NOTIFICATION_SERVICE_URL: http://notification-service:3000
   NODE_ENV: development
   PORT: "3000"
+  # --- Appels WebRTC -------------------------------------------------------
+  # STUN suffit quand les deux postes peuvent se joindre directement. TURN_URLS
+  # reste vide tant qu'aucun relais n'est deploye : les appels fonctionnent
+  # alors sauf entre deux reseaux a NAT strict. Renseigner l'adresse publique
+  # de la VM, par exemple turn:34.12.34.56:3478?transport=udp
+  STUN_URLS: "stun:stun.l.google.com:19302"
+  TURN_URLS: ""
+  TURN_TTL_SECONDS: "3600"
