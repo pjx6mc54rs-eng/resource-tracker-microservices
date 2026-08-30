@@ -5,6 +5,8 @@ import { PrivateRoute } from './components/PrivateRoute'
 import { AdminRoute } from './components/AdminRoute'
 import { ManagerRoute } from './components/ManagerRoute'
 import Navbar from './components/Navbar'
+import CallWindow from './components/CallWindow'
+import IncomingCallModal from './components/IncomingCallModal'
 import Sidebar from './components/Sidebar'
 import SunIcon from './components/SunIcon'
 import MoonIcon from './components/MoonIcon'
@@ -64,6 +66,10 @@ function App() {
 
   return (
     <>
+      {/* Surfaces d'appel : montees hors des routes pour rester visibles quelle
+          que soit la page ouverte. Elles ne rendent rien hors appel. */}
+      {token && <IncomingCallModal />}
+      {token && <CallWindow />}
       {showLayout && <Navbar toggleSidebar={toggleSidebar} theme={theme} toggleTheme={toggleTheme} />}
       {!showLayout && isAuthPage && (
         <button className="floating-theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme" title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}>

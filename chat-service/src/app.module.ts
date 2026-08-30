@@ -5,6 +5,8 @@ import { ChatModule } from './chat/chat.module'
 import { ChatChannel } from './entities/chat-channel.entity'
 import { ChatMessage } from './entities/chat-message.entity'
 import { ChannelMember } from './entities/channel-member.entity'
+import { Call } from './entities/call.entity'
+import { CallParticipant } from './entities/call-participant.entity'
 import { HealthController } from './health/health.controller';
 import * as path from 'path';
 
@@ -19,7 +21,7 @@ import * as path from 'path';
       username: process.env.DATABASE_USER ?? 'admin',
       password: process.env.DATABASE_PASSWORD ?? 'admin',
       database: process.env.DATABASE_NAME ?? 'chat_db',
-      entities: [ChatChannel, ChatMessage, ChannelMember],
+      entities: [ChatChannel, ChatMessage, ChannelMember, Call, CallParticipant],
       synchronize: true,
       migrationsRun: true,
       migrations: [path.join(__dirname, '/migrations/*.{ts,js}')],

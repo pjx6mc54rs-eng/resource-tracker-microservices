@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useChat } from '../../context/ChatContext'
 import { useToast } from '../../context/ToastContext'
+import { useCall } from '../../context/CallContext'
+import { PhoneIcon, VideoIcon } from '../../components/CallIcons'
 import API_URL from '../../config/api'
 import {
   createChatGroup,
@@ -59,6 +61,7 @@ export default function MessagesPage() {
     markChannelAsRead
   } = useChat()
   const { showToast } = useToast()
+  const { startCall, status: callStatus, isCallSupported } = useCall()
   const [text, setText] = useState('')
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null)
@@ -959,6 +962,34 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="chat-header-actions">
+                    {/* Appels limites aux conversations directes : le face-a-face
+                        est en pair a pair, le groupe demanderait un SFU. */}
+                    {activeChannel.type === 'DIRECT' && isCallSupported && (
+                      <>
+                        <button
+                          type="button"
+                          className="chat-action-btn"
+                          onClick={() => startCall(activeChannel, 'AUDIO')}
+                          disabled={callStatus !== 'idle'}
+                          title="Appel audio"
+                          aria-label="Démarrer un appel audio"
+                          style={{ padding: '0.5rem', borderRadius: '50%', minWidth: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <PhoneIcon size="18px" />
+                        </button>
+                        <button
+                          type="button"
+                          className="chat-action-btn"
+                          onClick={() => startCall(activeChannel, 'VIDEO')}
+                          disabled={callStatus !== 'idle'}
+                          title="Appel vidéo"
+                          aria-label="Démarrer un appel vidéo"
+                          style={{ padding: '0.5rem', borderRadius: '50%', minWidth: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <VideoIcon size="18px" />
+                        </button>
+                      </>
+                    )}
                     <div className="chat-header-menu-container">
                       <button
                         type="button"

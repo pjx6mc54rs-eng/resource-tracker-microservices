@@ -159,3 +159,212 @@ select {
 [data-theme='dark'] .floating-theme-toggle:hover {
   background-color: #1e293b;
 }
+
+/* ==========================================================================
+   Appels audio et video (WebRTC)
+   ========================================================================== */
+
+.call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: #0d1117;
+}
+
+.call-stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.call-remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Vue audio, ou vidéo distante coupée : pastille d'initiales */
+.call-avatar-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: #e6edf3;
+  text-align: center;
+}
+
+.call-avatar-large {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2e74b5, #1f4e79);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.call-avatar-stage h2 { margin: 0; font-size: 1.4rem; font-weight: 600; }
+.call-status-text { margin: 0; color: #9aa7b4; font-variant-numeric: tabular-nums; }
+
+.call-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.call-peer-name { font-weight: 600; }
+.call-timer { font-variant-numeric: tabular-nums; color: #d0d7de; }
+
+.call-remote-muted {
+  position: absolute;
+  top: 3.5rem;
+  left: 1.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+/* Incrustation du flux local */
+.call-local-pip {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: 200px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.call-local-pip video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);   /* effet miroir, attendu sur sa propre image */
+}
+
+.call-pip-off {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8b949e;
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #161b22;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.call-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #21262d;
+  color: #e6edf3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.call-btn:hover { background: #30363d; }
+.call-btn:active { transform: scale(0.94); }
+.call-btn.is-active { background: #e6edf3; color: #161b22; }
+
+.call-btn-hangup { background: #c0392b; border-color: #c0392b; color: #fff; }
+.call-btn-hangup:hover { background: #a93226; }
+.call-btn-accept { background: #2e9e5b; border-color: #2e9e5b; color: #fff; }
+.call-btn-accept:hover { background: #268049; }
+
+/* --------------------------------------------------------- appel entrant */
+
+.incoming-call-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 10, 15, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.incoming-call-card {
+  width: min(360px, 92vw);
+  padding: 2rem 1.5rem 1.5rem;
+  border-radius: 18px;
+  background: #161b22;
+  color: #e6edf3;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: incoming-call-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes incoming-call-pulse {
+  0%, 100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+  50%      { box-shadow: 0 20px 60px rgba(46, 116, 181, 0.55); }
+}
+
+.incoming-call-avatar {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2e74b5, #1f4e79);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.incoming-call-card h3 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+
+.incoming-call-type {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0 0 1.5rem;
+  color: #9aa7b4;
+  font-size: 0.9rem;
+}
+
+.incoming-call-actions { display: flex; justify-content: center; gap: 2rem; }
+
+@media (max-width: 640px) {
+  .call-local-pip { width: 128px; right: 0.75rem; bottom: 0.75rem; }
+  .call-btn { width: 48px; height: 48px; }
+  .call-controls { gap: 0.75rem; padding: 1rem; }
+}

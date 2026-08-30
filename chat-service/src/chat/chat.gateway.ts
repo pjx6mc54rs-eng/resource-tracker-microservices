@@ -11,6 +11,8 @@ import {
 } from '@nestjs/websockets'
 import type { Server, Socket } from 'socket.io'
 import { ChatService } from './chat-message.service'
+import { CallService, RINGING_TIMEOUT_MS } from './call.service'
+import { CallType } from '../entities/call.entity'
 import { JoinRoomDto, SendMessageDto } from './dto/chat.dto'
 import { AuthUser } from './project-access.service'
 
@@ -20,6 +22,8 @@ type ChatSocket = Socket & { data: { user?: AuthUser; token?: string } }
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name)
   private readonly activeUsers = new Map<string, Set<string>>()
+  /** Minuteries de sonnerie : un appel sans reponse bascule en « manque ». */
+  private readonly ringingTimers = new Map<string, NodeJS.Timeout>()
 
   @WebSocketServer()
   server!: Server
@@ -27,6 +31,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
       private readonly jwt: JwtService,
       private readonly chatService: ChatService,
+      private readonly callService: CallService,
   ) {}
 
   async handleConnection(client: ChatSocket) {
@@ -45,6 +50,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.logger.log(`WS connected: ${client.id} for user ${payload.sub}`)
       this.addSocketForUser(payload.sub, client.id)
+
+      // Room personnelle : la signalisation d'appel vise un utilisateur precis
+      // (et tous ses onglets ouverts), pas un canal.
+      await client.join(`user-${payload.sub}`)
 
       // Rejoint automatiquement toutes les rooms des canaux où l'utilisateur est déjà membre.
       await this.joinAllUserChannels(client, payload.sub)
@@ -66,6 +75,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (clients.size === 0) {
         this.activeUsers.delete(userId)
         this.server.emit('presence_update', { userId, online: false })
+        // Fermeture de l'onglet pendant un appel : le correspondant doit etre
+        // libere, sinon il reste bloque sur un ecran d'appel sans interlocuteur.
+        await this.endCallsForUser(userId)
       }
     }
   }
@@ -213,6 +225,224 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(room).emit('newMessage', payload)
     this.server.to(channel.id).emit('new_message', payload)
     return { ok: true, message: payload }
+  }
+
+  // ==========================================================================
+  // Signalisation WebRTC
+  //
+  // Seules les metadonnees de mise en relation transitent ici : description de
+  // session (SDP) et candidats reseau (ICE). Le flux audio/video circule
+  // directement entre les deux navigateurs, ou via TURN, mais jamais par ce
+  // service ni par l'api-gateway.
+  // ==========================================================================
+
+  @SubscribeMessage('call:invite')
+  async callInvite(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() body: { channelId: string; type?: string },
+  ) {
+    const user = client.data.user
+    if (!user || !body?.channelId) return { ok: false, message: 'Requête invalide' }
+
+    const type = body.type === 'VIDEO' ? CallType.VIDEO : CallType.AUDIO
+    try {
+      const { call, peerIds } = await this.callService.initiate(body.channelId, user.userId, type)
+
+      for (const peerId of peerIds) {
+        this.server.to(`user-${peerId}`).emit('call:incoming', {
+          callId: call.id,
+          channelId: call.channelId,
+          type: call.type,
+          from: user.userId,
+          createdAt: call.createdAt.toISOString(),
+        })
+      }
+
+      // Sans reponse au bout du delai, l'appel est clos en « manque » des deux
+      // cotes : sinon un correspondant hors ligne laisserait sonner indefiniment.
+      this.ringingTimers.set(
+        call.id,
+        setTimeout(() => void this.expireCall(call.id), RINGING_TIMEOUT_MS),
+      )
+
+      return { ok: true, callId: call.id, type: call.type, peerIds }
+    } catch (error: any) {
+      return { ok: false, message: error?.message ?? "Impossible d'ouvrir l'appel" }
+    }
+  }
+
+  @SubscribeMessage('call:accept')
+  async callAccept(@ConnectedSocket() client: ChatSocket, @MessageBody() body: { callId: string }) {
+    const user = client.data.user
+    if (!user || !body?.callId) return { ok: false, message: 'Requête invalide' }
+    try {
+      const call = await this.callService.accept(body.callId, user.userId)
+      this.clearRingingTimer(call.id)
+      this.broadcastToCall(call.id, 'call:accepted', { callId: call.id, by: user.userId })
+      return { ok: true, callId: call.id }
+    } catch (error: any) {
+      return { ok: false, message: error?.message ?? 'Échec de la prise d\'appel' }
+    }
+  }
+
+  @SubscribeMessage('call:decline')
+  async callDecline(@ConnectedSocket() client: ChatSocket, @MessageBody() body: { callId: string }) {
+    const user = client.data.user
+    if (!user || !body?.callId) return { ok: false, message: 'Requête invalide' }
+    try {
+      const call = await this.callService.decline(body.callId, user.userId)
+      this.clearRingingTimer(call.id)
+      this.broadcastToCall(call.id, 'call:ended', {
+        callId: call.id,
+        status: call.status,
+        by: user.userId,
+      })
+      return { ok: true }
+    } catch (error: any) {
+      return { ok: false, message: error?.message ?? 'Échec du refus' }
+    }
+  }
+
+  @SubscribeMessage('call:end')
+  async callEnd(@ConnectedSocket() client: ChatSocket, @MessageBody() body: { callId: string }) {
+    const user = client.data.user
+    if (!user || !body?.callId) return { ok: false, message: 'Requête invalide' }
+    try {
+      const call = await this.callService.end(body.callId, user.userId)
+      this.clearRingingTimer(call.id)
+      this.broadcastToCall(call.id, 'call:ended', {
+        callId: call.id,
+        status: call.status,
+        durationSeconds: call.durationSeconds,
+        by: user.userId,
+      })
+      return { ok: true }
+    } catch (error: any) {
+      return { ok: false, message: error?.message ?? 'Échec du raccrochage' }
+    }
+  }
+
+  /** Offre SDP de l'appelant, relayee telle quelle au correspondant. */
+  @SubscribeMessage('call:offer')
+  async callOffer(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() body: { callId: string; to: string; sdp: unknown },
+  ) {
+    return this.relaySignal(client, body?.callId, body?.to, 'call:offer', { sdp: body?.sdp })
+  }
+
+  /** Reponse SDP du correspondant. */
+  @SubscribeMessage('call:answer')
+  async callAnswer(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() body: { callId: string; to: string; sdp: unknown },
+  ) {
+    return this.relaySignal(client, body?.callId, body?.to, 'call:answer', { sdp: body?.sdp })
+  }
+
+  /** Candidat ICE : emis en rafale pendant toute la negociation. */
+  @SubscribeMessage('call:ice-candidate')
+  async callIceCandidate(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() body: { callId: string; to: string; candidate: unknown },
+  ) {
+    return this.relaySignal(client, body?.callId, body?.to, 'call:ice-candidate', {
+      candidate: body?.candidate,
+    })
+  }
+
+  @SubscribeMessage('call:media-state')
+  async callMediaState(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() body: { callId: string; muted?: boolean; cameraOff?: boolean },
+  ) {
+    const user = client.data.user
+    if (!user || !body?.callId) return { ok: false }
+    await this.callService.setMediaState(body.callId, user.userId, body)
+    this.broadcastToCall(body.callId, 'call:media-state', {
+      callId: body.callId,
+      userId: user.userId,
+      muted: body.muted,
+      cameraOff: body.cameraOff,
+    }, user.userId)
+    return { ok: true }
+  }
+
+  /**
+   * Relais d'un message de signalisation vers un correspondant donne.
+   * L'appartenance a l'appel est verifiee a chaque message : sans ce controle,
+   * n'importe quel client authentifie pourrait injecter une offre SDP dans une
+   * conversation qui ne le concerne pas.
+   */
+  private async relaySignal(
+    client: ChatSocket,
+    callId: string | undefined,
+    to: string | undefined,
+    event: string,
+    payload: Record<string, unknown>,
+  ) {
+    const user = client.data.user
+    if (!user || !callId || !to) return { ok: false, message: 'Requête invalide' }
+    try {
+      const call = await this.callService.getActiveCall(callId)
+      const memberIds = (call.participants ?? []).map((p) => p.userId)
+      if (!memberIds.includes(user.userId) || !memberIds.includes(to)) {
+        return { ok: false, message: 'Participant inconnu pour cet appel' }
+      }
+      this.server.to(`user-${to}`).emit(event, { ...payload, callId, from: user.userId })
+      return { ok: true }
+    } catch (error: any) {
+      return { ok: false, message: error?.message ?? 'Relais impossible' }
+    }
+  }
+
+  /** Diffuse un evenement a tous les participants (sauf exclusion). */
+  private async broadcastToCall(
+    callId: string,
+    event: string,
+    payload: Record<string, unknown>,
+    exceptUserId?: string,
+  ) {
+    try {
+      const call = await this.callService.getActiveCall(callId)
+      for (const participant of call.participants ?? []) {
+        if (participant.userId === exceptUserId) continue
+        this.server.to(`user-${participant.userId}`).emit(event, payload)
+      }
+    } catch (err) {
+      this.logger.warn(`Diffusion d'appel impossible (${callId}): ${(err as Error)?.message}`)
+    }
+  }
+
+  private async expireCall(callId: string) {
+    this.ringingTimers.delete(callId)
+    try {
+      const call = await this.callService.end(callId)
+      this.broadcastToCall(callId, 'call:ended', { callId, status: call.status })
+    } catch (err) {
+      this.logger.warn(`Expiration d'appel impossible (${callId}): ${(err as Error)?.message}`)
+    }
+  }
+
+  /** Clot les appels en cours d'un utilisateur qui vient de se deconnecter. */
+  private async endCallsForUser(userId: string) {
+    for (const callId of Array.from(this.ringingTimers.keys())) {
+      try {
+        const call = await this.callService.getActiveCall(callId)
+        if (!(call.participants ?? []).some((p) => p.userId === userId)) continue
+        await this.expireCall(callId)
+      } catch {
+        this.clearRingingTimer(callId)
+      }
+    }
+  }
+
+  private clearRingingTimer(callId: string) {
+    const timer = this.ringingTimers.get(callId)
+    if (timer) {
+      clearTimeout(timer)
+      this.ringingTimers.delete(callId)
+    }
   }
 
   // Fait rejoindre au client toutes les rooms des canaux où il est déjà membre en base

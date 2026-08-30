@@ -3,6 +3,8 @@ import { DataSource } from 'typeorm'
 import { ChatChannel } from './entities/chat-channel.entity'
 import { ChatMessage } from './entities/chat-message.entity'
 import { ChannelMember } from './entities/channel-member.entity'
+import { Call } from './entities/call.entity'
+import { CallParticipant } from './entities/call-participant.entity'
 
 dotenv.config()
 
@@ -13,7 +15,7 @@ export default new DataSource({
   username: process.env.DATABASE_USER ?? 'admin',
   password: process.env.DATABASE_PASSWORD ?? 'admin',
   database: process.env.DATABASE_NAME ?? 'chat_db',
-  entities: [ChatChannel, ChatMessage, ChannelMember],
+  entities: [ChatChannel, ChatMessage, ChannelMember, Call, CallParticipant],
   migrations: [__filename.endsWith('.ts') ? 'src/migrations/*.ts' : 'dist/migrations/*.js'],
   synchronize: false,
 })

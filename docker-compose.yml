@@ -17,6 +17,23 @@ services:
       timeout: 5s
       retries: 5
 
+  # Relais TURN/STUN pour les appels WebRTC. Indispensable des qu'un pare-feu
+  # ou un NAT symetrique empeche la connexion directe entre deux navigateurs :
+  # coturn relaie alors le flux media. Le secret partage sert a derouler les
+  # identifiants ephemeres calcules par chat-service (mecanisme REST de coturn).
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    network_mode: host
+    command: >
+      -n --log-file=stdout
+      --listening-port=3478
+      --realm=resource-tracker
+      --use-auth-secret --static-auth-secret=change_this_turn_secret
+      --min-port=49160 --max-port=49200
+      --no-tls --no-dtls --no-multicast-peers
+      --fingerprint
+
   postgres:
     image: postgres:16
     container_name: postgres
@@ -180,6 +197,13 @@ services:
       DATABASE_NAME: chat_db
       JWT_SECRET: change_this_secret
       CHAT_ENCRYPTION_KEY: 4698e7cef7ccbbfa98cf7b8fdcb333a697949df021f1cf3a65e2166618f1da5d
+      # Configuration ICE servie au navigateur avant chaque appel WebRTC.
+      # Sans TURN, les appels echouent entre deux postes derriere un NAT
+      # symetrique ; le secret doit etre identique a celui de coturn.
+      STUN_URLS: stun:stun.l.google.com:19302
+      TURN_URLS: turn:localhost:3478?transport=udp,turn:localhost:3478?transport=tcp
+      TURN_SECRET: change_this_turn_secret
+      TURN_TTL_SECONDS: 3600
       PROJECT_SERVICE_URL: http://project-service:3000
       AUTH_SERVICE_URL: http://auth-service:3000
     depends_on:

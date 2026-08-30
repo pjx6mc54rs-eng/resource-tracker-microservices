@@ -29,6 +29,7 @@ import {
   SendMessageDto,
 } from './dto/chat.dto'
 import { ProjectAccessService } from './project-access.service'
+import { CallService } from './call.service'
 
 
 @Controller('chat')
@@ -37,7 +38,28 @@ export class ChatController {
   constructor(
     private readonly chat: ChatService,
     private readonly access: ProjectAccessService,
+    private readonly calls: CallService,
   ) {}
+
+  /**
+   * Serveurs STUN/TURN a utiliser par le navigateur. Appele juste avant
+   * d'ouvrir la connexion pair a pair : les identifiants TURN sont ephemeres,
+   * il ne faut donc pas les mettre en cache cote client.
+   */
+  @Get('ice-servers')
+  getIceServers(@Req() request: RequestWithUser) {
+    return this.calls.getIceServers(request.user.userId)
+  }
+
+  /** Historique des appels d'un canal (journal affiche dans la conversation). */
+  @Get('channels/:channelId/calls')
+  getCallHistory(
+    @Param('channelId') channelId: string,
+    @Req() request: RequestWithUser,
+    @Query('limit') limit?: string,
+  ) {
+    return this.calls.history(channelId, request.user.userId, Number(limit) || 50)
+  }
 
   @Get('channels')
   async getChannels(
