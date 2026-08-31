@@ -90,6 +90,7 @@ jobs:
               reporting-service
               chat-service
               notification-service
+              meeting-service
               api-gateway
               frontend
             )
@@ -153,7 +154,7 @@ jobs:
             export DATABASE_USER="${DATABASE_USER:-admin}"
             export DATABASE_PASSWORD="${DATABASE_PASSWORD:-admin}"
 
-            MIGRATION_SERVICES=(auth-service project-service timesheet-service reporting-service chat-service)
+            MIGRATION_SERVICES=(auth-service project-service timesheet-service reporting-service chat-service meeting-service)
 
             for service in "${MIGRATION_SERVICES[@]}"; do
               echo "============================================================"
