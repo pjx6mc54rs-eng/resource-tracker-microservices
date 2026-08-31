@@ -26,6 +26,18 @@ const Undo = () => (
 const FolderPlus = () => (
   <><path d="M3.5 7.5a1.5 1.5 0 011.5-1.5h3.6l1.8 2h8.1a1.5 1.5 0 011.5 1.5v8a1.5 1.5 0 01-1.5 1.5H5a1.5 1.5 0 01-1.5-1.5z" {...P} /><path d="M12 11.5v4M10 13.5h4" {...P} /></>
 )
+const CalendarPlus = () => (
+  <><path d="M4.5 6.5h15v13h-15z" {...P} /><path d="M4.5 10.5h15M8.5 4v3M15.5 4v3" {...P} /><path d="M12 13v4M10 15h4" {...P} /></>
+)
+const CalendarClock = () => (
+  <><path d="M4.5 6.5h15v13h-15z" {...P} /><path d="M4.5 10.5h15M8.5 4v3M15.5 4v3" {...P} /><path d="M12 13v3l2 1.4" {...P} /></>
+)
+const CalendarX = () => (
+  <><path d="M4.5 6.5h15v13h-15z" {...P} /><path d="M4.5 10.5h15M8.5 4v3M15.5 4v3" {...P} /><path d="M10 13.5l4 4M14 13.5l-4 4" {...P} /></>
+)
+const CalendarCheck = () => (
+  <><path d="M4.5 6.5h15v13h-15z" {...P} /><path d="M4.5 10.5h15M8.5 4v3M15.5 4v3" {...P} /><path d="M9.5 15l1.8 1.8 3.4-3.6" {...P} /></>
+)
 const FolderMinus = () => (
   <><path d="M3.5 7.5a1.5 1.5 0 011.5-1.5h3.6l1.8 2h8.1a1.5 1.5 0 011.5 1.5v8a1.5 1.5 0 01-1.5 1.5H5a1.5 1.5 0 01-1.5-1.5z" {...P} /><path d="M10 13.5h4" {...P} /></>
 )
@@ -69,6 +81,11 @@ const TYPES = {
 
   responsable_assigned: { Icon: UserUp, color: '#0d9488', label: 'New manager' },
   collaborator_attached: { Icon: Users, color: '#0d9488', label: 'New collaborator' },
+
+  meeting_invited: { Icon: CalendarPlus, color: '#2563eb', label: 'Meeting invitation' },
+  meeting_updated: { Icon: CalendarClock, color: '#d97706', label: 'Meeting updated' },
+  meeting_cancelled: { Icon: CalendarX, color: '#dc2626', label: 'Meeting cancelled' },
+  meeting_response: { Icon: CalendarCheck, color: '#16a34a', label: 'Meeting response' },
 
   account_created: { Icon: Sparkle, color: '#16a34a', label: 'Account created' },
   role_changed: { Icon: Shield, color: '#d97706', label: 'Role updated' },

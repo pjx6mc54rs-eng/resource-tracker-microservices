@@ -12,6 +12,7 @@ import DashboardIcon from './DashboardIcon'
 import FolderIcon from './FolderIcon'
 import ChatBubbleIcon from './ChatBubbleIcon'
 import ClockIcon from './ClockIcon'
+import CalendarIcon from './CalendarIcon'
 import CheckCircleIcon from './CheckCircleIcon'
 import UsersIcon from './UsersIcon'
 import KeyIcon from './KeyIcon'
@@ -98,6 +99,10 @@ export default function Sidebar({ isOpen, theme, toggleTheme }) {
           {globalUnreadCount > 0 && (
             <span className="sidebar-badge unread-badge-global">{globalUnreadCount}</span>
           )}
+        </NavLink>
+        <NavLink to="/meetings" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <span className="sidebar-icon"><CalendarIcon size="20px" /></span>
+          <span className="sidebar-label">Meetings</span>
         </NavLink>
         <NavLink to="/timesheet" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
           <span className="sidebar-icon"><ClockIcon size="20px" /></span>

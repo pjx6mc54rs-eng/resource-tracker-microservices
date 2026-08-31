@@ -20,6 +20,7 @@ resources:
   - services/notification-service.yaml
   - services/reporting-service.yaml
   - services/chat-service.yaml
+  - services/meeting-service.yaml
   - services/api-gateway.yaml
   - services/frontend.yaml
   - services/network-policies.yaml

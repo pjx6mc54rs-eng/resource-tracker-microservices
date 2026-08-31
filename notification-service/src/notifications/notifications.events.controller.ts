@@ -98,6 +98,31 @@ function joinLabels(labels: string[]): string {
   return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
 }
 
+/** Charge utile commune aux evenements emis par meeting-service. */
+interface MeetingEvent {
+  recipientIds: string[];
+  meetingId: string;
+  title: string;
+  startsAt?: string;
+  slotChanged?: boolean;
+  response?: string;
+  actorName?: string | null;
+}
+
+/**
+ * Creneau lisible dans le corps de la notification. En cas de date invalide on
+ * renvoie une chaine neutre plutot que « Invalid Date », qui serait affichee
+ * telle quelle a l'utilisateur.
+ */
+function formatSlot(iso?: string): string {
+  if (!iso) return 'the scheduled time';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'the scheduled time';
+  return date.toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+  });
+}
+
 @Controller()
 export class NotificationsEventsController {
   private readonly logger = new Logger(NotificationsEventsController.name);
@@ -171,6 +196,69 @@ export class NotificationsEventsController {
   }
 
   // ----------------------------------------------------- Projets et taches
+
+  // ---------------------------------------------------------------- Reunions
+
+  @EventPattern('meeting.invited')
+  async onMeetingInvited(@Payload() e: MeetingEvent) {
+    await this.safely('meeting.invited', () =>
+      this.notifications.createMany(e.recipientIds, {
+        type: NotificationType.MEETING_INVITED,
+        title: 'Meeting invitation',
+        body: `You are invited to "${e.title}" on ${formatSlot(e.startsAt)}.`,
+        link: `/meetings/${e.meetingId}`,
+        actorName: e.actorName ?? null,
+      }),
+    );
+  }
+
+  @EventPattern('meeting.updated')
+  async onMeetingUpdated(@Payload() e: MeetingEvent) {
+    await this.safely('meeting.updated', () =>
+      this.notifications.createMany(e.recipientIds, {
+        type: NotificationType.MEETING_UPDATED,
+        title: 'Meeting updated',
+        // Un simple changement de titre n'exige pas de repondre a nouveau ;
+        // un changement de creneau, si.
+        body: e.slotChanged
+          ? `"${e.title}" has moved to ${formatSlot(e.startsAt)}. Please confirm your attendance again.`
+          : `The meeting "${e.title}" has been updated.`,
+        link: `/meetings/${e.meetingId}`,
+        actorName: e.actorName ?? null,
+      }),
+    );
+  }
+
+  @EventPattern('meeting.cancelled')
+  async onMeetingCancelled(@Payload() e: MeetingEvent) {
+    await this.safely('meeting.cancelled', () =>
+      this.notifications.createMany(e.recipientIds, {
+        type: NotificationType.MEETING_CANCELLED,
+        title: 'Meeting cancelled',
+        body: `"${e.title}" scheduled for ${formatSlot(e.startsAt)} has been cancelled.`,
+        link: '/meetings',
+        actorName: e.actorName ?? null,
+      }),
+    );
+  }
+
+  @EventPattern('meeting.response')
+  async onMeetingResponse(@Payload() e: MeetingEvent) {
+    const wording: Record<string, string> = {
+      ACCEPTED: 'accepted',
+      DECLINED: 'declined',
+      TENTATIVE: 'tentatively accepted',
+    };
+    await this.safely('meeting.response', () =>
+      this.notifications.createMany(e.recipientIds, {
+        type: NotificationType.MEETING_RESPONSE,
+        title: 'Meeting response',
+        body: `An invitee has ${wording[e.response ?? ''] ?? 'answered'} your invitation to "${e.title}".`,
+        link: `/meetings/${e.meetingId}`,
+        actorName: e.actorName ?? null,
+      }),
+    );
+  }
 
   @EventPattern('project.assigned')
   async onProjectAssigned(@Payload() e: ProjectAssignmentEvent) {

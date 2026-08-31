@@ -13,6 +13,7 @@ data:
   DATABASE_NAME_REPORTING: reporting_db
   DATABASE_NAME_CHAT: chat_db
   DATABASE_NAME_NOTIFICATION: notification_db
+  DATABASE_NAME_MEETING: meeting_db
   RABBITMQ_HOST: rabbitmq-service
   RABBITMQ_PORT: "5672"
   RABBITMQ_USER: admin
@@ -23,6 +24,7 @@ data:
   REPORTING_SERVICE_URL: http://reporting-service:3000
   CHAT_SERVICE_URL: http://chat-service:3000
   NOTIFICATION_SERVICE_URL: http://notification-service:3000
+  MEETING_SERVICE_URL: http://meeting-service:3000
   NODE_ENV: development
   PORT: "3000"
   # --- Appels WebRTC -------------------------------------------------------

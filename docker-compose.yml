@@ -214,6 +214,25 @@ services:
     volumes:
       - ./chat-service/uploads:/app/uploads
 
+  meeting-service:
+    build: ./meeting-service
+    container_name: meeting-service
+    expose:
+      - "3000"
+    environment:
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: admin
+      DATABASE_PASSWORD: admin
+      DATABASE_NAME: meeting_db
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
   # ============================================================
   # Passerelle et interface utilisateur
   # ============================================================
@@ -230,6 +249,7 @@ services:
       TIMESHEET_SERVICE_URL: http://timesheet-service:3000
       REPORTING_SERVICE_URL: http://reporting-service:3000
       CHAT_SERVICE_URL: http://chat-service:3000
+      MEETING_SERVICE_URL: http://meeting-service:3000
       NOTIFICATION_SERVICE_URL: http://notification-service:3000
     depends_on:
       - auth-service

@@ -11,6 +11,7 @@ export class ProxyController {
   private readonly reportingProxy: RequestHandler
   public readonly chatProxy: RequestHandler
   private readonly notificationProxy: RequestHandler;
+  private readonly meetingProxy: RequestHandler;
 
   constructor() {
     const commonOptions = {
@@ -104,6 +105,12 @@ export class ProxyController {
       target: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3006',
     })
 
+    this.meetingProxy = createProxyMiddleware({
+      ...commonOptions,
+      // 3007 en mode hote, apres notification-service (3006).
+      target: process.env.MEETING_SERVICE_URL || 'http://localhost:3007',
+    })
+
     this.chatProxy = createProxyMiddleware({
       ...commonOptions,
       pathRewrite: {
@@ -175,6 +182,18 @@ export class ProxyController {
   @UseGuards(JwtAuthGuard)
   handleTasksProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
     this.projectProxy(req, res, next);
+  }
+
+  @All('meetings')
+  @UseGuards(JwtAuthGuard)
+  handleMeetingsRootProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.meetingProxy(req, res, next);
+  }
+
+  @All('meetings/*')
+  @UseGuards(JwtAuthGuard)
+  handleMeetingsProxy(@Req() req: express.Request, @Res() res: express.Response, @Next() next: express.NextFunction) {
+    this.meetingProxy(req, res, next);
   }
 
   @All('notifications')

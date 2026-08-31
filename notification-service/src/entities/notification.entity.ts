@@ -25,6 +25,11 @@ export enum NotificationType {
   // Hierarchie
   RESPONSABLE_ASSIGNED = 'responsable_assigned',
   COLLABORATOR_ATTACHED = 'collaborator_attached',
+  // Reunions
+  MEETING_INVITED = 'meeting_invited',
+  MEETING_UPDATED = 'meeting_updated',
+  MEETING_CANCELLED = 'meeting_cancelled',
+  MEETING_RESPONSE = 'meeting_response',
   // Administration
   ACCOUNT_CREATED = 'account_created',
   ROLE_CHANGED = 'role_changed',
