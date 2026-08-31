@@ -63,6 +63,13 @@ spec:
             configMapKeyRef:
               name: app-config
               key: NOTIFICATION_SERVICE_URL
+        # Sans cette variable la passerelle retombe sur localhost:3007, ou rien
+        # n'ecoute dans un pod : /api/meetings repondrait 503.
+        - name: MEETING_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MEETING_SERVICE_URL
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:
