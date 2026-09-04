@@ -10,6 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { MeetingsService } from './meetings.service';
+import { AvailabilityService } from './availability.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { RespondDto } from './dto/respond.dto';
@@ -23,7 +24,34 @@ import type { IncomingHeaders } from '../common/request-user';
  */
 @Controller('meetings')
 export class MeetingsController {
-  constructor(private readonly meetings: MeetingsService) {}
+  constructor(
+    private readonly meetings: MeetingsService,
+    private readonly availability: AvailabilityService,
+  ) {}
+
+  /**
+   * Occupation des participants sur une plage, pour choisir le creneau avant
+   * de le fixer. `?userIds=a,b&from=ISO&to=ISO`
+   */
+  @Get('availability')
+  getAvailability(
+    @Headers() headers: IncomingHeaders,
+    @Query('userIds') userIds: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    const requesterId = requireUserId(headers);
+    const ids = (userIds ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+    return this.availability.getAvailability(
+      ids,
+      new Date(from),
+      new Date(to),
+      requesterId,
+    );
+  }
 
   /** Reunions de l'appelant, filtrables par fenetre temporelle. */
   @Get('me')

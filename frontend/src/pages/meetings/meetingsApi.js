@@ -70,6 +70,15 @@ export async function fetchConflicts({ startsAt, endsAt, userIds, exclude }, tok
   return request(`/meetings/conflicts?${params}`, { headers: getHeaders(token) })
 }
 
+/**
+ * Occupation des participants sur une plage : réunions déjà prises et jours
+ * d'absence. Interrogé avant de fixer le créneau, et non après.
+ */
+export async function fetchAvailability({ userIds, from, to }, token) {
+  const params = new URLSearchParams({ from, to, userIds: userIds.join(',') })
+  return request(`/meetings/availability?${params}`, { headers: getHeaders(token) })
+}
+
 /** Mémorise le canal de discussion ouvert pour une réunion à plus de deux. */
 export async function attachMeetingChannel(id, channelId, token) {
   return request(`/meetings/${id}/channel`, {

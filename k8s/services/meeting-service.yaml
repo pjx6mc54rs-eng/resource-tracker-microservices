@@ -62,6 +62,13 @@ spec:
             configMapKeyRef:
               name: app-config
               key: RABBITMQ_URL
+        # Lecture des absences declarees, pour la disponibilite. Optionnel :
+        # sans lui, la disponibilite se calcule sur les seules reunions.
+        - name: TIMESHEET_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: TIMESHEET_SERVICE_URL
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:

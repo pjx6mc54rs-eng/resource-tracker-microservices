@@ -9,10 +9,11 @@ import {
   attachMeetingChannel,
   cancelMeeting,
   createMeeting,
-  fetchConflicts,
+  fetchAvailability,
   fetchMyMeetings,
   respondToMeeting,
 } from './meetingsApi'
+import AvailabilityTimeline from './AvailabilityTimeline'
 import { PhoneIcon, VideoIcon } from '../../components/CallIcons'
 import CalendarIcon from '../../components/CalendarIcon'
 import './MeetingsPage.css'
@@ -55,7 +56,8 @@ export default function MeetingsPage() {
   const [error, setError] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [conflicts, setConflicts] = useState([])
+  const [availability, setAvailability] = useState([])
+  const [availLoading, setAvailLoading] = useState(false)
 
   // Memoise : `?? []` produirait un tableau neuf a chaque rendu, ce qui
   // invaliderait les callbacks qui en dependent.
@@ -118,28 +120,63 @@ export default function MeetingsPage() {
     return { upcoming: up, past: done }
   }, [meetings, now])
 
-  // --------------------------------------------------------- conflits
+  // ---------------------------------------------------- disponibilites
+
+  /** Participants affichés dans la frise : les invités plus l'organisateur. */
+  const timelineParticipants = useMemo(() => {
+    const list = form.participantIds
+      .map((id) => colleagues.find((c) => c.userId === id))
+      .filter(Boolean)
+      .map((c) => ({ userId: c.userId, name: c.name }))
+    return [{ userId: user?.id, name: 'Vous' }, ...list].filter((p) => p.userId)
+  }, [form.participantIds, colleagues, user?.id])
+
+  const slotDates = useMemo(() => {
+    const start = new Date(form.startsAt)
+    const end = new Date(form.endsAt)
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+    return { start, end }
+  }, [form.startsAt, form.endsAt])
 
   useEffect(() => {
-    const ids = [...form.participantIds, user?.id].filter(Boolean)
-    const askable = showForm && form.startsAt && form.endsAt && ids.length > 0
-    // Anti-rebond : le créneau change à chaque frappe dans le champ de date.
-    // Le nettoyage est aussi ce qui vide la liste quand le formulaire se ferme,
-    // sans appel a setConflicts pendant l'exécution de l'effet.
+    const ids = timelineParticipants.map((p) => p.userId)
+    // La frise couvre la journée entière : on interroge une fois par jour
+    // affiché, pas à chaque déplacement du créneau.
+    const askable = showForm && slotDates && ids.length > 0
     const timer = setTimeout(async () => {
-      if (!askable) return setConflicts([])
+      if (!askable) return setAvailability([])
+      const dayStart = new Date(slotDates.start)
+      dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(dayStart)
+      dayEnd.setHours(23, 59, 59, 999)
+      setAvailLoading(true)
       try {
-        setConflicts(await fetchConflicts({
-          startsAt: new Date(form.startsAt).toISOString(),
-          endsAt: new Date(form.endsAt).toISOString(),
+        setAvailability(await fetchAvailability({
           userIds: ids,
+          from: dayStart.toISOString(),
+          to: dayEnd.toISOString(),
         }, token))
       } catch {
-        setConflicts([])
+        setAvailability([])
+      } finally {
+        setAvailLoading(false)
       }
-    }, 400)
+    }, 350)
     return () => clearTimeout(timer)
-  }, [showForm, form.startsAt, form.endsAt, form.participantIds, token, user?.id])
+    // La dépendance porte sur le JOUR, pas sur l'heure : déplacer le créneau
+    // dans la même journée ne relance pas la requête.
+  }, [showForm, slotDates?.start?.toDateString(), form.participantIds, token, timelineParticipants])
+
+  /** Déplace le créneau en conservant sa durée. */
+  const moveSlotTo = useCallback((start) => {
+    setForm((prev) => {
+      const prevStart = new Date(prev.startsAt)
+      const prevEnd = new Date(prev.endsAt)
+      const durationMs = Math.max(15 * 60_000, prevEnd - prevStart)
+      const end = new Date(start.getTime() + durationMs)
+      return { ...prev, startsAt: toLocalInput(start), endsAt: toLocalInput(end) }
+    })
+  }, [])
 
   // --------------------------------------------------------- actions
 
@@ -375,17 +412,17 @@ export default function MeetingsPage() {
             )}
           </fieldset>
 
-          {conflicts.length > 0 && (
-            <div className="meeting-conflicts">
-              <strong>Créneau déjà occupé :</strong>
-              <ul>
-                {conflicts.map((c) => (
-                  <li key={c.id}>{c.title} — {formatRange(c.startsAt, c.endsAt)}</li>
-                ))}
-              </ul>
-              <p>Vous pouvez tout de même valider : ce n'est qu'un avertissement.</p>
-            </div>
-          )}
+          <div className="availability-panel">
+            <h4>Disponibilité des participants</h4>
+            <AvailabilityTimeline
+              day={slotDates?.start ?? new Date()}
+              participants={timelineParticipants}
+              availability={availability}
+              slot={slotDates}
+              onPickStart={moveSlotTo}
+              loading={availLoading}
+            />
+          </div>
 
           <div className="meeting-form-actions">
             <button type="submit" className="meeting-primary-btn" disabled={saving}>

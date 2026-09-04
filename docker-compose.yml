@@ -227,6 +227,7 @@ services:
       DATABASE_PASSWORD: admin
       DATABASE_NAME: meeting_db
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      TIMESHEET_SERVICE_URL: http://timesheet-service:3000
     depends_on:
       postgres:
         condition: service_healthy

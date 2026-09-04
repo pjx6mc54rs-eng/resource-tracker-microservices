@@ -113,6 +113,44 @@ export class TimesheetsService {
     return results;
   }
 
+  /**
+   * Jours declares comme conges ou feries, pour une liste d'utilisateurs et une
+   * plage de dates.
+   *
+   * Sert a la planification des reunions : proposer un creneau a quelqu'un en
+   * conge est la premiere cause de replanification. Volontairement limite a
+   * (utilisateur, date) : ni le projet, ni les heures, ni la note ne sortent
+   * d'ici, une information de presence n'ayant pas besoin du detail de la
+   * saisie.
+   */
+  async findAbsences(
+    userIds: string[],
+    from: string,
+    to: string,
+  ): Promise<{ userId: string; date: string }[]> {
+    if (userIds.length === 0) return [];
+    const rows = await this.timesheetRepository
+      .createQueryBuilder('t')
+      .select('t.user_id', 'userId')
+      .addSelect('t.date', 'date')
+      .where('t.user_id IN (:...userIds)', { userIds })
+      .andWhere('t.is_holiday = true')
+      .andWhere('t.date BETWEEN :from AND :to', { from, to })
+      .groupBy('t.user_id')
+      .addGroupBy('t.date')
+      .getRawMany();
+
+    return rows.map((row) => ({
+      userId: row.userId,
+      // La colonne est de type date : selon le pilote elle revient en Date ou
+      // en chaine. On normalise en AAAA-MM-JJ pour le client.
+      date:
+        row.date instanceof Date
+          ? row.date.toISOString().slice(0, 10)
+          : String(row.date).slice(0, 10),
+    }));
+  }
+
   async delete(id: string, userId: string): Promise<{ success: boolean }> {
     const timesheet = await this.timesheetRepository.findOne({ where: { id } });
     if (!timesheet) {

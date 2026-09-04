@@ -134,3 +134,128 @@
   .meeting-form-grid { grid-template-columns: 1fr; }
   .meeting-btn.cancel { margin-left: 0; }
 }
+
+/* ==========================================================================
+   Frise de disponibilité
+   ========================================================================== */
+
+.availability-panel {
+  border: 1px solid var(--border-color, #e2e6ea);
+  border-radius: 9px;
+  padding: 0.85rem 0.95rem;
+  margin-bottom: 1rem;
+}
+.availability-panel h4 {
+  margin: 0 0 0.6rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-secondary, #667);
+}
+
+.availability-verdict { margin-bottom: 0.7rem; font-size: 0.86rem; font-weight: 600; }
+.verdict-ok      { color: #1e6b3a; }
+.verdict-busy    { color: #922b21; }
+.verdict-loading { color: var(--text-secondary, #667); font-weight: 500; }
+
+.availability-grid { display: grid; gap: 0.3rem; }
+
+.availability-row { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 0.5rem; }
+
+.availability-name {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary, #333);
+}
+
+.availability-track {
+  position: relative;
+  height: 26px;
+  border-radius: 5px;
+  background: var(--hover-bg, #f2f6fa);
+  border: 1px solid var(--border-color, #e2e6ea);
+  overflow: hidden;
+}
+
+/* Échelle horaire */
+.availability-hours .availability-track {
+  height: 16px;
+  background: transparent;
+  border: none;
+  overflow: visible;
+}
+.availability-hour {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 0.66rem;
+  color: var(--text-secondary, #8a93a0);
+  white-space: nowrap;
+}
+
+/* Cases cliquables : invisibles, elles servent de zone de pointage */
+.availability-cell {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  background: transparent;
+  cursor: pointer;
+}
+.availability-cell:hover { background: rgba(46, 116, 181, 0.14); }
+
+.availability-busy {
+  position: absolute;
+  top: 3px;
+  height: calc(100% - 6px);
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    45deg, #e6a8a1, #e6a8a1 4px, #dd9a92 4px, #dd9a92 8px
+  );
+  color: #6b1f18;
+  font-size: 0.62rem;
+  line-height: 20px;
+  padding: 0 3px;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.availability-leave {
+  position: absolute;
+  inset: 3px;
+  border-radius: 3px;
+  background: #ffe9b8;
+  color: #7a5c12;
+  font-size: 0.66rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Créneau envisagé : au-dessus, en trait plein */
+.availability-slot {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border: 2px solid #2e74b5;
+  border-radius: 4px;
+  background: rgba(46, 116, 181, 0.2);
+  pointer-events: none;
+}
+
+.availability-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-secondary, #8a93a0);
+}
+
+@media (max-width: 720px) {
+  .availability-row { grid-template-columns: 74px 1fr; }
+  .availability-name { font-size: 0.72rem; }
+}

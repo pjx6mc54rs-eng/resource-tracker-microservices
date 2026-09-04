@@ -24,6 +24,31 @@ export class TimesheetsController {
     return userId;
   }
 
+  /**
+   * Jours d'absence declares par une liste de collaborateurs.
+   *
+   * Accessible a tout utilisateur authentifie : planifier une reunion suppose
+   * de connaitre les absences de ses collegues. Seuls (utilisateur, date)
+   * sortent d'ici, jamais le detail des saisies.
+   *
+   * `?userIds=a,b&from=AAAA-MM-JJ&to=AAAA-MM-JJ`
+   */
+  @Get('absences')
+  async getAbsences(
+    @Headers() headers: Record<string, any>,
+    @Query('userIds') userIds?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    this.extractUserId(headers);
+    const ids = (userIds ?? '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+    if (!ids.length || !from || !to) return [];
+    return this.timesheetsService.findAbsences(ids, from, to);
+  }
+
   @Get('me')
   async getMyTimesheets(
     @Headers() headers: Record<string, any>,
