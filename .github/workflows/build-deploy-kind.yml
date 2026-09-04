@@ -110,7 +110,26 @@ jobs:
 
             # ==================================================================
             # 2. APPLICATION DES MANIFESTES KUBERNETES
+            #
+            # Le tag des images est inscrit dans kustomization.yaml AVANT
+            # l'apply. L'apply porte donc la bonne image du premier coup : s'il
+            # echoue, rien n'est modifie, au lieu de laisser les deploiements
+            # sur une image inexistante.
             # ==================================================================
+            echo "🏷️  Inscription du tag $IMAGE_TAG dans kustomization.yaml..."
+            python3 - "$IMAGE_TAG" <<'PYTAG'
+            import re, sys
+            tag = sys.argv[1]
+            path = 'k8s/kustomization.yaml'
+            content = open(path).read()
+            # `newTag:` n'apparait que dans le bloc images.
+            content, count = re.subn(r'(?m)^(\s*newTag:\s*).*$', lambda m: m.group(1) + tag, content)
+            if count == 0:
+                raise SystemExit('Aucun newTag trouve dans kustomization.yaml')
+            open(path, 'w').write(content)
+            print(f'  {count} images taguees {tag}')
+            PYTAG
+
             echo "🚀 Application des manifestes Kubernetes..."
             kubectl apply -k k8s/
 
@@ -120,7 +139,7 @@ jobs:
             # ==================================================================
             # 3. VÉRIFICATION / CRÉATION DES BASES DE DONNÉES
             # ==================================================================
-            DATABASES=(auth_db project_db timesheet_db reporting_db chat_db notification_db)
+            DATABASES=(auth_db project_db timesheet_db reporting_db chat_db notification_db meeting_db)
 
             run_psql() {
               # $1 = base cible, $2 = commande SQL
@@ -202,17 +221,31 @@ jobs:
             # ==================================================================
             # 6. REDÉMARRAGE DES SERVICES
             # ==================================================================
-            echo "🔄 Redémarrage des services..."
+            # L'image provient desormais du manifeste : l'apply a deja declenche
+            # le rollout. Ni « set image » ni « rollout restart » ne sont donc
+            # necessaires — et les supprimer evite de faire diverger l'objet
+            # vivant du manifeste, ce qui rendait l'apply suivant invalide.
+            echo "🔄 Vérification du déploiement..."
+            FAILED=()
             for service in "${SERVICES[@]}"; do
-              echo "Mise à jour de l'image pour $service..."
-              kubectl set image "deployment/$service" "$service=$service:$IMAGE_TAG" -n resource-tracker || true
-
-              echo "Redémarrage de $service..."
-              kubectl rollout restart "deployment/$service" -n resource-tracker || true
-
-              echo "⏳ Attente de la disponibilité de $service..."
-              kubectl rollout status "deployment/$service" -n resource-tracker --timeout=120s || true
+              echo "⏳ $service..."
+              kubectl rollout status "deployment/$service" -n resource-tracker --timeout=180s \
+                || FAILED+=("$service")
             done
+
+            # Un echec ne doit plus passer inapercu : sans cela le job finissait
+            # en succes alors que des pods etaient en erreur, et le defaut ne se
+            # decouvrait qu'a l'usage.
+            if [ ${#FAILED[@]} -gt 0 ]; then
+              echo "❌ Services non stabilisés : ${FAILED[*]}"
+              for service in "${FAILED[@]}"; do
+                echo "--- $service ---"
+                kubectl -n resource-tracker get pods -l "app=$service" || true
+                kubectl -n resource-tracker logs -l "app=$service" --tail=30 || true
+              done
+              exit 1
+            fi
+            echo "✅ Tous les services sont à jour."
 
             # ==================================================================
             # 7. PURGE DES IMAGES OBSOLETES

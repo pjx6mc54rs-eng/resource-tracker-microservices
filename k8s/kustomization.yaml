@@ -26,6 +26,49 @@ resources:
   - services/network-policies.yaml
   - ingress/ingress.yaml
 
+# Images appliquees au cluster.
+#
+# La CI reecrit `newTag` avec le SHA du commit AVANT « kubectl apply -k » : les
+# manifestes portent donc deja la bonne image au moment de l'apply, qui suffit
+# a declencher le rollout.
+#
+# Auparavant l'image etait corrigee APRES l'apply par « kubectl set image ».
+# Deux consequences facheuses : une erreur d'apply laissait les deploiements
+# sur une image inexistante (ImagePullBackOff silencieux), et l'objet vivant
+# divergeait du manifeste — ce qui a fini par rendre l'apply lui-meme invalide.
+#
+# `newTag: latest` est la valeur par defaut du depot : elle correspond au second
+# tag pose par « docker build », donc un « kubectl apply -k k8s/ » lance a la
+# main reste coherent.
+images:
+  - name: resource-tracker-microservices-auth-service
+    newName: auth-service
+    newTag: latest
+  - name: resource-tracker-microservices-project-service
+    newName: project-service
+    newTag: latest
+  - name: resource-tracker-microservices-timesheet-service
+    newName: timesheet-service
+    newTag: latest
+  - name: resource-tracker-microservices-reporting-service
+    newName: reporting-service
+    newTag: latest
+  - name: resource-tracker-microservices-chat-service
+    newName: chat-service
+    newTag: latest
+  - name: resource-tracker-microservices-notification-service
+    newName: notification-service
+    newTag: latest
+  - name: resource-tracker-microservices-meeting-service
+    newName: meeting-service
+    newTag: latest
+  - name: resource-tracker-microservices-api-gateway
+    newName: api-gateway
+    newTag: latest
+  - name: resource-tracker-microservices-frontend
+    newName: frontend
+    newTag: latest
+
 labels:
   - pairs:
       app.kubernetes.io/name: resource-tracker
